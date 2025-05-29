@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon.png', 'icons/icon-192x192.png', 'icons/icon-512x512.png', 'splash.png'],
       manifest: {
-        name: 'Your App Name',
-        short_name: 'App',
+        name: 'Sudarshan Sena',
+        short_name: 'Langar',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
