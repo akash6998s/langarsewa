@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Home from "./pages/user/Home";
@@ -18,29 +18,38 @@ import ManageMembers from "./components/ManageMembers";
 import AllMember from "./components/AllMember";
 import ManageFinance from "./components/ManageFinance";
 import UsersList from "./components/UsersList";
+import Splash from './Splash';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("isLoggedIn") === "true"
   );
 
-  // Update login state when user logs in
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Show splash for 2 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleLogin = () => {
     setIsLoggedIn(true);
   };
 
-  // Handle logout (optional)
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     setIsLoggedIn(false);
   };
 
+  if (showSplash) {
+    return <Splash />;
+  }
+
   return (
     <Router>
-      {/* Show Navbar only if logged in */}
       {isLoggedIn && <Navbar onLogout={handleLogout} />}
       <Routes>
-        {/* Redirect root based on login status */}
         <Route
           path="/"
           element={
@@ -48,7 +57,6 @@ function App() {
           }
         />
 
-        {/* Protected routes */}
         {isLoggedIn ? (
           <>
             <Route path="/home" element={<Home />} />
@@ -63,12 +71,11 @@ function App() {
             <Route path="/managedonation" element={<ManageDonation />} />
             <Route path="/manageexpense" element={<ManageExpense />} />
             <Route path="/managemembers" element={<ManageMembers />} />
-             <Route path="/allmember" element={<AllMember />} />
-              <Route path="/managefinance" element={<ManageFinance />} />
-              <Route path="/userslist" element={<UsersList />} />
+            <Route path="/allmember" element={<AllMember />} />
+            <Route path="/managefinance" element={<ManageFinance />} />
+            <Route path="/userslist" element={<UsersList />} />
           </>
         ) : (
-          // Redirect all unknown routes to login
           <Route path="*" element={<Navigate to="/" />} />
         )}
       </Routes>
