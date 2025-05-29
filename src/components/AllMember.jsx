@@ -13,7 +13,7 @@ const AllMember = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await fetch("http://localhost:5000/members");
+        const res = await fetch("https://langarsewa-db.onrender.com/members");
         const data = await res.json();
         setMembers(data);
       } catch (err) {
@@ -42,7 +42,7 @@ const AllMember = () => {
           >
             <div className="aspect-w-1 aspect-h-1 w-full">
               <img
-                src={`http://localhost:5000/images/${member.img}`}
+                src={`https://langarsewa-db.onrender.com/images/${member.img}`}
                 alt={`${member.name} ${member.last_name}`}
                 className="w-full h-full object-cover"
               />

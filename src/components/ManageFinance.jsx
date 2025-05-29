@@ -25,12 +25,12 @@ const ManageFinance = () => {
 
       try {
         // Fetch donations data
-        const donationsRes = await fetch("http://localhost:5000/donations");
+        const donationsRes = await fetch("https://langarsewa-db.onrender.com/donations");
         const donationsJson = await donationsRes.json();
         setDonationsData(donationsJson);
 
         // Fetch expenses data
-        const expensesRes = await fetch("http://localhost:5000/expenses");
+        const expensesRes = await fetch("https://langarsewa-db.onrender.com/expenses");
         const expensesJson = await expensesRes.json();
         const normalizedData = expensesJson.map(expense => ({
           ...expense,

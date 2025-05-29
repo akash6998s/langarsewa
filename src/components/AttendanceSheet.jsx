@@ -36,7 +36,7 @@ const AttendanceSheet = () => {
     setLoading(true);
     setError(null);
 
-    fetch("http://localhost:5000/attendance")
+    fetch("https://langarsewa-db.onrender.com/attendance")
       .then((res) => {
         if (!res.ok) {
           throw new Error("Failed to fetch members");

@@ -59,7 +59,7 @@ const App = ({ onLogin }) => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const response = await fetch("http://localhost:5000/members");
+        const response = await fetch("https://langarsewa-db.onrender.com/members");
         if (!response.ok) throw new Error("Error fetching members");
         const data = await response.json();
         setMembers(data);
@@ -99,7 +99,7 @@ const App = ({ onLogin }) => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/signup/login", {
+      const response = await fetch("https://langarsewa-db.onrender.com/signup/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,7 +129,7 @@ const App = ({ onLogin }) => {
 
     if (signupRollNo && signupName && signupEmail && signupPassword) {
       try {
-        const response = await fetch("http://localhost:5000/signup", {
+        const response = await fetch("https://langarsewa-db.onrender.com/signup", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

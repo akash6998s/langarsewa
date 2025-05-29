@@ -12,7 +12,7 @@ const UsersList = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('http://localhost:5000/signup');
+        const res = await fetch('https://langarsewa-db.onrender.com/signup');
         if (!res.ok) throw new Error('Failed to fetch users');
         const data = await res.json();
         setUsers(data);
@@ -33,7 +33,7 @@ const UsersList = () => {
 
   const handleUpdateStatus = async (rollNumber, newStatus) => {
     try {
-      const response = await fetch('http://localhost:5000/signup/update-status', {
+      const response = await fetch('https://langarsewa-db.onrender.com/signup/update-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rollNumber, status: newStatus }),
