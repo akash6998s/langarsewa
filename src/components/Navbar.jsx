@@ -11,8 +11,8 @@ import {
   FileText,
   Users,
   Banknote,
+  LayoutDashboard,
 } from "lucide-react";
-
 
 function Navbar() {
   const [showMore, setShowMore] = useState(false);
@@ -38,7 +38,9 @@ function Navbar() {
           <NavLink
             to="/"
             className={({ isActive }) =>
-              `flex flex-col items-center ${isActive ? "text-blue-600" : "text-gray-500"}`
+              `flex flex-col items-center ${
+                isActive ? "text-blue-600" : "text-gray-500"
+              }`
             }
           >
             <Home size={20} />
@@ -49,7 +51,9 @@ function Navbar() {
           <NavLink
             to="/activity"
             className={({ isActive }) =>
-              `flex flex-col items-center ${isActive ? "text-blue-600" : "text-gray-500"}`
+              `flex flex-col items-center ${
+                isActive ? "text-blue-600" : "text-gray-500"
+              }`
             }
           >
             <List size={20} />
@@ -60,7 +64,9 @@ function Navbar() {
           <NavLink
             to="/notice"
             className={({ isActive }) =>
-              `flex flex-col items-center ${isActive ? "text-blue-600" : "text-gray-500"}`
+              `flex flex-col items-center ${
+                isActive ? "text-blue-600" : "text-gray-500"
+              }`
             }
           >
             <Bell size={20} />
@@ -71,7 +77,9 @@ function Navbar() {
           <NavLink
             to="/profile"
             className={({ isActive }) =>
-              `flex flex-col items-center ${isActive ? "text-blue-600" : "text-gray-500"}`
+              `flex flex-col items-center ${
+                isActive ? "text-blue-600" : "text-gray-500"
+              }`
             }
           >
             <User size={20} />
@@ -88,6 +96,34 @@ function Navbar() {
               className="absolute bottom-full mb-2 flex flex-col bg-white border border-gray-200 rounded shadow-md"
               style={{ left: "50%", transform: "translateX(-70%)" }}
             >
+              <li>
+                <NavLink
+                  to="/userslist"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
+                      isActive ? "text-blue-600 font-semibold" : ""
+                    }`
+                  }
+                  onClick={() => setShowMore(false)}
+                >
+                  <LayoutDashboard size={20} />
+                  Dashboard
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/managemembers"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
+                      isActive ? "text-blue-600 font-semibold" : ""
+                    }`
+                  }
+                  onClick={() => setShowMore(false)}
+                >
+                  <Users size={16} />
+                  Members
+                </NavLink>
+              </li>
               <li>
                 <NavLink
                   to="/manageattendance"
@@ -117,19 +153,19 @@ function Navbar() {
                 </NavLink>
               </li>
               <li>
-  <NavLink
-    to="/managefinance"
-    className={({ isActive }) =>
-      `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
-        isActive ? "text-blue-600 font-semibold" : ""
-      }`
-    }
-    onClick={() => setShowMore(false)}
-  >
-    <Banknote size={16} />
-    Finance
-  </NavLink>
-</li>
+                <NavLink
+                  to="/managefinance"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
+                      isActive ? "text-blue-600 font-semibold" : ""
+                    }`
+                  }
+                  onClick={() => setShowMore(false)}
+                >
+                  <Banknote size={16} />
+                  Finance
+                </NavLink>
+              </li>
 
               <li>
                 <NavLink
@@ -143,20 +179,6 @@ function Navbar() {
                 >
                   <FileText size={16} />
                   Expense
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/managemembers"
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
-                      isActive ? "text-blue-600 font-semibold" : ""
-                    }`
-                  }
-                  onClick={() => setShowMore(false)}
-                >
-                  <Users size={16} />
-                  Members
                 </NavLink>
               </li>
             </ul>

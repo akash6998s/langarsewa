@@ -15,31 +15,79 @@ function ManageAttendance() {
   const [selectedMonth, setSelectedMonth] = useState(months[today.getMonth()]);
   const [selectedDate, setSelectedDate] = useState(today.getDate());
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
-  const [selectedRolls, setSelectedRolls] = useState([]);
+  const [selectedRolls, setSelectedRolls] = useState([]); // multiple selections
   const [showPopup, setShowPopup] = useState(false);
+
+  // message: { text: string, type: "success" | "error" } | null
+  const [message, setMessage] = useState(null);
 
   const toggleRoll = (roll) => {
     setSelectedRolls((prev) =>
-      prev.includes(roll) ? prev.filter((r) => r !== roll) : [...prev, roll]
+      prev.includes(roll)
+        ? prev.filter((r) => r !== roll)
+        : [...prev, roll]
     );
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const payload = {
-      month: selectedMonth,
-      date: selectedDate,
-      year: selectedYear,
-      rolls: selectedRolls,
-      type: tab === "add" ? "Present" : "Delete"
-    };
-    alert(`${tab === "add" ? "Attendance Added!" : "Attendance Deleted!"}`);
-    console.log("Payload:", payload);
+  const handleTabChange = (newTab) => {
+    setTab(newTab);
     setSelectedRolls([]);
   };
 
+  const showMessage = (text, type = "success") => {
+    setMessage({ text, type });
+  };
+
+  const closeMessagePopup = () => {
+    setMessage(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (selectedRolls.length === 0) {
+      showMessage("Please select at least one roll number.", "error");
+      return;
+    }
+
+    const payload = {
+      year: selectedYear.toString(),
+      month: selectedMonth.toLowerCase(),
+      date: Number(selectedDate),
+      roll_numbers: selectedRolls,
+    };
+
+    const apiUrl =
+      tab === "add"
+        ? "https://langarsewa-db.onrender.com/attendance/update"
+        : "https://langarsewa-db.onrender.com/attendance/delete";
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        showMessage(
+          tab === "add"
+            ? "Attendance successfully added!"
+            : "Attendance successfully deleted!",
+          "success"
+        );
+        setSelectedRolls([]);
+      } else {
+        const errorData = await response.json();
+        showMessage(errorData.message || "Something went wrong.", "error");
+      }
+    } catch (error) {
+      showMessage("Network error. Please check your connection.", error);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fefcea] via-[#f8e1c1] to-[#fbd6c1] text-[#4e342e] font-serif">
+    <div className="min-h-screen bg-gradient-to-br from-[#fefcea] via-[#f8e1c1] to-[#fbd6c1] text-[#4e342e] font-serif relative">
       <div className="max-w-5xl mx-auto px-4 py-10">
         <h1 className="text-5xl font-bold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
           सेवा उपस्थिति प्रबंधन
@@ -47,7 +95,7 @@ function ManageAttendance() {
 
         <div className="flex justify-center mb-8">
           <button
-            onClick={() => setTab("add")}
+            onClick={() => handleTabChange("add")}
             className={`px-8 py-3 rounded-l-full border-y border-l border-[#c08457] text-lg transition-all duration-300 shadow-sm ${
               tab === "add"
                 ? "bg-[#ff9800] text-white font-semibold shadow-lg"
@@ -57,7 +105,7 @@ function ManageAttendance() {
             Add Attendance
           </button>
           <button
-            onClick={() => setTab("delete")}
+            onClick={() => handleTabChange("delete")}
             className={`px-8 py-3 rounded-r-full border-y border-r border-[#c08457] text-lg transition-all duration-300 shadow-sm ${
               tab === "delete"
                 ? "bg-[#e53935] text-white font-semibold shadow-lg"
@@ -110,20 +158,8 @@ function ManageAttendance() {
               onClick={() => setShowPopup(true)}
               className="bg-gradient-to-r from-yellow-500 to-orange-400 text-white px-8 py-3 rounded-xl hover:scale-105 transition shadow-md"
             >
-              Select Roll Numbers
+              Select Roll Number(s)
             </button>
-            {selectedRolls.length > 0 && (
-              <div className="mt-5 flex flex-wrap justify-center gap-2">
-                {selectedRolls.map((roll) => (
-                  <span
-                    key={roll}
-                    className="bg-[#ffe082] text-[#4e342e] px-4 py-1 rounded-full text-sm shadow"
-                  >
-                    {roll}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           <div className="text-center">
@@ -141,24 +177,30 @@ function ManageAttendance() {
         </form>
       </div>
 
+      {/* Popup Roll Selector */}
       {showPopup && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md max-h-[80vh] overflow-y-auto shadow-xl border border-orange-200">
-            <h3 className="text-2xl font-bold text-center mb-6 text-[#6d4c41]">Select Roll Numbers</h3>
+          <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md  overflow-y-auto shadow-xl border border-orange-200">
+            <h3 className="text-2xl font-bold text-center mb-6 text-[#6d4c41]">
+              Select Roll Number(s)
+            </h3>
             <div className="grid grid-cols-4 gap-4">
-              {rollNumbers.map((roll) => (
-                <button
-                  key={roll}
-                  onClick={() => toggleRoll(roll)}
-                  className={`px-4 py-2 rounded-lg text-sm transition ${
-                    selectedRolls.includes(roll)
-                      ? "bg-[#f59e0b] text-white"
-                      : "bg-gray-100 hover:bg-yellow-100"
-                  }`}
-                >
-                  {roll}
-                </button>
-              ))}
+              {rollNumbers.map((roll) => {
+                const isSelected = selectedRolls.includes(roll);
+                return (
+                  <button
+                    key={roll}
+                    onClick={() => toggleRoll(roll)}
+                    className={`px-4 py-2 rounded-lg text-sm transition ${
+                      isSelected
+                        ? "bg-[#f59e0b] text-white"
+                        : "bg-gray-100 hover:bg-yellow-100"
+                    }`}
+                  >
+                    {roll}
+                  </button>
+                );
+              })}
             </div>
             <div className="mt-6 text-center">
               <button
@@ -168,6 +210,31 @@ function ManageAttendance() {
                 Done
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message Popup Modal */}
+      {message && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-60">
+          <div
+            className={`max-w-sm w-full p-6 rounded-xl shadow-lg text-center ${
+              message.type === "success"
+                ? "bg-green-100 text-green-900 border border-green-400"
+                : "bg-red-100 text-red-900 border border-red-400"
+            }`}
+          >
+            <p className="text-lg font-semibold mb-4">{message.text}</p>
+            <button
+              onClick={closeMessagePopup}
+              className={`px-6 py-2 rounded-lg font-semibold transition ${
+                message.type === "success"
+                  ? "bg-green-500 text-white hover:bg-green-600"
+                  : "bg-red-500 text-white hover:bg-red-600"
+              }`}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

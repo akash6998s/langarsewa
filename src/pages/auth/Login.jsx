@@ -112,6 +112,7 @@ const App = ({ onLogin }) => {
       if (response.ok) {
         // Assuming your backend sends a success message or token upon successful login
         localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("rollNumber", data.rollNumber);
         showMessageBox("Login successful!", "success");
         onLogin(); // Call the onLogin prop to indicate successful login to parent component
       } else {

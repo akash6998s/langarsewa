@@ -1,8 +1,18 @@
 import { useState } from "react";
 
 const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const rollNumbers = Array.from({ length: 30 }, (_, i) => `${i + 1}`);
@@ -13,46 +23,86 @@ function ManageDonation() {
 
   const [tab, setTab] = useState("add");
   const [year, setYear] = useState(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState(months[new Date().getMonth()]);
+  const [selectedMonth, setSelectedMonth] = useState(
+    months[new Date().getMonth()]
+  );
   const [selectedRolls, setSelectedRolls] = useState([]);
   const [amount, setAmount] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const [message, setMessage] = useState(null); // {type: 'success'|'error', text: string}
 
-  // Toggle function for roll numbers to allow multiple selections
+  // Single-select toggle for roll numbers:
   const toggleRoll = (roll) => {
-    setSelectedRolls((prev) => {
-      if (prev.includes(roll)) {
-        // Remove if already selected
-        return prev.filter((r) => r !== roll);
-      } else {
-        // Add if not selected
-        return [...prev, roll];
-      }
-    });
+    if (selectedRolls.includes(roll)) {
+      setSelectedRolls([]);
+    } else {
+      setSelectedRolls([roll]);
+    }
   };
 
-  const handleSubmit = (e) => {
+  const closeMessagePopup = () => {
+    setMessage(null);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (tab === "add" && (!amount || isNaN(amount) || Number(amount) <= 0)) {
-      alert("Please enter a valid donation amount.");
+      setMessage({ type: "error", text: "Please enter a valid donation amount." });
       return;
     }
+
     if (selectedRolls.length === 0) {
-      alert("Please select at least one roll number.");
+      setMessage({ type: "error", text: "Please select a roll number." });
       return;
     }
-    const payload = {
-      year,
-      month: selectedMonth,
-      rolls: selectedRolls,
-      amount: tab === "add" ? Number(amount) : 0,
-      type: tab === "add" ? "Add Donation" : "Delete Donation",
-    };
-    alert(tab === "add" ? "Donation Added!" : "Donation Deleted!");
-    console.log("Payload:", payload);
-    setSelectedRolls([]);
-    setAmount("");
-    setShowPopup(false);
+
+    try {
+      for (const roll of selectedRolls) {
+        const payload = {
+          roll_no: roll,
+          year: String(year),
+          month: selectedMonth.toLowerCase(),
+          amount: Number(amount),
+        };
+
+        let response, data;
+        if (tab === "add") {
+          response = await fetch("https://langarsewa-db.onrender.com/donations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.message || `Failed to add donation for roll ${roll}`);
+          }
+        } else {
+          response = await fetch("https://langarsewa-db.onrender.com/donations/deduct-donation", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.message || `Failed to delete donation for roll ${roll}`);
+          }
+        }
+      }
+
+      setMessage({
+        type: "success",
+        text:
+          tab === "add"
+            ? "Donations added successfully!"
+            : "Donations deleted successfully!",
+      });
+      setSelectedRolls([]);
+      setAmount("");
+      setShowPopup(false);
+    } catch (error) {
+      setMessage({ type: "error", text: error.message || "Something went wrong." });
+    }
   };
 
   return (
@@ -132,7 +182,7 @@ function ManageDonation() {
               onClick={() => setShowPopup(true)}
               className="bg-gradient-to-r from-yellow-500 to-orange-400 text-white px-8 py-3 rounded-xl hover:scale-105 transition shadow-md"
             >
-              Select Roll Numbers
+              Select Roll Number
             </button>
             {selectedRolls.length > 0 && (
               <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -165,9 +215,9 @@ function ManageDonation() {
 
       {showPopup && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md max-h-[80vh] overflow-y-auto shadow-xl border border-orange-200">
+          <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md  overflow-y-auto shadow-xl border border-orange-200">
             <h3 className="text-2xl font-bold text-center mb-6 text-[#6d4c41]">
-              Select Roll Numbers
+              Select Roll Number
             </h3>
             <div className="grid grid-cols-4 gap-4">
               {rollNumbers.map((roll) => (
@@ -193,6 +243,31 @@ function ManageDonation() {
                 Done
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message Popup Modal */}
+      {message && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-60">
+          <div
+            className={`max-w-sm w-full p-6 rounded-xl shadow-lg text-center ${
+              message.type === "success"
+                ? "bg-green-100 text-green-900 border border-green-400"
+                : "bg-red-100 text-red-900 border border-red-400"
+            }`}
+          >
+            <p className="text-lg font-semibold mb-4">{message.text}</p>
+            <button
+              onClick={closeMessagePopup}
+              className={`px-6 py-2 rounded-lg font-semibold transition ${
+                message.type === "success"
+                  ? "bg-green-500 text-white hover:bg-green-600"
+                  : "bg-red-500 text-white hover:bg-red-600"
+              }`}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

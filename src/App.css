@@ -1,0 +1,78 @@
+.sidebar {
+  width: 250px; /* Adjust as needed */
+  background-color: #333;
+  color: white;
+  position: fixed;
+  top: 0;
+  left: -250px; /* Initially off-screen */
+  height: 100%;
+  transition: left 0.3s ease-in-out; /* Smooth transition */
+  padding-top: 60px; /* Space for hamburger if it's at the top */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000; /* Ensure it's above other content */
+}
+
+.sidebar.open {
+  left: 0; /* Slide into view */
+}
+
+.hamburger {
+  position: absolute;
+  top: 20px;
+  right: -50px; /* Position it outside the sidebar initially */
+  width: 30px;
+  height: 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  z-index: 1001; /* Ensure hamburger is clickable */
+}
+
+/* When sidebar is open, adjust hamburger position if needed */
+.sidebar.open .hamburger {
+  right: 20px; /* Adjust if you want it inside when open */
+}
+
+.bar {
+  width: 100%;
+  height: 3px;
+  background-color: #333; /* Hamburger bar color */
+  border-radius: 2px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Hamburger animation when sidebar is open */
+.sidebar.open .hamburger .bar:nth-child(1) {
+  transform: translateY(11px) rotate(45deg);
+}
+
+.sidebar.open .hamburger .bar:nth-child(2) {
+  opacity: 0;
+}
+
+.sidebar.open .hamburger .bar:nth-child(3) {
+  transform: translateY(-11px) rotate(-45deg);
+}
+
+
+.nav-menu ul {
+  list-style: none;
+  padding: 0;
+}
+
+.nav-menu li {
+  margin-bottom: 10px;
+}
+
+.nav-menu a {
+  text-decoration: none;
+  color: white;
+  padding: 10px 20px;
+  display: block;
+  transition: background-color 0.2s ease;
+}
+
+.nav-menu a:hover {
+  background-color: #555;
+}

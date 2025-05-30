@@ -1,12 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import AttendanceSheet from "../../components/AttendanceSheet";
+import UserProfileDropdown from "../../components/UserProfileDropdown";
 
 const Home = () => {
   const navigate = useNavigate();
 
   return (
     <div className="p-6">
+      <UserProfileDropdown/>
       {/* Heading */}
       <h1 className="text-3xl font-bold text-center mb-8 text-yellow-800">
         सुदर्शन सेना - भोजन वितरण

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Loader from "./Loader";
+import { Check } from "lucide-react";
 
 const months = [
   { name: "January", number: 0 },
@@ -179,7 +180,8 @@ const AttendanceSheet = () => {
                             role="img"
                             className="text-green-600 font-bold select-none"
                           >
-                            ✓
+                            
+<Check className="text-green-600 w-5 h-5 font-bold" aria-label="Present" />
                           </span>
                         )}
                       </td>

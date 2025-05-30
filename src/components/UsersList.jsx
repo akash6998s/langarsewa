@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import Loader from "./Loader";
 
 const UsersList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('pending');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
@@ -26,7 +27,6 @@ const UsersList = () => {
   }, [refreshTrigger]);
 
   const filteredUsers = users.filter(user => {
-    if (activeTab === 'all') return true;
     const userStatus = user.status ? user.status.toLowerCase() : 'pending';
     return userStatus === activeTab;
   });
@@ -50,12 +50,8 @@ const UsersList = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <p className="text-lg text-gray-600">Loading users...</p>
-      </div>
-    );
+ if (loading) {
+    return <Loader />;
   }
 
   if (error) {
@@ -105,15 +101,13 @@ const UsersList = () => {
                 <th className="text-left px-6 py-3 font-semibold text-gray-700">Roll Number</th>
                 <th className="text-left px-6 py-3 font-semibold text-gray-700">Email</th>
                 <th className="text-left px-6 py-3 font-semibold text-gray-700">Status</th>
-                {activeTab !== 'all' && (
-                  <th className="text-left px-6 py-3 font-semibold text-gray-700">Actions</th>
-                )}
+                <th className="text-left px-6 py-3 font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={activeTab !== 'all' ? 4 : 3} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
                     No users found for this status.
                   </td>
                 </tr>
@@ -135,44 +129,42 @@ const UsersList = () => {
                           {status.charAt(0).toUpperCase() + status.slice(1)}
                         </span>
                       </td>
-                      {activeTab !== 'all' && (
-                        <td className="px-6 py-4">
-                          <div className="flex gap-2 flex-wrap">
-                            {status === 'pending' && (
-                              <>
-                                <button
-                                  onClick={() => handleUpdateStatus(user.rollNumber, 'approved')}
-                                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium"
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() => handleUpdateStatus(user.rollNumber, 'reject')}
-                                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-medium"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                            {status === 'approved' && (
-                              <button
-                                onClick={() => handleUpdateStatus(user.rollNumber, 'reject')}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-medium"
-                              >
-                                Reject
-                              </button>
-                            )}
-                            {status === 'reject' && (
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2 flex-wrap">
+                          {status === 'pending' && (
+                            <>
                               <button
                                 onClick={() => handleUpdateStatus(user.rollNumber, 'approved')}
                                 className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium"
                               >
                                 Approve
                               </button>
-                            )}
-                          </div>
-                        </td>
-                      )}
+                              <button
+                                onClick={() => handleUpdateStatus(user.rollNumber, 'reject')}
+                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-medium"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                          {status === 'approved' && (
+                            <button
+                              onClick={() => handleUpdateStatus(user.rollNumber, 'reject')}
+                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-medium"
+                            >
+                              Reject
+                            </button>
+                          )}
+                          {status === 'reject' && (
+                            <button
+                              onClick={() => handleUpdateStatus(user.rollNumber, 'delete')}
+                              className="bg-red-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })
