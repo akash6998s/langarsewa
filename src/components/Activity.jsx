@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Loader from "./Loader";
 import { Check } from "lucide-react";
+import { theme } from ".././theme";
 
 const Activity = () => {
   const [attendanceData, setAttendanceData] = useState(null);
@@ -8,7 +9,7 @@ const Activity = () => {
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear().toString()
   );
-  const [activeTab, setActiveTab] = useState("attendance"); // 'attendance' or 'donations'
+  const [activeTab, setActiveTab] = useState("attendance");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -35,10 +36,9 @@ const Activity = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null); // Clear previous errors
+        setError(null);
         const rollNumber = localStorage.getItem("rollNumber");
 
-        // Fetch Attendance Data
         const attendanceResponse = await fetch(
           `https://langarsewa-db.onrender.com/attendance/${rollNumber}`
         );
@@ -49,7 +49,6 @@ const Activity = () => {
         const attendanceJson = await attendanceResponse.json();
         setAttendanceData(attendanceJson);
 
-        // Fetch Donation Data
         const donationResponse = await fetch(
           `https://langarsewa-db.onrender.com/donations/summary/${rollNumber}`
         );
@@ -60,7 +59,6 @@ const Activity = () => {
         const donationJson = await donationResponse.json();
         setDonationData(donationJson);
 
-        // Set selected year to the latest available year if current year has no data
         const availableYears = Object.keys(attendanceJson.attendance);
         if (
           !availableYears.includes(selectedYear) &&
@@ -114,39 +112,16 @@ const Activity = () => {
     );
   };
 
-  // --- Loading State ---
   if (loading) {
     return <Loader />;
   }
 
-  // --- Error State ---
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50 p-4 font-sans">
-        <div className="flex flex-col items-center p-10 bg-white rounded-3xl shadow-2xl border border-red-100">
-          <svg
-            className="w-24 h-24 text-red-500 mb-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
-          <p className="text-3xl font-serif font-bold text-red-700 mb-4">
-            A Moment of Disconnect
-          </p>
-          <p className="text-lg text-gray-600 text-center leading-relaxed">
-            The path to data is currently obscured.
-            <br />
-            Error: {error}. Please attempt to refresh the connection.
-          </p>
-        </div>
+      <div className="max-w-md mx-auto mt-20 p-8 bg-red-100 rounded-lg shadow-lg text-red-700 font-sans text-center">
+        <h2 className="text-2xl font-bold mb-4">Oops! Something went wrong</h2>
+        <p className="mb-2">{error}</p>
+        <p>Please try refreshing the page or check your connection.</p>
       </div>
     );
   }
@@ -156,296 +131,301 @@ const Activity = () => {
   const yearlyDonationTotal = calculateYearlyDonationTotal();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8 flex justify-center items-start font-sans">
-      <div className="max-w-6xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-500 hover:shadow-3xl border border-purple-100">
-        {/* --- Dashboard Header --- */}
-        <div className="p-8 border-b border-purple-100 flex flex-col md:flex-row items-center justify-between gap-6 bg-purple-600 text-white">
-          <h1 className="text-4xl font-extrabold font-serif tracking-tight text-white sm:text-5xl">
-            Performance Tracker
-          </h1>
-          <div className="flex items-center gap-4">
-            <label
-              htmlFor="year-select"
-              className="text-lg font-medium text-purple-100"
+    <div
+      className="max-w-7xl mx-auto pb-16 pt-8 px-4 bg-[#FEF3C7] rounded-xl shadow-xl font-sans min-h-screen"
+      style={{ fontFamily: theme.fonts.body }}
+    >
+      {/* Header */}
+      <header className="mb-10 text-center">
+        <h1
+          className="text-4xl font-extrabold mb-3"
+          style={{ color: theme.colors.primary, fontFamily: theme.fonts.heading }}
+        >
+          Performance Tracker
+        </h1>
+        <div className="mt-6 inline-flex items-center space-x-4 justify-center">
+          <label
+            htmlFor="year-select"
+            className="font-semibold text-gray-700 text-lg"
+          >
+            Select Year:
+          </label>
+          <select
+            id="year-select"
+            value={selectedYear}
+            onChange={handleYearChange}
+            className="rounded-md border border-[#F59E0B] px-4 py-2 text-gray-800 font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D97706] transition"
+          >
+            {availableYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
+      </header>
+
+      {/* Summary Cards */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-12">
+        {/* Attendance Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 border-l-8 border-[#D97706] flex flex-col items-center">
+          <h3
+            className="text-2xl font-semibold mb-2"
+            style={{ color: theme.colors.primary }}
+          >
+            Presence Percentage
+          </h3>
+          <p className="text-6xl font-bold text-gray-900">
+            {yearlyAttendancePercentage}%
+          </p>
+          <p className="mt-2 text-gray-500">For the year {selectedYear}</p>
+        </div>
+
+        {/* Donations Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 border-l-8 border-[#10B981] flex flex-col items-center">
+          <h3
+            className="text-2xl font-semibold mb-2"
+            style={{ color: theme.colors.secondary }}
+          >
+            Total Donation
+          </h3>
+          <p className="text-6xl font-bold text-gray-900">
+            ₹{yearlyDonationTotal.toLocaleString()}
+          </p>
+          <p className="mt-2 text-gray-500">For the year {selectedYear}</p>
+        </div>
+      </section>
+
+      {/* Tabs */}
+      <section className="flex justify-center gap-8 mb-8">
+        <button
+          onClick={() => setActiveTab("attendance")}
+          className={`px-8 py-3 rounded-full font-semibold text-lg shadow-md transition duration-300 ${
+            activeTab === "attendance"
+              ? "bg-[#D97706] text-white shadow-lg hover:bg-[#bf6d04]"
+              : "bg-[#F59E0B] text-[#4b4b4b] hover:bg-[#D97706]"
+          }`}
+          aria-label="Show presence tab"
+        >
+          Donation
+        </button>
+        <button
+          onClick={() => setActiveTab("donations")}
+          className={`px-8 py-3 rounded-full font-semibold text-lg shadow-md transition duration-300 ${
+            activeTab === "donations"
+              ? "bg-[#10B981] text-white shadow-lg hover:bg-[#0e9e70]"
+              : "bg-[#34D399] text-[#4b4b4b] hover:bg-[#10B981]"
+          }`}
+          aria-label="Show donations tab"
+        >
+          Expense
+        </button>
+      </section>
+
+      {/* Attendance Table */}
+{activeTab === "attendance" && (
+  <section>
+
+    <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
+      <table
+        className="min-w-[900px] w-full border-collapse text-sm"
+        style={{
+          fontFamily: theme.fonts.body,
+          color: theme.colors.neutralDark,
+          backgroundColor: theme.colors.surface,
+        }}
+      >
+        <thead
+          style={{
+            backgroundColor: theme.colors.primary,
+            color: theme.colors.surface,
+            fontFamily: theme.fonts.heading,
+          }}
+        >
+          <tr>
+            <th
+              className="py-2 px-4 text-left border-r"
+              style={{ borderColor: theme.colors.neutralLight }}
             >
-              Year:
-            </label>
-            <div className="relative">
-              <select
-                id="year-select"
-                value={selectedYear}
-                onChange={handleYearChange}
-                className="block appearance-none w-36 bg-purple-700 border border-purple-500 text-white py-3 pl-5 pr-10 rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition duration-300 cursor-pointer text-lg"
-              >
-                {availableYears.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-200">
-                <svg
-                  className="fill-current h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
+              Month
+            </th>
+            {[...Array(31)].map((_, i) => {
+              const date = new Date(
+                parseInt(selectedYear),
+                0,
+                i + 1
+              ); // Month irrelevant here, just for weekday
+              const dayName = date.toLocaleDateString("en-US", {
+                weekday: "short",
+              });
+              return (
+                <th
+                  key={i}
+                  className="py-2 px-2 text-center border-r text-xs"
+                  title={dayName}
+                  style={{ borderColor: theme.colors.neutralLight }}
                 >
-                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
+                  {i + 1}
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: theme.colors.primaryLight,
+                    }}
+                  >
+                    {dayName}
+                  </div>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {months.map((monthName, monthIndex) => {
+            const yearAttendance =
+              attendanceData.attendance[selectedYear] || {};
+            const daysPresent = yearAttendance[monthName] || [];
+            const totalDaysInMonth = daysInMonth(
+              parseInt(selectedYear),
+              monthIndex
+            );
 
-        {/* --- Summary Cards --- */}
-        <div className="p-8 bg-purple-50 grid grid-cols-1 sm:grid-cols-2 gap-8 border-b border-purple-100">
-          <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:scale-105 border border-purple-100">
-            <div className="text-purple-600 mb-3">
-              {/* Icon for Devotional Presence */}
-              <svg
-                className="w-12 h-12"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+            return (
+              <tr
+                key={monthName}
+                style={{
+                  backgroundColor:
+                    monthIndex % 2 === 0
+                      ? theme.colors.neutralLight
+                      : theme.colors.surface,
+                }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M17 20h-5m-2 2L3 18m16 0l2 2m-2-2a5 5 0 00-5-5H7a5 5 0 00-5 5m7-12a3 3 0 11-6 0 3 3 0 016 0zm7 0a3 3 0 11-6 0 3 3 0 016 0z"
-                ></path>
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Devotional Presence
-            </h3>
-            <p
-              className={`text-5xl font-bold ${
-                yearlyAttendancePercentage >= 75
-                  ? "text-green-600"
-                  : yearlyAttendancePercentage >= 50
-                  ? "text-orange-500"
-                  : "text-red-500"
-              }`}
+                <td
+                  className="py-2 px-4 border-r font-medium text-left capitalize"
+                  style={{ borderColor: theme.colors.neutralLight }}
+                >
+                  {monthName}
+                </td>
+                {[...Array(31)].map((_, dayIndex) => {
+                  const day = dayIndex + 1;
+                  const isPresent = daysPresent.includes(day);
+                  const isInvalidDay = day > totalDaysInMonth;
+
+                  return (
+                    <td
+                      key={day}
+                      className="text-center border-r"
+                      style={{
+                        borderColor: theme.colors.neutralLight,
+                        color: isInvalidDay
+                          ? theme.colors.tertiary
+                          : isPresent
+                          ? "#16a34a" // Tailwind green-600
+                          : theme.colors.tertiary,
+                      }}
+                      aria-label={
+                        isInvalidDay
+                          ? "Invalid day"
+                          : isPresent
+                          ? "Present"
+                          : "Absent"
+                      }
+                    >
+                      {isInvalidDay ? (
+                        <span className="text-xl">•</span>
+                      ) : isPresent ? (
+                        <Check className="w-4 h-4 mx-auto" />
+                      ) : (
+                        ""
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  </section>
+)}
+
+{/* Donations Table */}
+{activeTab === "donations" && (
+  <section>
+    <h2
+      className="text-3xl font-bold mb-6"
+      style={{ color: theme.colors.secondary, fontFamily: theme.fonts.heading }}
+    >
+      Monthly Offerings
+    </h2>
+    <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
+      <table
+        className="min-w-[900px] w-full border-collapse text-base"
+        style={{
+          fontFamily: theme.fonts.body,
+          color: theme.colors.neutralDark,
+          backgroundColor: theme.colors.surface,
+        }}
+      >
+        <thead
+          style={{
+            backgroundColor: theme.colors.secondary,
+            color: theme.colors.surface,
+            fontFamily: theme.fonts.heading,
+          }}
+        >
+          <tr>
+            <th
+              className="py-2 px-4 text-left border-r"
+              style={{ borderColor: theme.colors.neutralLight }}
             >
-              {yearlyAttendancePercentage}%
-            </p>
-          </div>
+              Moon Cycle
+            </th>
+            <th
+              className="py-2 px-4 text-right border-r"
+              style={{ borderColor: theme.colors.neutralLight }}
+            >
+              Amount (₹)
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {months.map((monthName, idx) => {
+            const yearDonations =
+              donationData.donations_summary[selectedYear] || {};
+            const donationAmount = yearDonations[monthName] || 0;
 
-          <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:scale-105 border border-purple-100">
-            <div className="text-amber-600 mb-3">
-              {/* Icon for Offerings Total */}
-              <svg
-                className="w-12 h-12"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+            return (
+              <tr
+                key={monthName}
+                style={{
+                  backgroundColor:
+                    idx % 2 === 0
+                      ? theme.colors.neutralLight
+                      : theme.colors.surface,
+                }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.592 1L21 12m-10.408 0H3c.512-.598 1.482-1 2.592-1m0 0a3 3 0 100 6m-9-4h.01"
-                ></path>
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Total Offerings
-            </h3>
-            <p className="text-5xl font-bold text-amber-600">
-              ₹{yearlyDonationTotal.toLocaleString()}
-            </p>
-          </div>
-        </div>
+                <td
+                  className="py-2 px-4 border-r font-medium capitalize"
+                  style={{ borderColor: theme.colors.neutralLight }}
+                >
+                  {monthName}
+                </td>
+                <td
+                  className="py-2 px-4 font-semibold text-right"
+                  style={{ borderColor: theme.colors.neutralLight, color: theme.colors.secondary }}
+                >
+                  ₹{donationAmount.toLocaleString()}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  </section>
+)}
 
-        {/* --- Tab Navigation --- */}
-        <div className="flex justify-center border-b border-purple-200 bg-white p-3">
-          <button
-            className={`px-8 py-3 text-lg font-medium rounded-t-xl transition-all duration-300 ease-in-out shadow-md
-              ${
-                activeTab === "attendance"
-                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white transform scale-105 -translate-y-1"
-                  : "bg-purple-100 text-purple-800 hover:bg-purple-200"
-              }`}
-            onClick={() => setActiveTab("attendance")}
-          >
-            <span className="flex items-center gap-2">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M17 20h-5m-2 2L3 18m16 0l2 2m-2-2a5 5 0 00-5-5H7a5 5 0 00-5 5m7-12a3 3 0 11-6 0 3 3 0 016 0zm7 0a3 3 0 11-6 0 3 3 0 016 0z"
-                ></path>
-              </svg>
-              Presence
-            </span>
-          </button>
-          <button
-            className={`px-8 py-3 text-lg font-medium rounded-t-xl transition-all duration-300 ease-in-out shadow-md
-              ${
-                activeTab === "donations"
-                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white transform scale-105 -translate-y-1"
-                  : "bg-purple-100 text-purple-800 hover:bg-purple-200"
-              }`}
-            onClick={() => setActiveTab("donations")}
-          >
-            <span className="flex items-center gap-2">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.592 1L21 12m-10.408 0H3c.512-.598 1.482-1 2.592-1m0 0a3 3 0 100 6m-9-4h.01"
-                ></path>
-              </svg>
-              Offerings
-            </span>
-          </button>
-        </div>
-
-        {/* --- Tab Content: Attendance --- */}
-        {activeTab === "attendance" && (
-          <div className="p-8 bg-white">
-            <h2 className="sr-only">Monthly Presence Tracker</h2>
-            <div className="overflow-x-auto border border-purple-200 rounded-lg shadow-inner">
-              <table className="min-w-full divide-y divide-purple-100">
-                <thead className="bg-purple-50">
-                  <tr>
-                    <th className="sticky left-0 bg-purple-50 px-5 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider min-w-[140px] shadow-sm z-10">
-                      Moon Cycle
-                    </th>
-                    {Array.from({ length: 31 }, (_, i) => (
-                      <th
-                        key={i}
-                        className="px-3 py-4 text-center text-xs font-semibold text-purple-700 uppercase tracking-wider border-l border-purple-100"
-                      >
-                        Day {i + 1}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-purple-100">
-                  {months.map((monthName, monthIndex) => {
-                    const yearAttendance =
-                      attendanceData.attendance[selectedYear] || {};
-                    const daysPresent = yearAttendance[monthName] || [];
-                    const totalDaysInMonth = daysInMonth(
-                      parseInt(selectedYear),
-                      monthIndex
-                    );
-
-                    return (
-                      <tr
-                        key={monthName}
-                        className="hover:bg-purple-50 transition-colors duration-200 ease-in-out"
-                      >
-                        <td className="sticky left-0 bg-white px-5 py-4 whitespace-nowrap text-base font-medium text-gray-900 capitalize shadow-sm z-10">
-                          {monthName}
-                        </td>
-                        {Array.from({ length: 31 }, (_, dayIndex) => {
-                          const day = dayIndex + 1;
-                          const isPresent = daysPresent.includes(day);
-                          const isInvalidDay = day > totalDaysInMonth;
-
-                          let cellClasses =
-                            "px-3 py-4 text-center text-base border-l border-purple-100";
-
-                          if (isInvalidDay) {
-                            cellClasses += " bg-gray-100 text-gray-300";
-                          } else if (isPresent) {
-                            cellClasses += " bg-green-50 text-green-700"; // Success color
-                          } else {
-                            cellClasses += " bg-rose-50 text-rose-500"; // Absence color
-                          }
-
-                          return (
-                            <td key={day} className={cellClasses}>
-                              {isInvalidDay ? (
-                                <span className="text-gray-200">⋅</span>
-                              ) : isPresent ? (
-                                <Check
-                                  className="text-green-600 w-5 h-5 font-bold"
-                                  aria-label="Present"
-                                />
-                              ) : (
-                                "-"
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* --- Tab Content: Donations --- */}
-        {activeTab === "donations" && (
-          <div className="p-8 bg-white">
-            <h2 className="sr-only">Monthly Offerings Summary</h2>
-            <div className="overflow-x-auto border border-purple-200 rounded-lg shadow-inner">
-              <table className="min-w-full divide-y divide-purple-100">
-                <thead className="bg-purple-50">
-                  <tr>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">
-                      Moon Cycle
-                    </th>
-                    <th className="px-5 py-4 text-right text-xs font-semibold text-purple-700 uppercase tracking-wider">
-                      Amount (₹)
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-purple-100">
-                  {months.map((monthName) => {
-                    const yearDonations =
-                      donationData.donations_summary[selectedYear] || {};
-                    const donationAmount = yearDonations[monthName] || 0;
-
-                    return (
-                      <tr
-                        key={monthName}
-                        className="hover:bg-purple-50 transition-colors duration-200 ease-in-out"
-                      >
-                        <td className="px-5 py-4 whitespace-nowrap text-base font-medium text-gray-900 capitalize">
-                          {monthName}
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap text-base text-right font-medium">
-                          <span
-                            className={`${
-                              donationAmount > 0
-                                ? "text-amber-600 font-bold"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            ₹{donationAmount.toLocaleString()}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };

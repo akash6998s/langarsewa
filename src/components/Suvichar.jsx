@@ -1,26 +1,55 @@
-import React from 'react';
-import { Sparkles } from 'lucide-react';
+import React from "react";
+import { Sparkles } from "lucide-react";
+import { theme } from ".././theme";
 
 const suvichar = {
   quote: `सेवा से बड़ा कोई धर्म नहीं होता,\nऔर गुरु की सेवा सबसे ऊँची सेवा है।`,
-  author: '— श्री गुरुदेव',
-  postedBy: 'Akash Singh',
+  author: "— श्री गुरुदेव",
+  postedBy: "Akash Singh",
 };
 
 const Suvichar = () => {
   return (
-    <div className="max-w-xl mx-auto mt-6 p-4">
-      <div className="bg-white border border-yellow-200 rounded-xl shadow-sm p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="text-yellow-500 animate-pulse" />
-          <h3 className="text-lg font-semibold text-yellow-700">आज का सुविचार</h3>
-        </div>
-        <p className="text-gray-800 text-base whitespace-pre-line font-serif leading-relaxed">
-          “{suvichar.quote}”
-        </p>
-        <p className="mt-4 text-right text-sm italic text-yellow-600">{suvichar.author}</p>
-        <p className="mt-1 text-right text-xs text-gray-500">Posted by: {suvichar.postedBy}</p>
+    <div
+      className="max-w-xl mx-auto p-6 rounded-lg shadow-md"
+      style={{
+        backgroundColor: theme.colors.background,
+        fontFamily: theme.fonts.body,
+        color: theme.colors.neutralDark,
+      }}
+    >
+      <div className="flex items-center gap-3 mb-4">
+        <Sparkles
+          className="text-primary"
+          size={28}
+          strokeWidth={1.5}
+          style={{ color: theme.colors.primary }}
+        />
+        <h3
+          className="text-2xl font-bold"
+          style={{ fontFamily: theme.fonts.heading, color: theme.colors.primary }}
+        >
+          आज का सुविचार
+        </h3>
       </div>
+
+      <p
+        className="text-lg leading-relaxed mb-4"
+        style={{ whiteSpace: "pre-line", fontFamily: "serif" }}
+      >
+        “{suvichar.quote}”
+      </p>
+
+      <p
+        className="text-base font-semibold mb-1"
+        style={{ fontFamily: theme.fonts.heading, color: theme.colors.secondary }}
+      >
+        {suvichar.author}
+      </p>
+
+      <p className="text-sm text-tertiary" style={{ color: theme.colors.tertiary }}>
+        Posted by: {suvichar.postedBy}
+      </p>
     </div>
   );
 };

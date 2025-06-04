@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import Loader from "./Loader";
+import { theme } from ".././theme";
 
 const UsersList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState("pending");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
@@ -13,12 +14,12 @@ const UsersList = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('https://langarsewa-db.onrender.com/signup');
-        if (!res.ok) throw new Error('Failed to fetch users');
+        const res = await fetch("https://langarsewa-db.onrender.com/signup");
+        if (!res.ok) throw new Error("Failed to fetch users");
         const data = await res.json();
         setUsers(data);
       } catch (err) {
-        setError(err.message || 'Something went wrong');
+        setError(err.message || "Something went wrong");
       } finally {
         setLoading(false);
       }
@@ -26,66 +27,121 @@ const UsersList = () => {
     fetchUsers();
   }, [refreshTrigger]);
 
-  const filteredUsers = users.filter(user => {
-    const userStatus = user.status ? user.status.toLowerCase() : 'pending';
+  const filteredUsers = users.filter((user) => {
+    const userStatus = user.status ? user.status.toLowerCase() : "pending";
     return userStatus === activeTab;
   });
 
   const handleUpdateStatus = async (rollNumber, newStatus) => {
-    try {
-      const response = await fetch('https://langarsewa-db.onrender.com/signup/update-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rollNumber, status: newStatus }),
-      });
+    if (rollNumber == 8) {
+      alert("You can not change the status of this Roll Number");
+    } else {
+      try {
+        const response = await fetch(
+          "https://langarsewa-db.onrender.com/signup/update-status",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rollNumber, status: newStatus }),
+          }
+        );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update status');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to update status");
+        }
+
+        setRefreshTrigger((prev) => prev + 1);
+      } catch (err) {
+        alert(`Error: ${err.message}`);
       }
-
-      setRefreshTrigger(prev => prev + 1);
-    } catch (err) {
-      alert(`Error: ${err.message}`);
     }
   };
 
- if (loading) {
-    return <Loader />;
-  }
+  // Helper to get colors from theme
+  const getStatusColors = (status) => {
+    switch (status) {
+      case "approved":
+        return {
+          bg: theme.colors.secondaryLight,
+          text: theme.colors.secondary,
+        };
+      case "pending":
+        return {
+          bg: theme.colors.primaryLight,
+          text: theme.colors.primary,
+        };
+      case "reject":
+        return {
+          bg: theme.colors.accent + "33", // add transparency
+          text: theme.colors.accent,
+        };
+      default:
+        return {
+          bg: theme.colors.tertiary,
+          text: theme.colors.neutralDark,
+        };
+    }
+  };
 
-  if (error) {
+  if (loading) return <Loader />;
+
+  if (error)
     return (
-      <div className="flex justify-center items-center min-h-screen bg-red-100 text-red-700">
-        <p className="text-lg">Error: {error}</p>
+      <div
+        className="flex justify-center items-center min-h-screen"
+        style={{ backgroundColor: theme.colors.accent + "22" }}
+      >
+        <p
+          className="text-lg font-semibold"
+          style={{ color: theme.colors.accent, fontFamily: theme.fonts.body }}
+        >
+          Error: {error}
+        </p>
       </div>
     );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-[1400px] mx-auto bg-white shadow-xl rounded-2xl p-6 w-full">
-        <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+    <div
+      className="min-h-screen p-6"
+      style={{ backgroundColor: theme.colors.background, fontFamily: theme.fonts.body }}
+    >
+      <div
+        className="max-w-[1400px] mx-auto rounded-3xl p-8 shadow-xl"
+        style={{ backgroundColor: theme.colors.surface }}
+      >
+        <h2
+          className="text-4xl font-extrabold mb-8 text-center"
+          style={{ fontFamily: theme.fonts.heading, color: theme.colors.primary }}
+        >
           User Management Dashboard
         </h2>
 
-        {/* Tab Buttons */}
-        <div className="flex flex-wrap justify-center gap-3 mb-6">
-          {['pending', 'approved', 'reject'].map(tab => {
-            const colorMap = {
-              pending: 'yellow',
-              approved: 'green',
-              reject: 'red',
+        {/* Tabs */}
+        <div className="flex justify-center gap-6 mb-10 flex-wrap">
+          {["pending", "approved", "reject"].map((tab) => {
+            const isActive = activeTab === tab;
+            const colors = {
+              pending: theme.colors.primary,
+              approved: theme.colors.secondary,
+              reject: theme.colors.accent,
             };
             return (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-sm capitalize
-                  ${activeTab === tab
-                    ? `bg-${colorMap[tab]}-600 text-white`
-                    : `bg-gray-200 text-gray-800 hover:bg-${colorMap[tab]}-100 hover:text-${colorMap[tab]}-700`
-                  }`}
+                className={`px-6 py-2 rounded-full font-semibold text-sm transition duration-300 shadow-md`}
+                style={{
+                  backgroundColor: isActive ? colors[tab] : theme.colors.neutralLight,
+                  color: isActive ? theme.colors.surface : theme.colors.neutralDark,
+                  boxShadow: isActive
+                    ? `0 4px 12px ${colors[tab]}88`
+                    : "0 2px 6px #00000015",
+                  fontFamily: theme.fonts.heading,
+                  textTransform: "capitalize",
+                  minWidth: 100,
+                  cursor: "pointer",
+                }}
               >
                 {tab}
               </button>
@@ -93,72 +149,109 @@ const UsersList = () => {
           })}
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50">
+        {/* Table Container */}
+        <div className="overflow-x-auto rounded-2xl border border-gray-300 shadow-sm">
+          <table className="min-w-full border-collapse">
+            <thead
+              style={{
+                backgroundColor: theme.colors.primary,
+                color: theme.colors.surface,
+                fontFamily: theme.fonts.heading,
+              }}
+            >
               <tr>
-                <th className="text-left px-6 py-3 font-semibold text-gray-700">Roll Number</th>
-                <th className="text-left px-6 py-3 font-semibold text-gray-700">Email</th>
-                <th className="text-left px-6 py-3 font-semibold text-gray-700">Status</th>
-                <th className="text-left px-6 py-3 font-semibold text-gray-700">Actions</th>
+                {["Roll Number", "Email", "Status", "Actions"].map((head) => (
+                  <th
+                    key={head}
+                    className="text-left px-8 py-4 tracking-wide select-none"
+                    style={{ userSelect: "none" }}
+                  >
+                    {head}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={4}
+                    className="py-12 text-center text-gray-500 italic"
+                    style={{ fontFamily: theme.fonts.body }}
+                  >
                     No users found for this status.
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map(user => {
-                  const status = (user.status || 'pending').toLowerCase();
-                  const statusColor = {
-                    approved: 'green',
-                    pending: 'yellow',
-                    reject: 'red',
-                  }[status] || 'gray';
+                filteredUsers.map((user) => {
+                  const status = (user.status || "pending").toLowerCase();
+                  const { bg, text } = getStatusColors(status);
 
                   return (
-                    <tr key={user.rollNumber} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-gray-800">{user.rollNumber}</td>
-                      <td className="px-6 py-4 text-gray-600">{user.email}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 text-xs font-semibold rounded-full bg-${statusColor}-100 text-${statusColor}-800`}>
+                    <tr
+                      key={user.rollNumber}
+                      className="hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      <td className="px-8 py-4 font-medium" style={{ color: theme.colors.neutralDark }}>
+                        {user.rollNumber}
+                      </td>
+                      <td className="px-8 py-4 text-gray-700" style={{ fontFamily: theme.fonts.body }}>
+                        {user.email}
+                      </td>
+                      <td className="px-8 py-4">
+                        <span
+                          style={{
+                            backgroundColor: bg,
+                            color: text,
+                            fontFamily: theme.fonts.body,
+                          }}
+                          className="px-4 py-1 rounded-full font-semibold text-xs select-none"
+                        >
                           {status.charAt(0).toUpperCase() + status.slice(1)}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2 flex-wrap">
-                          {status === 'pending' && (
+                      <td className="px-8 py-4">
+                        <div className="flex flex-wrap gap-3">
+                          {status === "pending" && (
                             <>
                               <button
-                                onClick={() => handleUpdateStatus(user.rollNumber, 'approved')}
-                                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium"
+                                onClick={() =>
+                                  handleUpdateStatus(user.rollNumber, "approved")
+                                }
+                                className="rounded-lg px-4 py-2 font-semibold text-white shadow-md transition hover:brightness-110"
+                                style={{ backgroundColor: theme.colors.secondary }}
                               >
                                 Approve
                               </button>
                               <button
-                                onClick={() => handleUpdateStatus(user.rollNumber, 'reject')}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-medium"
+                                onClick={() =>
+                                  handleUpdateStatus(user.rollNumber, "reject")
+                                }
+                                className="rounded-lg px-4 py-2 font-semibold text-white shadow-md transition hover:brightness-110"
+                                style={{ backgroundColor: theme.colors.accent }}
                               >
                                 Reject
                               </button>
                             </>
                           )}
-                          {status === 'approved' && (
+                          {status === "approved" && (
                             <button
-                              onClick={() => handleUpdateStatus(user.rollNumber, 'reject')}
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-medium"
+                              onClick={() =>
+                                handleUpdateStatus(user.rollNumber, "reject")
+                              }
+                              className="rounded-lg px-4 py-2 font-semibold text-white shadow-md transition hover:brightness-110"
+                              style={{ backgroundColor: theme.colors.accent }}
                             >
                               Reject
                             </button>
                           )}
-                          {status === 'reject' && (
+                          {status === "reject" && (
                             <button
-                              onClick={() => handleUpdateStatus(user.rollNumber, 'delete')}
-                              className="bg-red-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium"
+                              onClick={() =>
+                                handleUpdateStatus(user.rollNumber, "delete")
+                              }
+                              className="rounded-lg px-4 py-2 font-semibold text-white shadow-md transition hover:brightness-110"
+                              style={{ backgroundColor: theme.colors.primary }}
                             >
                               Delete
                             </button>

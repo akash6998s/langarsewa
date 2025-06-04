@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Suvichar from "./Suvichar";
+import { theme } from ".././theme";
 
 const notices = [
   {
@@ -35,13 +36,26 @@ const Notice = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 mt-6 mb-20">
-      <h2 className="text-3xl font-bold text-center text-yellow-700 mb-8">
+    <div
+      className="max-w-3xl mx-auto p-6 rounded-md shadow-md"
+      style={{
+        backgroundColor: theme.colors.background,
+        fontFamily: theme.fonts.body,
+        color: theme.colors.neutralDark,
+      }}
+    >
+      <h2
+        className="text-3xl font-bold mb-6 flex items-center gap-2"
+        style={{ fontFamily: theme.fonts.heading, color: theme.colors.primary }}
+      >
         📢 Latest Notices
       </h2>
-      <Suvichar />
 
-      <div className="space-y-6 mt-10">
+      <div className="mb-8">
+        <Suvichar />
+      </div>
+
+      <div className="space-y-6">
         {notices.map(({ id, title, date, description }) => {
           const isExpanded = expandedIds.includes(id);
           const shortText =
@@ -52,28 +66,36 @@ const Notice = () => {
           return (
             <div
               key={id}
-              className="bg-white border border-yellow-200 rounded-xl shadow-md p-5 hover:shadow-lg transition duration-300"
+              className="p-5 rounded-lg border border-neutralLight shadow-sm bg-surface transition-shadow hover:shadow-lg"
             >
-              <div className="mb-3 relative">
-                <time className="absolute right-0 top-0 text-sm text-gray-500">
-                  {new Date(date).toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </time>
-              </div>
-                <h3 className="text-lg mt-7 font-semibold text-yellow-700">
-                  {title}
-                </h3>
+              <time
+                className="text-sm text-tertiary"
+                style={{ color: theme.colors.tertiary }}
+                dateTime={date}
+              >
+                {new Date(date).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </time>
 
-              <p className="text-gray-700 leading-relaxed font-serif">
+              <h3
+                className="text-xl font-semibold mt-1 mb-3"
+                style={{ fontFamily: theme.fonts.heading, color: theme.colors.primary }}
+              >
+                {title}
+              </h3>
+
+              <p className="text-base leading-relaxed mb-3">
                 {isExpanded ? description : shortText}
               </p>
+
               {description.length > 120 && (
                 <button
                   onClick={() => toggleExpand(id)}
-                  className="mt-3 inline-block text-sm text-yellow-600 font-semibold hover:underline transition"
+                  className="text-sm font-semibold px-3 py-1 rounded-md border border-primary text-primary hover:bg-primary hover:text-surface transition-colors"
+                  type="button"
                 >
                   {isExpanded ? "See Less" : "See More"}
                 </button>

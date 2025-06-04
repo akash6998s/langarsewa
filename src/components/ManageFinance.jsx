@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Loader from "./Loader"; // Assuming you have a Loader component
+import Loader from "./Loader";
 import FinanceSummary from "./FinanceSummary";
+import { theme } from ".././theme";
 
 const ManageFinance = () => {
   const [activeTab, setActiveTab] = useState("donations");
@@ -24,18 +25,15 @@ const ManageFinance = () => {
       setLoading(true);
 
       try {
-        // Fetch donations data
         const donationsRes = await fetch("https://langarsewa-db.onrender.com/donations");
         const donationsJson = await donationsRes.json();
         setDonationsData(donationsJson);
 
-        // Fetch expenses data
         const expensesRes = await fetch("https://langarsewa-db.onrender.com/expenses");
         const expensesJson = await expensesRes.json();
         const normalizedData = expensesJson.map(expense => ({
           ...expense,
-          // Convert numerical month to lowercase month name
-          month: months[expense.month - 1] // Subtract 1 because array is 0-indexed
+          month: months[expense.month - 1]
         }));
         setExpenseData(normalizedData);
       } catch (err) {
@@ -48,7 +46,6 @@ const ManageFinance = () => {
     fetchData();
   }, []);
 
-  // Filtered donations based on year, month, and search term
   const filteredDonations = donationsData.filter((entry) => {
     const amount = entry.donations?.[selectedYear]?.[selectedMonth] ?? 0;
     const fullName = `${entry.name} ${entry.last_name}`;
@@ -58,7 +55,6 @@ const ManageFinance = () => {
     return amount > 0 && matchesSearch;
   });
 
-  // Filtered expenses based on year, month, and search term
   const filteredExpenses = expenseData.filter(
     (expense) =>
       expense.year.toString() === selectedYear &&
@@ -66,228 +62,253 @@ const ManageFinance = () => {
       expense.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Display Loader component when loading is true
   if (loading) {
     return <Loader />;
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-100 py-4 px-6 lg:px-8 rounded-xl shadow-md">
-        <FinanceSummary />
+    <div
+      className="min-h-screen py-6 px-6 lg:px-10 rounded-xl shadow-lg"
+      style={{
+        backgroundColor: theme.colors.background,
+        fontFamily: theme.fonts.body,
+        color: theme.colors.neutralDark,
+      }}
+    >
+      <FinanceSummary />
 
-        {/* Tabs */}
-        <div className="flex justify-center mb-8 rounded-lg bg-gray-200 ">
-          <button
-            className={`w-1/2 px-6 py-3 rounded-md font-semibold transition-colors duration-200 ${
+      {/* Tabs */}
+      <div className="flex justify-center mb-8 rounded-lg shadow-sm bg-white border border-yellow-400 max-w-md mx-auto">
+        <button
+          className={`w-1/2 py-3 font-semibold rounded-lg transition-colors duration-300 text-center
+            ${
               activeTab === "donations"
-                ? "bg-indigo-600 text-white shadow"
-                : "bg-transparent text-gray-700 hover:bg-gray-300"
+                ? `bg-${theme.colors.primary} text-white shadow-md`
+                : `text-${theme.colors.neutralDark} hover:bg-${theme.colors.neutralLight}`
             }`}
-            onClick={() => { setActiveTab("donations"); setSearchTerm(""); }}
-          >
-            Donations
-          </button>
-          <button
-            className={`w-1/2 px-6 py-3 rounded-md font-semibold transition-colors duration-200 ${
+          onClick={() => {
+            setActiveTab("donations");
+            setSearchTerm("");
+          }}
+          style={{
+            backgroundColor: activeTab === "donations" ? theme.colors.primary : "transparent",
+            color: activeTab === "donations" ? theme.colors.surface : theme.colors.neutralDark,
+            boxShadow: activeTab === "donations" ? `0 4px 6px -1px ${theme.colors.primaryLight}` : "none",
+          }}
+        >
+          Donations
+        </button>
+        <button
+          className={`w-1/2 py-3 font-semibold rounded-lg transition-colors duration-300 text-center
+            ${
               activeTab === "expense"
-                ? "bg-indigo-600 text-white shadow"
-                : "bg-transparent text-gray-700 hover:bg-gray-300"
+                ? `bg-${theme.colors.primary} text-white shadow-md`
+                : `text-${theme.colors.neutralDark} hover:bg-${theme.colors.neutralLight}`
             }`}
-            onClick={() => { setActiveTab("expense"); setSearchTerm(""); }}
-          >
-            Expense
-          </button>
-        </div>
-
-        {activeTab === "donations" && (
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-12">
-            {/* Filters for Donations */}
-            <div className="px-4 py-5 bg-gray-50 sm:p-6 flex flex-wrap justify-center gap-4 items-center">
-              <div className="relative rounded-md shadow-sm w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="appearance-none bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:shadow-outline w-full"
-                >
-                  {years.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                </div>
-              </div>
-
-              <div className="relative rounded-md shadow-sm w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="appearance-none bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:shadow-outline w-full"
-                >
-                  {months.map((month) => (
-                    <option key={month} value={month}>
-                      {month.charAt(0).toUpperCase() + month.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                </div>
-              </div>
-
-              {/* Search Input for Donations */}
-              <div className="relative rounded-md shadow-sm w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
-                <input
-                  type="text"
-                  placeholder="Search by name or roll no."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-4"
-                />
-              </div>
-            </div>
-
-            {/* Donations Table */}
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-indigo-50">
-                  <tr>
-                    <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-indigo-700 uppercase tracking-wider">
-                      Roll No.
-                    </th>
-                    <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-indigo-700 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th scope="col" className="px-2 py-3 text-center text-xs font-medium text-indigo-700 uppercase tracking-wider">
-                      Amount (₹)
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredDonations.length > 0 ? (
-                    filteredDonations.map((entry, idx) => {
-                      const amount = entry.donations?.[selectedYear]?.[selectedMonth] ?? 0;
-                      const fullName = `${entry.name} ${entry.last_name}`;
-                      return (
-                        <tr key={idx} className="hover:bg-gray-50">
-                          <td className="px-2 text-center py-4 whitespace-nowrap text-sm font-medium text-gray-900">{entry.roll}</td>
-                          <td className="px-2 text-center py-4 whitespace-nowrap text-sm text-gray-500">{fullName}</td>
-                          <td className="px-2 text-center py-4 whitespace-nowrap text-sm text-gray-500">{amount}</td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan="3" className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                        No donation data found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "expense" && (
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-12">
-            {/* Filters for Expenses */}
-            <div className="px-4 py-5 bg-gray-50 sm:p-6 flex flex-wrap justify-center gap-4 items-center">
-              <div className="relative rounded-md shadow-sm w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="appearance-none bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:shadow-outline w-full"
-                >
-                  {years.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                </div>
-              </div>
-
-              <div className="relative rounded-md shadow-sm w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="appearance-none bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:shadow-outline w-full"
-                >
-                  {months.map((month) => (
-                    <option key={month} value={month}>
-                      {month.charAt(0).toUpperCase() + month.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                </div>
-              </div>
-
-              {/* Search Input for Expenses */}
-              <div className="relative rounded-md shadow-sm w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
-                <input
-                  type="text"
-                  placeholder="Search by description"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-4"
-                />
-              </div>
-            </div>
-
-            {/* Expense Table */}
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-indigo-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider align-top">
-                      Year
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider align-top">
-                      Month
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider align-top">
-                      Amount (₹)
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider align-top">
-                      Description
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredExpenses.length > 0 ? (
-                    filteredExpenses.map((expense, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-6 align-top py-4 whitespace-nowrap text-sm font-medium text-gray-900">{expense.year}</td>
-                        <td className="px-6 align-top py-4 whitespace-nowrap text-sm text-gray-500">
-                          {expense.month.charAt(0).toUpperCase() + expense.month.slice(1)}
-                        </td>
-                        <td className="px-6 align-top py-4 whitespace-nowrap text-sm text-gray-500">{expense.amount}</td>
-                        <td className="px-6 align-top py-4 text-sm text-gray-500">{expense.description}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                        No expense data found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+          onClick={() => {
+            setActiveTab("expense");
+            setSearchTerm("");
+          }}
+          style={{
+            backgroundColor: activeTab === "expense" ? theme.colors.primary : "transparent",
+            color: activeTab === "expense" ? theme.colors.surface : theme.colors.neutralDark,
+            boxShadow: activeTab === "expense" ? `0 4px 6px -1px ${theme.colors.primaryLight}` : "none",
+          }}
+        >
+          Expense
+        </button>
       </div>
-    </>
+
+      {/* Content */}
+      {activeTab === "donations" && (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden max-w-6xl mx-auto mb-12">
+          {/* Filters */}
+          <div className="bg-yellow-50 p-6 flex flex-wrap justify-center gap-6 items-center rounded-t-lg border-b border-yellow-300">
+            <Select
+              label="Year"
+              options={years}
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              theme={theme}
+            />
+            <Select
+              label="Month"
+              options={months.map(m => m.charAt(0).toUpperCase() + m.slice(1))}
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value.toLowerCase())}
+              theme={theme}
+            />
+            <SearchInput
+              placeholder="Search by name or roll no."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              theme={theme}
+            />
+          </div>
+
+          {/* Donations Table */}
+          <Table
+            columns={[
+              { header: "Roll No.", key: "roll" },
+              { header: "Name", key: "name" },
+              { header: "Amount (₹)", key: "amount" },
+            ]}
+            data={filteredDonations.map((entry) => ({
+              roll: entry.roll,
+              name: `${entry.name} ${entry.last_name}`,
+              amount: entry.donations?.[selectedYear]?.[selectedMonth] ?? 0,
+            }))}
+            emptyMessage="No donation data found."
+            theme={theme}
+          />
+        </div>
+      )}
+
+      {activeTab === "expense" && (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden max-w-6xl mx-auto mb-12">
+          {/* Filters */}
+          <div className="bg-yellow-50 p-6 flex flex-wrap justify-center gap-6 items-center rounded-t-lg border-b border-yellow-300">
+            <Select
+              label="Year"
+              options={years}
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              theme={theme}
+            />
+            <Select
+              label="Month"
+              options={months.map(m => m.charAt(0).toUpperCase() + m.slice(1))}
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value.toLowerCase())}
+              theme={theme}
+            />
+            <SearchInput
+              placeholder="Search by description"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              theme={theme}
+            />
+          </div>
+
+          {/* Expenses Table */}
+          <Table
+            columns={[
+              { header: "Year", key: "year" },
+              { header: "Month", key: "month" },
+              { header: "Amount (₹)", key: "amount" },
+              { header: "Description", key: "description" },
+            ]}
+            data={filteredExpenses.map(expense => ({
+              year: expense.year,
+              month: expense.month.charAt(0).toUpperCase() + expense.month.slice(1),
+              amount: expense.amount,
+              description: expense.description,
+            }))}
+            emptyMessage="No expense data found."
+            theme={theme}
+          />
+        </div>
+      )}
+    </div>
   );
 };
+
+// Reusable Select component with label
+const Select = ({ label, options, value, onChange, theme }) => (
+  <div className="w-full sm:w-1/3 md:w-1/4">
+    <label
+      htmlFor={label.toLowerCase()}
+      className="block mb-1 font-semibold text-yellow-900"
+      style={{ fontFamily: theme.fonts.heading }}
+    >
+      {label}
+    </label>
+    <select
+      id={label.toLowerCase()}
+      value={value}
+      onChange={onChange}
+      className="w-full rounded-md border border-yellow-400 bg-yellow-100 px-4 py-2 text-yellow-900 shadow-sm
+        focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition"
+      style={{ fontFamily: theme.fonts.body }}
+    >
+      {options.map((opt, i) => (
+        <option key={i} value={typeof opt === "string" ? opt.toLowerCase() : opt}>
+          {typeof opt === "string" ? opt.charAt(0).toUpperCase() + opt.slice(1) : opt}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+// Reusable SearchInput component
+const SearchInput = ({ placeholder, value, onChange, theme }) => (
+  <div className="w-full sm:w-1/2 md:w-1/3">
+    <label className="block mb-1 font-semibold text-yellow-900" style={{ fontFamily: theme.fonts.heading }}>
+      Search
+    </label>
+    <input
+      type="text"
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      className="w-full rounded-md border border-yellow-400 bg-yellow-100 px-4 py-2 text-yellow-900 shadow-sm
+        focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition"
+      style={{ fontFamily: theme.fonts.body }}
+    />
+  </div>
+);
+
+// Reusable Table component
+const Table = ({ columns, data, emptyMessage, theme }) => (
+  <div className="overflow-x-auto">
+    <table
+      className="min-w-full divide-y divide-yellow-200"
+      style={{ fontFamily: theme.fonts.body }}
+    >
+      <thead
+        className="bg-yellow-200"
+        style={{ color: theme.colors.primary, fontFamily: theme.fonts.heading }}
+      >
+        <tr>
+          {columns.map(({ header, key }) => (
+            <th
+              key={key}
+              className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+              style={{ color: theme.colors.primary }}
+            >
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-yellow-100">
+        {data.length > 0 ? (
+          data.map((row, idx) => (
+            <tr
+              key={idx}
+              className="hover:bg-yellow-50 transition-colors duration-200"
+              style={{ cursor: "default" }}
+            >
+              {columns.map(({ key }) => (
+                <td
+                  key={key}
+                  className="px-6 py-4 whitespace-nowrap text-sm text-yellow-900"
+                >
+                  {row[key]}
+                </td>
+              ))}
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={columns.length} className="px-6 py-4 text-center text-sm text-yellow-800 italic">
+              {emptyMessage}
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+);
 
 export default ManageFinance;

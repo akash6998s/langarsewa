@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Loader from "./Loader";
 import { Check } from "lucide-react";
+import { theme } from ".././theme";
 
 const months = [
   { name: "January", number: 0 },
@@ -39,9 +40,7 @@ const AttendanceSheet = () => {
 
     fetch("https://langarsewa-db.onrender.com/attendance")
       .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch members");
-        }
+        if (!res.ok) throw new Error("Failed to fetch members");
         return res.json();
       })
       .then((data) => {
@@ -59,77 +58,102 @@ const AttendanceSheet = () => {
     const term = searchTerm.toLowerCase();
     const results = members.filter(
       (m) =>
-        m.name.toLowerCase().includes(term) ||
-        m.roll.toString().toLowerCase().includes(term)
+        m.name.toLowerCase().includes(term) || m.roll.toString().includes(term)
     );
     setFilteredMembers(results);
   }, [searchTerm, members]);
 
-  if (loading) {
-    return <Loader />;
-  }
-
-  if (error) {
+  if (loading) return <Loader />;
+  if (error)
     return (
-      <div className="flex justify-center items-center h-64 text-red-500 text-lg font-semibold">
-        Error: {error}
-      </div>
+      <div className="text-red-600 font-semibold p-4 text-center">{error}</div>
     );
-  }
 
   return (
-    <div className="max-w-full my-8 font-sans text-gray-700">
-      <h1 className="text-xl font-semibold mb-6 text-center">
-        Attendance Sheet
-      </h1>
+    <div
+      className="min-h-screen"
+      style={{
+        fontFamily: theme.fonts.body,
+      }}
+    >
 
-      {/* Selectors */}
-      <div className="flex flex-col sm:flex-row justify-center gap-4 mb-6 max-w-md mx-auto">
-        <select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(Number(e.target.value))}
-          className="w-full sm:w-1/2 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
-        >
-          {months.map((month) => (
-            <option key={month.number} value={month.number}>
-              {month.name}
-            </option>
-          ))}
-        </select>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex gap-4">
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+            className="border w-full rounded px-4 py-2 text-sm shadow-sm"
+            style={{
+              borderColor: theme.colors.primary,
+              color: theme.colors.neutralDark,
+            }}
+          >
+            {months.map((month) => (
+              <option key={month.number} value={month.number}>
+                {month.name}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="w-full sm:w-1/2 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
-        >
-          {years.map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
-        </select>
-      </div>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            className="border w-full rounded px-4 py-2 text-sm shadow-sm"
+            style={{
+              borderColor: theme.colors.primary,
+              color: theme.colors.neutralDark,
+            }}
+          >
+            {years.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* Search */}
-      <div className="max-w-md mx-auto mb-6">
         <input
           type="text"
           placeholder="Search by name or roll"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
+          className="border rounded px-4 py-2 w-full sm:w-72 text-sm shadow-sm"
+          style={{
+            borderColor: theme.colors.accent,
+            color: theme.colors.neutralDark,
+          }}
         />
       </div>
-
-      {/* Attendance Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full border border-gray-300 rounded text-sm">
-          <thead>
-            <tr className="bg-gray-100 text-gray-600">
-              <th className="sticky left-0 bg-gray-100 border border-gray-300 px-3 py-2 text-left font-medium min-w-[4rem]">
+      <div
+        className="overflow-x-auto mt-6 rounded-md border"
+        style={{ borderColor: theme.colors.neutralLight }}
+      >
+        <table
+          className="min-w-[900px] w-full border-collapse"
+          style={{
+            fontFamily: theme.fonts.body,
+            color: theme.colors.neutralDark,
+            backgroundColor: theme.colors.surface,
+          }}
+        >
+          <thead
+            style={{
+              backgroundColor: theme.colors.primary,
+              color: theme.colors.surface,
+              fontFamily: theme.fonts.heading,
+            }}
+          >
+            <tr>
+              <th
+                className="py-2 px-4 text-left border-r"
+                style={{ borderColor: theme.colors.neutralLight }}
+              >
                 Roll
               </th>
-              <th className="sticky left-[4rem] bg-gray-100 border border-gray-300 px-4 py-2 text-left font-medium min-w-[8rem]">
+              <th
+                className="py-2 px-4 text-left border-r"
+                style={{ borderColor: theme.colors.neutralLight }}
+              >
                 Name
               </th>
               {[...Array(days)].map((_, i) => {
@@ -140,11 +164,19 @@ const AttendanceSheet = () => {
                 return (
                   <th
                     key={i}
-                    className="border border-gray-300 px-2 py-1 text-center font-medium text-gray-500 min-w-[2.5rem]"
+                    className="py-2 px-2 text-center border-r text-xs"
                     title={dayName}
+                    style={{ borderColor: theme.colors.neutralLight }}
                   >
                     {i + 1}
-                    <div className="text-xs">{dayName}</div>
+                    <div
+                      style={{
+                        fontSize: "10px",
+                        color: theme.colors.primaryLight,
+                      }}
+                    >
+                      {dayName}
+                    </div>
                   </th>
                 );
               })}
@@ -153,7 +185,7 @@ const AttendanceSheet = () => {
 
           <tbody>
             {filteredMembers.length > 0 ? (
-              filteredMembers.map((member, idx) => {
+              filteredMembers.map((member, rowIndex) => {
                 const monthName = months[selectedMonth].name.toLowerCase();
                 const daysPresent =
                   member.attendance?.[selectedYear]?.[monthName] || [];
@@ -161,28 +193,33 @@ const AttendanceSheet = () => {
                 return (
                   <tr
                     key={member.roll}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    style={{
+                      backgroundColor:
+                        rowIndex % 2 === 0
+                          ? theme.colors.neutralLight
+                          : theme.colors.surface,
+                    }}
                   >
-                    <td className="sticky left-0 bg-white border border-gray-300 px-3 py-2 font-medium text-gray-700">
+                    <td
+                      className="py-2 px-4 border-r font-medium"
+                      style={{ borderColor: theme.colors.neutralLight }}
+                    >
                       {member.roll}
                     </td>
-                    <td className="sticky left-[4rem] bg-white border border-gray-300 px-4 py-2 font-medium text-gray-700">
-                      {member.name}
+                    <td
+                      className="py-2 px-4 border-r whitespace-nowrap"
+                      style={{ borderColor: theme.colors.neutralLight }}
+                    >
+                      {member.name} {member.last_name}
                     </td>
                     {[...Array(days)].map((_, i) => (
                       <td
                         key={i}
-                        className="border border-gray-300 px-2 py-1 text-center"
+                        className="text-center border-r"
+                        style={{ borderColor: theme.colors.neutralLight }}
                       >
                         {daysPresent.includes(i + 1) && (
-                          <span
-                            aria-label="Present"
-                            role="img"
-                            className="text-green-600 font-bold select-none"
-                          >
-                            
-<Check className="text-green-600 w-5 h-5 font-bold" aria-label="Present" />
-                          </span>
+                          <Check className="w-4 h-4 text-green-600 mx-auto" />
                         )}
                       </td>
                     ))}
@@ -193,7 +230,8 @@ const AttendanceSheet = () => {
               <tr>
                 <td
                   colSpan={2 + days}
-                  className="text-center py-4 text-gray-500 italic"
+                  className="text-center py-6"
+                  style={{ color: theme.colors.tertiary }}
                 >
                   No members found.
                 </td>

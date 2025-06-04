@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -7,7 +7,6 @@ const months = [
 
 const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
 const dates = Array.from({ length: 31 }, (_, i) => i + 1);
-const rollNumbers = Array.from({ length: 30 }, (_, i) => `${i + 1}`);
 
 function ManageAttendance() {
   const today = new Date();
@@ -15,11 +14,21 @@ function ManageAttendance() {
   const [selectedMonth, setSelectedMonth] = useState(months[today.getMonth()]);
   const [selectedDate, setSelectedDate] = useState(today.getDate());
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
-  const [selectedRolls, setSelectedRolls] = useState([]); // multiple selections
+  const [selectedRolls, setSelectedRolls] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
-
-  // message: { text: string, type: "success" | "error" } | null
   const [message, setMessage] = useState(null);
+  const [members, setMembers] = useState([]);
+
+  // Fetch members on component mount
+  useEffect(() => {
+    fetch("https://langarsewa-db.onrender.com/members")
+      .then(res => res.json())
+      .then(data => setMembers(data))
+      .catch(err => {
+        console.error("Error fetching members:", err);
+        showMessage("Failed to load members.", "error");
+      });
+  }, []);
 
   const toggleRoll = (roll) => {
     setSelectedRolls((prev) =>
@@ -179,33 +188,40 @@ function ManageAttendance() {
 
       {/* Popup Roll Selector */}
       {showPopup && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md  overflow-y-auto shadow-xl border border-orange-200">
-            <h3 className="text-2xl font-bold text-center mb-6 text-[#6d4c41]">
-              Select Roll Number(s)
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#fffdf7] rounded-3xl p-8 w-[95%] max-w-lg overflow-y-auto shadow-2xl border border-orange-200 max-h-[90vh] transform scale-95 animate-scaleIn">
+            <h3 className="text-3xl font-extrabold text-center mb-7 text-[#8b4513] tracking-wide">
+              Select Roll Numbers
             </h3>
-            <div className="grid grid-cols-4 gap-4">
-              {rollNumbers.map((roll) => {
-                const isSelected = selectedRolls.includes(roll);
-                return (
-                  <button
-                    key={roll}
-                    onClick={() => toggleRoll(roll)}
-                    className={`px-4 py-2 rounded-lg text-sm transition ${
-                      isSelected
-                        ? "bg-[#f59e0b] text-white"
-                        : "bg-gray-100 hover:bg-yellow-100"
-                    }`}
-                  >
-                    {roll}
-                  </button>
-                );
-              })}
+            <div className="grid grid-cols-4 gap-4 mb-6"> {/* Adjusted grid for more columns */}
+              {members.length > 0 ? (
+                members.map((member) => {
+                  const roll = String(member.roll_no);
+                  const isSelected = selectedRolls.includes(roll);
+                  return (
+                    <button
+                      key={member.roll_no}
+                      onClick={() => toggleRoll(roll)}
+                      className={`p-3 rounded-lg text-lg font-bold transition-all duration-200 border border-gray-200 flex items-center justify-center shadow-sm hover:shadow-md transform hover:-translate-y-0.5
+                        ${
+                          isSelected
+                            ? "bg-[#f59e0b] text-white border-[#e67e22] shadow-lg"
+                            : "bg-white text-[#5a2e0e] hover:bg-yellow-50 hover:border-yellow-200"
+                        }
+                      `}
+                    >
+                      {member.roll_no}
+                    </button>
+                  );
+                })
+              ) : (
+                <p className="col-span-full text-center text-gray-600 text-lg">No members found.</p>
+              )}
             </div>
             <div className="mt-6 text-center">
               <button
                 onClick={() => setShowPopup(false)}
-                className="bg-[#a16207] text-white px-6 py-2 rounded-lg hover:bg-[#854d0e] shadow-md"
+                className="bg-gradient-to-r from-[#ff9800] to-[#f57c00] text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-[#f57c00] hover:to-[#ef6c00] shadow-xl transition transform hover:scale-105"
               >
                 Done
               </button>

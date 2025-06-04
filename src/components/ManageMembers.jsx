@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import Loader from "./Loader";
 
-
-
 function ManageMember() {
   const [tab, setTab] = useState("addEdit");
 
@@ -26,10 +24,12 @@ function ManageMember() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [formMessage, setFormMessage] = useState(""); // State for success/error messages
 
   // State to hold fetched roll numbers
   const [rollNumbers, setRollNumbers] = useState([]);
 
+  // Fetch members on component mount
   useEffect(() => {
     const fetchMembers = async () => {
       try {
@@ -39,20 +39,24 @@ function ManageMember() {
         }
         const data = await response.json();
         // Extract roll_no and set it to rollNumbers state
-        const fetchedRollNumbers = data.map((member) => member.roll_no);
+        const fetchedRollNumbers = data
+          .map((member) => member.roll_no)
+          .sort((a, b) => a - b);
         setRollNumbers(fetchedRollNumbers);
 
         // Set the fetched members to the members state
-        setMembers(data.map(member => ({
-          id: member.roll_no, // Using roll_no as id for simplicity
-          pic: member.img, // Assuming img is a path/URL
-          name: member.name,
-          lastName: member.last_name,
-          address: member.address,
-          phone: member.phone_no,
-          email: member.email,
-          rollNumber: member.roll_no,
-        })));
+        setMembers(
+          data.map((member) => ({
+            id: member.roll_no, // Using roll_no as id for simplicity
+            pic: member.img, // Assuming img is a path/URL
+            name: member.name,
+            lastName: member.last_name,
+            address: member.address,
+            phone: member.phone_no,
+            email: member.email,
+            rollNumber: member.roll_no,
+          }))
+        );
 
         setLoading(false);
       } catch (err) {
@@ -101,6 +105,7 @@ function ManageMember() {
     const selectedRollNumber = e.target.value; // Keep as string for comparison with option value
 
     setRollNumber(selectedRollNumber);
+    setFormMessage(""); // Clear any previous messages
 
     // If an empty value is selected, clear all fields
     if (!selectedRollNumber) {
@@ -124,6 +129,9 @@ function ManageMember() {
       setPhone(selectedMember.phone);
       setEmail(selectedMember.email);
       setAddress(selectedMember.address);
+      // If a member has an existing picture from backend, set it to picPreview
+      // Do NOT set `pic` (File object) here, as it would re-trigger the picPreview useEffect unnecessarily
+      // and we only want `pic` to hold a *newly selected file*.
       if (selectedMember.pic) {
         setPicPreview(selectedMember.pic);
       } else {
@@ -143,105 +151,199 @@ function ManageMember() {
   };
 
   // Add or Edit member handler
-  const handleAddEditMember = (e) => {
+  const handleAddEditMember = async (e) => {
     e.preventDefault();
+    setFormMessage(""); // Clear previous messages
 
-    if (
-      !rollNumber || // Ensure roll number is selected/entered
-      !name.trim() ||
-      !lastName.trim() ||
-      !address.trim() ||
-      !phone.trim() ||
-      !email.trim()
-    ) {
-      alert("Please fill in all fields.");
+    // Only check if rollNumber and name are provided
+    if (!rollNumber || !name.trim()) {
+      setFormMessage("Please enter Roll Number and First Name.");
       return;
     }
 
-    // Simple phone number validation
-    if (!/^\d{10}$/.test(phone)) {
-      alert("Phone number must be 10 digits.");
+    // If phone is entered, validate its format
+    if (phone.trim() && !/^\d{10}$/.test(phone)) {
+      setFormMessage("Phone number must be 10 digits.");
       return;
     }
 
-    // Simple email validation
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert("Please enter a valid email address.");
+    // If email is entered, validate its format
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setFormMessage("Please enter a valid email address.");
       return;
     }
 
-    const rollNumInt = parseInt(rollNumber);
-    const existingIndex = members.findIndex((m) => m.rollNumber === rollNumInt);
+    const formData = new FormData();
+    formData.append("rollNumber", rollNumber);
+    formData.append("name", name);
+    formData.append("last_name", lastName);
+    formData.append("phone_no", phone);
+    formData.append("email", email);
+    formData.append("address", address);
 
-    const newMember = {
-      id: existingIndex >= 0 ? members[existingIndex].id : Date.now(),
-      pic: picPreview, // This will be a blob URL, consider how to handle image uploads to backend
-      name,
-      lastName,
-      address,
-      phone,
-      email,
-      rollNumber: rollNumInt, // Ensure rollNumber is a number
-    };
-
-    let updatedMembers;
-    if (existingIndex >= 0) {
-      updatedMembers = [...members];
-      updatedMembers[existingIndex] = newMember;
-      alert("Member updated!");
-    } else {
-      updatedMembers = [...members, newMember];
-      alert("Member added!");
-      // If a new member is added, also update the rollNumbers list for the dropdown
-      setRollNumbers(prevRollNumbers => [...prevRollNumbers, rollNumInt].sort((a, b) => a - b));
+    if (pic) {
+      formData.append("img", pic);
     }
 
-    setMembers(updatedMembers);
+    try {
+      setLoading(true);
+      const response = await fetch("https://langarsewa-db.onrender.com/members/update", {
+        method: "POST",
+        body: formData,
+      });
 
-    // Optionally clear form fields after submission for new entry
-    setPic(null);
-    setPicPreview(null);
-    setRollNumber("");
-    setName("");
-    setLastName("");
-    setAddress("");
-    setPhone("");
-    setEmail("");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message ||
+            `Failed to ${
+              rollNumbers.includes(parseInt(rollNumber)) ? "update" : "add"
+            } member.`
+        );
+      }
+
+      const responseData = await response.json();
+      setFormMessage(
+        responseData.message ||
+          `Member ${
+            rollNumbers.includes(parseInt(rollNumber)) ? "updated" : "added"
+          } successfully!`
+      );
+
+      // Re-fetch updated members
+      const fetchResponse = await fetch("https://langarsewa-db.onrender.com/members");
+      if (!fetchResponse.ok) {
+        throw new Error("Failed to re-fetch members after update.");
+      }
+      const updatedMembersData = await fetchResponse.json();
+      const fetchedRollNumbers = updatedMembersData
+        .map((member) => member.roll_no)
+        .sort((a, b) => a - b);
+      setRollNumbers(fetchedRollNumbers);
+
+      setMembers(
+        updatedMembersData.map((member) => ({
+          id: member.roll_no,
+          pic: member.img,
+          name: member.name,
+          lastName: member.last_name,
+          address: member.address,
+          phone: member.phone_no,
+          email: member.email,
+          rollNumber: member.roll_no,
+        }))
+      );
+
+      // Clear form
+      setPic(null);
+      setPicPreview(null);
+      setRollNumber("");
+      setName("");
+      setLastName("");
+      setAddress("");
+      setPhone("");
+      setEmail("");
+    } catch (err) {
+      setFormMessage(`Error: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Delete member handler
-  const handleDeleteMember = (e) => {
+  const handleDeleteMember = async (e) => {
     e.preventDefault();
+    setFormMessage("");
 
-    if (!delRollNumber || !delName.trim() || !delLastName.trim()) {
-      alert("Please select a roll number and enter name and last name.");
+    if (!delRollNumber) {
+      setFormMessage("Please select a Roll Number to delete.");
       return;
     }
 
-    const filteredMembers = members.filter(
-      (m) =>
-        !(
-          m.rollNumber === parseInt(delRollNumber) && // Ensure comparison is with number
-          m.name.toLowerCase() === delName.toLowerCase() &&
-          m.lastName.toLowerCase() === delLastName.toLowerCase()
-        )
-    );
+    const payload = {
+      rollNumber: parseInt(delRollNumber),
+    };
 
-    if (filteredMembers.length === members.length) {
-      alert("No matching member found to delete.");
-      return;
+    const endpoints = [
+      {
+        url: "https://langarsewa-db.onrender.com/members/delete-details",
+        label: "Member Details",
+      },
+      {
+        url: "https://langarsewa-db.onrender.com/donations/delete-member",
+        label: "Donations",
+      },
+      {
+        url: "https://langarsewa-db.onrender.com/attendance/delete-member",
+        label: "Attendance",
+      },
+      { url: "https://langarsewa-db.onrender.com/signup/delete-user", label: "User Signup" },
+    ];
+
+    const errorMessages = [];
+
+    try {
+      setLoading(true);
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint.url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            errorMessages.push(
+              `${endpoint.label}: ${
+                errorData.message || "Unknown error occurred"
+              }`
+            );
+          }
+        } catch (innerErr) {
+          errorMessages.push(`${innerErr.message}`);
+        }
+      }
+
+      if (errorMessages.length === 0) {
+        setFormMessage("Member and associated data deleted successfully!");
+      } else {
+        setFormMessage(`Some errors occurred:\n${errorMessages.join("\n")}`);
+      }
+
+      // Fetch updated members list
+      const fetchResponse = await fetch("https://langarsewa-db.onrender.com/members");
+      if (!fetchResponse.ok) {
+        throw new Error("Failed to re-fetch members after deletion.");
+      }
+      const updatedMembersData = await fetchResponse.json();
+      const fetchedRollNumbers = updatedMembersData
+        .map((member) => member.roll_no)
+        .sort((a, b) => a - b);
+      setRollNumbers(fetchedRollNumbers);
+
+      setMembers(
+        updatedMembersData.map((member) => ({
+          id: member.roll_no,
+          pic: member.img,
+          name: member.name,
+          lastName: member.last_name,
+          address: member.address,
+          phone: member.phone_no,
+          email: member.email,
+          rollNumber: member.roll_no,
+        }))
+      );
+
+      setDelRollNumber("");
+      setDelName("");
+      setDelLastName("");
+    } catch (err) {
+      setFormMessage(`Unexpected error: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
-
-    setMembers(filteredMembers);
-    alert("Member deleted!");
-
-    // Also remove from rollNumbers list
-    setRollNumbers(prevRollNumbers => prevRollNumbers.filter(roll => roll !== parseInt(delRollNumber)));
-
-    // Clear delete inputs
-    setDelRollNumber(""); // Set to empty string
-    setDelName("");
-    setDelLastName("");
   };
 
   if (loading) {
@@ -265,7 +367,10 @@ function ManageMember() {
         {/* Tabs */}
         <div className="flex justify-center mb-8">
           <button
-            onClick={() => setTab("addEdit")}
+            onClick={() => {
+              setTab("addEdit");
+              setFormMessage("");
+            }}
             className={`px-8 py-3 rounded-l-full border-y border-l border-[#c08457] text-lg transition-all duration-300 shadow-sm ${
               tab === "addEdit"
                 ? "bg-[#4caf50] text-white font-semibold shadow-lg"
@@ -275,7 +380,10 @@ function ManageMember() {
             Add/Edit Member
           </button>
           <button
-            onClick={() => setTab("delete")}
+            onClick={() => {
+              setTab("delete");
+              setFormMessage("");
+            }}
             className={`px-8 py-3 rounded-r-full border-y border-r border-[#c08457] text-lg transition-all duration-300 shadow-sm ${
               tab === "delete"
                 ? "bg-[#e53935] text-white font-semibold shadow-lg"
@@ -285,6 +393,18 @@ function ManageMember() {
             Delete Member
           </button>
         </div>
+
+        {formMessage && (
+          <p
+            className={`text-center text-lg font-medium mb-4 ${
+              formMessage.startsWith("Error")
+                ? "text-red-600"
+                : "text-green-600"
+            }`}
+          >
+            {formMessage}
+          </p>
+        )}
 
         {/* Add/Edit Member Form */}
         {tab === "addEdit" && (
@@ -310,10 +430,17 @@ function ManageMember() {
                 </div>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept=".jpg, .jpeg, .png"
                   onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      setPic(e.target.files[0]);
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const validTypes = ["image/jpeg", "image/png"];
+                      if (validTypes.includes(file.type)) {
+                        setPic(file);
+                      } else {
+                        alert("Only JPG and PNG files are allowed.");
+                        e.target.value = null; // reset input
+                      }
                     }
                   }}
                   className="hidden"
@@ -327,7 +454,7 @@ function ManageMember() {
                 <select
                   value={rollNumber}
                   onChange={handleRollNumberChange}
-                  className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
                   required
                 >
                   <option value="">Select Roll Number</option>
@@ -338,18 +465,6 @@ function ManageMember() {
                   ))}
                 </select>
               </div>
-
-              {/* Phone Number */}
-              <input
-                type="tel"
-                placeholder="Phone Number"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                required
-                pattern="\d{10}"
-                title="Phone number must be 10 digits"
-              />
 
               {/* Name */}
               <input
@@ -367,7 +482,17 @@ function ManageMember() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
-                required
+              />
+
+              {/* Phone Number */}
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
+                pattern="\d{10}"
+                title="Phone number must be 10 digits"
               />
 
               {/* Email */}
@@ -377,7 +502,6 @@ function ManageMember() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
-                required
               />
               {/* Address */}
               <input
@@ -386,7 +510,6 @@ function ManageMember() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
-                required
               />
             </div>
 
