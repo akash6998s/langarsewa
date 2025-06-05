@@ -69,20 +69,44 @@ const AttendanceSheet = () => {
       <div className="text-red-600 font-semibold p-4 text-center">{error}</div>
     );
 
+  // Sticky styles for first two columns
+  const stickyRollStyle = {
+    position: "sticky",
+    left: 0,
+    backgroundColor: theme.colors.surface,
+    zIndex: 4,
+    minWidth: "80px",
+    maxWidth: "80px",
+    paddingLeft: "12px",
+    paddingRight: "12px",
+  };
+  const stickyNameStyle = {
+    position: "sticky",
+    left: "80px", // width of roll column
+    backgroundColor: theme.colors.surface,
+    zIndex: 5,
+    minWidth: "180px",
+    maxWidth: "250px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    paddingLeft: "12px",
+    paddingRight: "12px",
+  };
+
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen pb-16 px-4 sm:px-8"
       style={{
         fontFamily: theme.fonts.body,
       }}
     >
-
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex gap-4">
+        <div className="flex gap-4 w-full sm:w-auto">
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="border w-full rounded px-4 py-2 text-sm shadow-sm"
+            className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
             style={{
               borderColor: theme.colors.primary,
               color: theme.colors.neutralDark,
@@ -98,7 +122,7 @@ const AttendanceSheet = () => {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="border w-full rounded px-4 py-2 text-sm shadow-sm"
+            className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
             style={{
               borderColor: theme.colors.primary,
               color: theme.colors.neutralDark,
@@ -124,8 +148,9 @@ const AttendanceSheet = () => {
           }}
         />
       </div>
+
       <div
-        className="overflow-x-auto mt-6 rounded-md border"
+        className="overflow-x-auto rounded-md border shadow-md"
         style={{ borderColor: theme.colors.neutralLight }}
       >
         <table
@@ -134,6 +159,7 @@ const AttendanceSheet = () => {
             fontFamily: theme.fonts.body,
             color: theme.colors.neutralDark,
             backgroundColor: theme.colors.surface,
+            tableLayout: "auto",
           }}
         >
           <thead
@@ -141,18 +167,31 @@ const AttendanceSheet = () => {
               backgroundColor: theme.colors.primary,
               color: theme.colors.surface,
               fontFamily: theme.fonts.heading,
+              position: "sticky",
+              top: 0,
+              zIndex: 10,
             }}
           >
             <tr>
               <th
-                className="py-2 px-4 text-left border-r"
-                style={{ borderColor: theme.colors.neutralLight }}
+                className="py-3 px-4 text-left"
+                style={{
+                  ...stickyRollStyle,
+                  backgroundColor: theme.colors.primary,
+                  color: theme.colors.surface,
+                }}
+                title="Roll Number"
               >
                 Roll
               </th>
               <th
-                className="py-2 px-4 text-left border-r"
-                style={{ borderColor: theme.colors.neutralLight }}
+                className="py-3 px-4 text-left"
+                style={{
+                  ...stickyNameStyle,
+                  backgroundColor: theme.colors.primary,
+                  color: theme.colors.surface,
+                }}
+                title="Name"
               >
                 Name
               </th>
@@ -164,9 +203,13 @@ const AttendanceSheet = () => {
                 return (
                   <th
                     key={i}
-                    className="py-2 px-2 text-center border-r text-xs"
+                    className="py-2 px-2 text-center text-xs"
                     title={dayName}
-                    style={{ borderColor: theme.colors.neutralLight }}
+                    style={{
+                      borderColor: theme.colors.neutralLight,
+                      minWidth: "30px",
+                      maxWidth: "30px",
+                    }}
                   >
                     {i + 1}
                     <div
@@ -199,23 +242,26 @@ const AttendanceSheet = () => {
                           ? theme.colors.neutralLight
                           : theme.colors.surface,
                     }}
+                    className="hover:bg-primary/10"
                   >
                     <td
-                      className="py-2 px-4 border-r font-medium"
-                      style={{ borderColor: theme.colors.neutralLight }}
+                      className="py-2 px-4 font-medium"
+                      style={stickyRollStyle}
+                      title={`Roll: ${member.roll}`}
                     >
                       {member.roll}
                     </td>
                     <td
-                      className="py-2 px-4 border-r whitespace-nowrap"
-                      style={{ borderColor: theme.colors.neutralLight }}
+                      className="py-2 px-4"
+                      style={stickyNameStyle}
+                      title={`${member.name} ${member.last_name}`}
                     >
                       {member.name} {member.last_name}
                     </td>
                     {[...Array(days)].map((_, i) => (
                       <td
                         key={i}
-                        className="text-center border-r"
+                        className="text-center"
                         style={{ borderColor: theme.colors.neutralLight }}
                       >
                         {daysPresent.includes(i + 1) && (

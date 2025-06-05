@@ -241,7 +241,7 @@ function ManageExpense() {
                   >
                     <div className="flex-grow mr-4"> {/* Added flex-grow and mr-4 */}
                       <p className="font-semibold text-[#4e342e]">{description}</p>
-                      <p className="text-[#7b451e]">₹ {amount.toFixed(2)}</p>
+                      <p className="font-bold">₹ {amount}</p>
                     </div>
                     <button
                       onClick={() => handleDeleteById(id)}

@@ -59,7 +59,7 @@ const Profile = () => {
 
   return (
     <div
-      className="min-h-screen bg-background flex items-center justify-center px-4 py-12"
+      className="bg-background flex items-center justify-center px-4 pt-16"
       style={{ fontFamily: theme.fonts.body }}
     >
       <div
@@ -75,74 +75,63 @@ const Profile = () => {
           />
           <h1
             className="text-4xl font-bold"
-            style={{ fontFamily: theme.fonts.heading, color: theme.colors.primary }}
+            style={{
+              fontFamily: theme.fonts.heading,
+              color: theme.colors.primary,
+            }}
           >
             {user.firstName} {user.lastName}
           </h1>
-          <p
-            className="text-lg font-semibold text-secondary"
-            style={{ color: theme.colors.secondary }}
-          >
-            Roll No: {user.rollNumber}
-          </p>
         </div>
 
         {/* Profile Details */}
         <div>
           <h2
             className="text-2xl font-semibold mb-6 border-b-2 border-primary pb-2"
-            style={{ fontFamily: theme.fonts.heading, color: theme.colors.primary }}
+            style={{
+              fontFamily: theme.fonts.heading,
+              color: theme.colors.primary,
+            }}
           >
             Profile Details
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Roll Number */}
-            <div className="flex items-center gap-4 text-neutralDark">
-              <IdCard className="text-primary" size={24} />
-              <div>
+            <div className="flex items-start gap-4 text-neutralDark">
+              <IdCard className="text-primary flex-shrink-0" size={24} />
+              <div className="min-w-0">
                 <p className="font-semibold">Roll Number</p>
-                <p className="text-sm">{user.rollNumber}</p>
+                <p className="text-sm break-words">{user.rollNumber}</p>
               </div>
             </div>
 
             {/* Phone */}
-            <div className="flex items-center gap-4 text-neutralDark">
-              <Phone className="text-primary" size={24} />
-              <div>
+            <div className="flex items-start gap-4 text-neutralDark">
+              <Phone className="text-primary flex-shrink-0" size={24} />
+              <div className="min-w-0">
                 <p className="font-semibold">Phone</p>
-                <p className="text-sm">{user.phone}</p>
+                <p className="text-sm break-words">{user.phone}</p>
               </div>
             </div>
 
             {/* Email */}
-            <div className="flex items-center gap-4 text-neutralDark">
-              <Mail className="text-primary" size={24} />
-              <div>
+            <div className="flex items-start gap-4 text-neutralDark">
+              <Mail className="text-primary flex-shrink-0" size={24} />
+              <div className="min-w-0">
                 <p className="font-semibold">Email</p>
-                <p className="text-sm">{user.email}</p>
+                <p className="text-sm break-words">{user.email}</p>
               </div>
             </div>
 
             {/* Address */}
-            <div className="flex items-center gap-4 text-neutralDark">
-              <MapPin className="text-primary" size={24} />
-              <div>
+            <div className="flex items-start gap-4 text-neutralDark">
+              <MapPin className="text-primary flex-shrink-0" size={24} />
+              <div className="min-w-0">
                 <p className="font-semibold">Address</p>
-                <p className="text-sm">{user.address}</p>
+                <p className="text-sm break-words">{user.address}</p>
               </div>
             </div>
-          </div>
-
-          {/* Edit Profile Button */}
-          <div className="mt-10 flex justify-center">
-            <button
-              className="bg-primary text-surface font-semibold px-10 py-3 rounded-lg shadow hover:bg-primaryLight transition-colors"
-              type="button"
-              style={{ fontFamily: theme.fonts.heading }}
-            >
-              Edit Profile
-            </button>
           </div>
         </div>
       </div>

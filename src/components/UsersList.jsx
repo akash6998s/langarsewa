@@ -64,17 +64,17 @@ const UsersList = () => {
       case "approved":
         return {
           bg: theme.colors.secondaryLight,
-          text: theme.colors.secondary,
+          text: theme.colors.surface,
         };
       case "pending":
         return {
           bg: theme.colors.primaryLight,
-          text: theme.colors.primary,
+          text: theme.colors.surface,
         };
       case "reject":
         return {
-          bg: theme.colors.accent + "33", // add transparency
-          text: theme.colors.accent,
+          bg: theme.colors.accent, // add transparency
+          text: theme.colors.surface,
         };
       default:
         return {
@@ -89,11 +89,11 @@ const UsersList = () => {
   if (error)
     return (
       <div
-        className="flex justify-center items-center min-h-screen"
+        className="flex justify-center items-center min-h-screen px-4"
         style={{ backgroundColor: theme.colors.accent + "22" }}
       >
         <p
-          className="text-lg font-semibold"
+          className="text-lg font-semibold text-center max-w-md"
           style={{ color: theme.colors.accent, fontFamily: theme.fonts.body }}
         >
           Error: {error}
@@ -104,53 +104,52 @@ const UsersList = () => {
   return (
     <div
       className="min-h-screen p-6"
-      style={{ backgroundColor: theme.colors.background, fontFamily: theme.fonts.body }}
+      style={{
+        fontFamily: theme.fonts.body,
+      }}
     >
       <div
-        className="max-w-[1400px] mx-auto rounded-3xl p-8 shadow-xl"
-        style={{ backgroundColor: theme.colors.surface }}
+        className=""
       >
         <h2
-          className="text-4xl font-extrabold mb-8 text-center"
-          style={{ fontFamily: theme.fonts.heading, color: theme.colors.primary }}
+          className="text-4xl font-extrabold mb-12 text-center tracking-tight"
+          style={{
+            fontFamily: theme.fonts.heading,
+            color: theme.colors.primary,
+          }}
         >
           User Management Dashboard
         </h2>
 
         {/* Tabs */}
-        <div className="flex justify-center gap-6 mb-10 flex-wrap">
-          {["pending", "approved", "reject"].map((tab) => {
-            const isActive = activeTab === tab;
-            const colors = {
-              pending: theme.colors.primary,
-              approved: theme.colors.secondary,
-              reject: theme.colors.accent,
-            };
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-6 py-2 rounded-full font-semibold text-sm transition duration-300 shadow-md`}
-                style={{
-                  backgroundColor: isActive ? colors[tab] : theme.colors.neutralLight,
-                  color: isActive ? theme.colors.surface : theme.colors.neutralDark,
-                  boxShadow: isActive
-                    ? `0 4px 12px ${colors[tab]}88`
-                    : "0 2px 6px #00000015",
-                  fontFamily: theme.fonts.heading,
-                  textTransform: "capitalize",
-                  minWidth: 100,
-                  cursor: "pointer",
-                }}
-              >
-                {tab}
-              </button>
-            );
-          })}
+        <div className="flex justify-center mb-8 rounded-lg shadow-sm bg-white border border-yellow-400 max-w-md mx-auto">
+          {["pending", "approved", "reject"].map((tab) => (
+            <button
+              key={tab}
+              className="w-1/3 py-3 font-semibold rounded-lg transition-colors duration-300 text-center"
+              onClick={() => setActiveTab(tab)}
+              style={{
+                backgroundColor:
+                  activeTab === tab ? theme.colors.primary : "transparent",
+                color:
+                  activeTab === tab
+                    ? theme.colors.surface
+                    : theme.colors.neutralDark,
+                boxShadow:
+                  activeTab === tab
+                    ? `0 4px 6px -1px ${theme.colors.primaryLight}`
+                    : "none",
+                textTransform: "capitalize",
+                cursor: "pointer",
+              }}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
         </div>
 
         {/* Table Container */}
-        <div className="overflow-x-auto rounded-2xl border border-gray-300 shadow-sm">
+        <div className="overflow-x-auto rounded-3xl border border-gray-300 shadow-lg">
           <table className="min-w-full border-collapse">
             <thead
               style={{
@@ -160,10 +159,10 @@ const UsersList = () => {
               }}
             >
               <tr>
-                {["Roll Number", "Email", "Status", "Actions"].map((head) => (
+                {["Roll No.", "Email", "Status", "Actions"].map((head) => (
                   <th
                     key={head}
-                    className="text-left px-8 py-4 tracking-wide select-none"
+                    className="text-left px-10 py-5 tracking-wide select-none"
                     style={{ userSelect: "none" }}
                   >
                     {head}
@@ -176,50 +175,69 @@ const UsersList = () => {
                 <tr>
                   <td
                     colSpan={4}
-                    className="py-12 text-center text-gray-500 italic"
+                    className="py-16 text-center text-gray-500 italic"
                     style={{ fontFamily: theme.fonts.body }}
                   >
                     No users found for this status.
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => {
+                filteredUsers.map((user, idx) => {
                   const status = (user.status || "pending").toLowerCase();
                   const { bg, text } = getStatusColors(status);
 
                   return (
                     <tr
                       key={user.rollNumber}
-                      className="hover:bg-gray-50 transition-colors duration-200"
+                      className={`transition-colors duration-300 ${
+                        idx % 2 === 0 ? "bg-gray-50" : "bg-white"
+                      } hover:bg-${theme.colors.primaryLight.replace("#", "")}`}
+                      style={{
+                        cursor: "default",
+                        userSelect: "none",
+                        transitionProperty: "background-color",
+                      }}
                     >
-                      <td className="px-8 py-4 font-medium" style={{ color: theme.colors.neutralDark }}>
+                      <td
+                        className="px-10 py-5 font-medium"
+                        style={{ color: theme.colors.neutralDark }}
+                      >
                         {user.rollNumber}
                       </td>
-                      <td className="px-8 py-4 text-gray-700" style={{ fontFamily: theme.fonts.body }}>
+                      <td
+                        className="px-10 py-5 text-gray-700 truncate max-w-xs"
+                        style={{ fontFamily: theme.fonts.body }}
+                        title={user.email}
+                      >
                         {user.email}
                       </td>
-                      <td className="px-8 py-4">
+                      <td className="px-10 py-5">
                         <span
                           style={{
                             backgroundColor: bg,
                             color: text,
                             fontFamily: theme.fonts.body,
                           }}
-                          className="px-4 py-1 rounded-full font-semibold text-xs select-none"
+                          className="px-5 py-1 rounded-full font-semibold text-sm select-none"
                         >
                           {status.charAt(0).toUpperCase() + status.slice(1)}
                         </span>
                       </td>
-                      <td className="px-8 py-4">
-                        <div className="flex flex-wrap gap-3">
+                      <td className="px-10 py-5">
+                        <div className="flex flex-wrap gap-4 justify-start sm:justify-center">
                           {status === "pending" && (
                             <>
                               <button
                                 onClick={() =>
-                                  handleUpdateStatus(user.rollNumber, "approved")
+                                  handleUpdateStatus(
+                                    user.rollNumber,
+                                    "approved"
+                                  )
                                 }
-                                className="rounded-lg px-4 py-2 font-semibold text-white shadow-md transition hover:brightness-110"
-                                style={{ backgroundColor: theme.colors.secondary }}
+                                className="rounded-lg px-5 py-2 font-semibold text-white shadow-lg transition duration-300 ease-in-out hover:brightness-110 active:scale-95"
+                                style={{
+                                  backgroundColor: theme.colors.secondary,
+                                }}
                               >
                                 Approve
                               </button>
@@ -227,7 +245,7 @@ const UsersList = () => {
                                 onClick={() =>
                                   handleUpdateStatus(user.rollNumber, "reject")
                                 }
-                                className="rounded-lg px-4 py-2 font-semibold text-white shadow-md transition hover:brightness-110"
+                                className="rounded-lg px-5 py-2 font-semibold text-white shadow-lg transition duration-300 ease-in-out hover:brightness-110 active:scale-95"
                                 style={{ backgroundColor: theme.colors.accent }}
                               >
                                 Reject
@@ -239,7 +257,7 @@ const UsersList = () => {
                               onClick={() =>
                                 handleUpdateStatus(user.rollNumber, "reject")
                               }
-                              className="rounded-lg px-4 py-2 font-semibold text-white shadow-md transition hover:brightness-110"
+                              className="rounded-lg px-5 py-2 font-semibold text-white shadow-lg transition duration-300 ease-in-out hover:brightness-110 active:scale-95"
                               style={{ backgroundColor: theme.colors.accent }}
                             >
                               Reject
@@ -250,7 +268,7 @@ const UsersList = () => {
                               onClick={() =>
                                 handleUpdateStatus(user.rollNumber, "delete")
                               }
-                              className="rounded-lg px-4 py-2 font-semibold text-white shadow-md transition hover:brightness-110"
+                              className="rounded-lg px-5 py-2 font-semibold text-white shadow-lg transition duration-300 ease-in-out hover:brightness-110 active:scale-95"
                               style={{ backgroundColor: theme.colors.primary }}
                             >
                               Delete

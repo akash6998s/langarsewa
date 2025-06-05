@@ -57,7 +57,7 @@ const FinanceSummary = () => {
         aria-controls="financial-details"
       >
         <h2
-          className="text-4xl font-extrabold tracking-wide mr-3"
+          className="text-3xl font-extrabold tracking-wide mr-3"
           style={{ color: theme.colors.primary, fontFamily: theme.fonts.heading }}
         >
           Financial Overview

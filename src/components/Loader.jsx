@@ -1,12 +1,14 @@
-// Loader.jsx
 import React from "react";
 
 const Loader = () => (
-  <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex flex-col justify-center items-center z-50">
-    <div className="w-20 h-20 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-lg"></div>
-    <span className="mt-5 text-white text-2xl font-medium tracking-wide select-none">
-      Loading...
-    </span>
+  <div className="fixed inset-0 bg-white bg-opacity-40 backdrop-blur-sm flex flex-col justify-center items-center z-50">
+    <div className="flex flex-col items-center space-y-6">
+      {/* Spinner with a soft color */}
+      <div className="w-16 h-16 border-8 border-solid border-transparent border-t-orange-600 rounded-full animate-spin"></div>
+
+      {/* Spiritual Text with 'Jai Gurudev' */}
+      <div className="text-orange-700 font-semibold text-2xl">Loading...</div>
+    </div>
   </div>
 );
 

@@ -12,6 +12,7 @@ const Activity = () => {
   const [activeTab, setActiveTab] = useState("attendance");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showSummary, setShowSummary] = useState(false);
 
   const months = [
     "january",
@@ -28,9 +29,8 @@ const Activity = () => {
     "december",
   ];
 
-  const daysInMonth = (year, monthIndex) => {
-    return new Date(year, monthIndex + 1, 0).getDate();
-  };
+  const daysInMonth = (year, monthIndex) =>
+    new Date(year, monthIndex + 1, 0).getDate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,9 +43,7 @@ const Activity = () => {
           `https://langarsewa-db.onrender.com/attendance/${rollNumber}`
         );
         if (!attendanceResponse.ok)
-          throw new Error(
-            `HTTP error! Attendance status: ${attendanceResponse.status}`
-          );
+          throw new Error(`Attendance error: ${attendanceResponse.status}`);
         const attendanceJson = await attendanceResponse.json();
         setAttendanceData(attendanceJson);
 
@@ -53,9 +51,7 @@ const Activity = () => {
           `https://langarsewa-db.onrender.com/donations/summary/${rollNumber}`
         );
         if (!donationResponse.ok)
-          throw new Error(
-            `HTTP error! Donations status: ${donationResponse.status}`
-          );
+          throw new Error(`Donations error: ${donationResponse.status}`);
         const donationJson = await donationResponse.json();
         setDonationData(donationJson);
 
@@ -76,49 +72,67 @@ const Activity = () => {
     fetchData();
   }, []);
 
-  const handleYearChange = (e) => {
-    setSelectedYear(e.target.value);
-  };
+  const handleYearChange = (e) => setSelectedYear(e.target.value);
 
-  const calculateYearlyAttendancePercentage = () => {
-    if (!attendanceData || !attendanceData.attendance[selectedYear]) return 0;
+  // Yearly attendance percentage (existing)
+  // const calculateYearlyAttendancePercentage = () => {
+  //   if (!attendanceData || !attendanceData.attendance[selectedYear]) return 0;
+  //   let totalDays = 0,
+  //     presentDays = 0;
 
-    let totalPossibleDays = 0;
-    let totalPresentDays = 0;
+  //   months.forEach((month, idx) => {
+  //     totalDays += daysInMonth(parseInt(selectedYear), idx);
+  //     presentDays += (attendanceData.attendance[selectedYear][month] || []).length;
+  //   });
 
-    for (const monthName of months) {
-      const monthIndex = months.indexOf(monthName);
-      const days = daysInMonth(parseInt(selectedYear), monthIndex);
-      totalPossibleDays += days;
+  //   return totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(2) : 0;
+  // };
 
-      const daysPresent =
-        attendanceData.attendance[selectedYear][monthName] || [];
-      totalPresentDays += daysPresent.length;
-    }
-
-    return totalPossibleDays > 0
-      ? ((totalPresentDays / totalPossibleDays) * 100).toFixed(2)
-      : 0;
-  };
-
+  // Yearly donation total (existing)
   const calculateYearlyDonationTotal = () => {
     if (!donationData || !donationData.donations_summary[selectedYear])
       return 0;
 
-    const yearDonations = donationData.donations_summary[selectedYear];
-    return Object.values(yearDonations).reduce(
-      (sum, amount) => sum + amount,
+    return Object.values(donationData.donations_summary[selectedYear]).reduce(
+      (sum, val) => sum + val,
       0
     );
   };
 
-  if (loading) {
-    return <Loader />;
-  }
+  // New: Current month attendance percentage and days present
+  const getCurrentMonthAttendanceStats = () => {
+    if (!attendanceData || !attendanceData.attendance[selectedYear]) {
+      return { percent: 0, presentDays: 0, currentDay: 0 };
+    }
 
+    const today = new Date();
+    const currentMonthIndex = today.getMonth(); // 0-based month index
+    const currentDay = today.getDate(); // day number (e.g., 5 for 5th June)
+    const monthName = months[currentMonthIndex];
+
+    const presentDaysArray =
+      attendanceData.attendance[selectedYear][monthName] || [];
+
+    const presentTillToday = presentDaysArray.filter(
+      (day) => day <= currentDay
+    ).length;
+
+    const percent =
+      currentDay > 0
+        ? ((presentTillToday / currentDay) * 100).toFixed(2)
+        : 0;
+
+    return {
+      percent,
+      presentDays: presentTillToday,
+      currentDay,
+    };
+  };
+
+  if (loading) return <Loader />;
   if (error) {
     return (
-      <div className="max-w-md mx-auto mt-20 p-8 bg-red-100 rounded-lg shadow-lg text-red-700 font-sans text-center">
+      <div className="max-w-md mx-auto mt-20 p-8 bg-red-100 rounded-lg shadow-lg text-red-700 text-center">
         <h2 className="text-2xl font-bold mb-4">Oops! Something went wrong</h2>
         <p className="mb-2">{error}</p>
         <p>Please try refreshing the page or check your connection.</p>
@@ -127,34 +141,105 @@ const Activity = () => {
   }
 
   const availableYears = Object.keys(attendanceData.attendance);
-  const yearlyAttendancePercentage = calculateYearlyAttendancePercentage();
-  const yearlyDonationTotal = calculateYearlyDonationTotal();
+  // const yearlyAttendance = calculateYearlyAttendancePercentage();
+  const yearlyDonation = calculateYearlyDonationTotal();
+  const currentMonthStats = getCurrentMonthAttendanceStats();
 
   return (
     <div
       className="max-w-7xl mx-auto pb-16 pt-8 px-4 bg-[#FEF3C7] rounded-xl shadow-xl font-sans min-h-screen"
       style={{ fontFamily: theme.fonts.body }}
     >
-      {/* Header */}
+      {/* Header and Toggle */}
       <header className="mb-10 text-center">
-        <h1
-          className="text-4xl font-extrabold mb-3"
-          style={{ color: theme.colors.primary, fontFamily: theme.fonts.heading }}
+        <div
+          onClick={() => setShowSummary((prev) => !prev)}
+          className="flex justify-center items-center cursor-pointer select-none mb-6"
+          aria-expanded={showSummary}
         >
-          Performance Tracker
-        </h1>
-        <div className="mt-6 inline-flex items-center space-x-4 justify-center">
+          <h2
+            className="text-4xl font-extrabold tracking-wide mr-3"
+            style={{
+              color: theme.colors.primary,
+              fontFamily: theme.fonts.heading,
+            }}
+          >
+            {showSummary ? "Hide Summary" : "Show Summary"}
+          </h2>
+          <svg
+            className={`w-8 h-8 transform transition-transform duration-300 ${
+              showSummary ? "rotate-90" : "rotate-0"
+            }`}
+            fill="none"
+            stroke={theme.colors.primary}
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </div>
+      </header>
+
+      {/* Summary Cards */}
+      {showSummary && (
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-4 mb-10">
+          {/* Presence This Month */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 border-l-8 border-[#D97706] flex flex-col items-center">
+            <h3
+              className="text-2xl font-semibold mb-2"
+              style={{ color: theme.colors.primary }}
+            >
+              Presence Percentage
+            </h3>
+            <p className="text-6xl font-bold text-gray-900">
+              {currentMonthStats.percent}%
+            </p>
+            <p className="mt-2 text-gray-600 text-lg">
+              {`Present: ${currentMonthStats.presentDays} days`}
+            </p>
+            <p className="mt-1 text-gray-500">
+              For {months[new Date().getMonth()]} {selectedYear}
+            </p>
+          </div>
+
+          {/* Total Donation */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 border-l-8 border-[#10B981] flex flex-col items-center">
+            <h3
+              className="text-2xl font-semibold mb-2"
+              style={{ color: theme.colors.secondary }}
+            >
+              Total Donation
+            </h3>
+            <p className="text-6xl font-bold text-gray-900">
+              ₹{yearlyDonation.toLocaleString()}
+            </p>
+            <p className="mt-2 text-gray-500">For the year {selectedYear}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Year Dropdown (hidden but ready if needed) */}
+      <div className="mb-8 hidden flex justify-center">
+        <div className="flex w-full items-center justify-between gap-4 bg-white px-6 py-4 rounded-2xl shadow-lg border border-[#FCD34D] max-w-xl">
           <label
             htmlFor="year-select"
-            className="font-semibold text-gray-700 text-lg"
+            className="text-lg font-semibold text-gray-900 tracking-wide"
+            style={{
+              fontFamily: theme.fonts.heading,
+              color: theme.colors.primary,
+            }}
           >
-            Select Year:
+            Select Year
           </label>
           <select
             id="year-select"
             value={selectedYear}
             onChange={handleYearChange}
-            className="rounded-md border border-[#F59E0B] px-4 py-2 text-gray-800 font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D97706] transition"
+            className="px-5 py-2.5 rounded-xl bg-[#FFF7ED] border border-[#F59E0B] text-gray-800 font-medium shadow-inner focus:outline-none focus:ring-2 focus:ring-[#D97706] transition duration-200"
           >
             {availableYears.map((year) => (
               <option key={year} value={year}>
@@ -163,269 +248,183 @@ const Activity = () => {
             ))}
           </select>
         </div>
-      </header>
-
-      {/* Summary Cards */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-12">
-        {/* Attendance Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 border-l-8 border-[#D97706] flex flex-col items-center">
-          <h3
-            className="text-2xl font-semibold mb-2"
-            style={{ color: theme.colors.primary }}
-          >
-            Presence Percentage
-          </h3>
-          <p className="text-6xl font-bold text-gray-900">
-            {yearlyAttendancePercentage}%
-          </p>
-          <p className="mt-2 text-gray-500">For the year {selectedYear}</p>
-        </div>
-
-        {/* Donations Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 border-l-8 border-[#10B981] flex flex-col items-center">
-          <h3
-            className="text-2xl font-semibold mb-2"
-            style={{ color: theme.colors.secondary }}
-          >
-            Total Donation
-          </h3>
-          <p className="text-6xl font-bold text-gray-900">
-            ₹{yearlyDonationTotal.toLocaleString()}
-          </p>
-          <p className="mt-2 text-gray-500">For the year {selectedYear}</p>
-        </div>
-      </section>
+      </div>
 
       {/* Tabs */}
-      <section className="flex justify-center gap-8 mb-8">
+      <section className="flex justify-center mb-8 rounded-lg shadow-sm bg-white border border-yellow-400 max-w-md mx-auto">
         <button
           onClick={() => setActiveTab("attendance")}
-          className={`px-8 py-3 rounded-full font-semibold text-lg shadow-md transition duration-300 ${
-            activeTab === "attendance"
-              ? "bg-[#D97706] text-white shadow-lg hover:bg-[#bf6d04]"
-              : "bg-[#F59E0B] text-[#4b4b4b] hover:bg-[#D97706]"
-          }`}
-          aria-label="Show presence tab"
+          className="w-1/2 py-3 font-semibold rounded-lg transition-colors duration-300 text-center"
+          style={{
+            backgroundColor:
+              activeTab === "attendance" ? theme.colors.primary : "transparent",
+            color:
+              activeTab === "attendance"
+                ? theme.colors.surface
+                : theme.colors.neutralDark,
+          }}
         >
-          Donation
+          Attendance
         </button>
         <button
           onClick={() => setActiveTab("donations")}
-          className={`px-8 py-3 rounded-full font-semibold text-lg shadow-md transition duration-300 ${
-            activeTab === "donations"
-              ? "bg-[#10B981] text-white shadow-lg hover:bg-[#0e9e70]"
-              : "bg-[#34D399] text-[#4b4b4b] hover:bg-[#10B981]"
-          }`}
-          aria-label="Show donations tab"
+          className="w-1/2 py-3 font-semibold rounded-lg transition-colors duration-300 text-center"
+          style={{
+            backgroundColor:
+              activeTab === "donations"
+                ? theme.colors.secondary
+                : "transparent",
+            color:
+              activeTab === "donations"
+                ? theme.colors.surface
+                : theme.colors.neutralDark,
+          }}
         >
-          Expense
+          Donations
         </button>
       </section>
 
       {/* Attendance Table */}
-{activeTab === "attendance" && (
-  <section>
-
-    <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
-      <table
-        className="min-w-[900px] w-full border-collapse text-sm"
-        style={{
-          fontFamily: theme.fonts.body,
-          color: theme.colors.neutralDark,
-          backgroundColor: theme.colors.surface,
-        }}
-      >
-        <thead
-          style={{
-            backgroundColor: theme.colors.primary,
-            color: theme.colors.surface,
-            fontFamily: theme.fonts.heading,
-          }}
-        >
-          <tr>
-            <th
-              className="py-2 px-4 text-left border-r"
-              style={{ borderColor: theme.colors.neutralLight }}
-            >
-              Month
-            </th>
-            {[...Array(31)].map((_, i) => {
-              const date = new Date(
-                parseInt(selectedYear),
-                0,
-                i + 1
-              ); // Month irrelevant here, just for weekday
-              const dayName = date.toLocaleDateString("en-US", {
-                weekday: "short",
-              });
-              return (
-                <th
-                  key={i}
-                  className="py-2 px-2 text-center border-r text-xs"
-                  title={dayName}
-                  style={{ borderColor: theme.colors.neutralLight }}
-                >
-                  {i + 1}
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      color: theme.colors.primaryLight,
-                    }}
-                  >
-                    {dayName}
-                  </div>
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody>
-          {months.map((monthName, monthIndex) => {
-            const yearAttendance =
-              attendanceData.attendance[selectedYear] || {};
-            const daysPresent = yearAttendance[monthName] || [];
-            const totalDaysInMonth = daysInMonth(
-              parseInt(selectedYear),
-              monthIndex
-            );
-
-            return (
-              <tr
-                key={monthName}
+      {activeTab === "attendance" && (
+        <section>
+          <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
+            <table className="min-w-[900px] w-full border-collapse text-sm">
+              <thead
                 style={{
-                  backgroundColor:
-                    monthIndex % 2 === 0
-                      ? theme.colors.neutralLight
-                      : theme.colors.surface,
+                  backgroundColor: theme.colors.primary,
+                  color: theme.colors.surface,
+                  fontFamily: theme.fonts.heading,
                 }}
               >
-                <td
-                  className="py-2 px-4 border-r font-medium text-left capitalize"
-                  style={{ borderColor: theme.colors.neutralLight }}
-                >
-                  {monthName}
-                </td>
-                {[...Array(31)].map((_, dayIndex) => {
-                  const day = dayIndex + 1;
-                  const isPresent = daysPresent.includes(day);
-                  const isInvalidDay = day > totalDaysInMonth;
+                <tr>
+                  <th
+                    className="py-2 px-4 text-left center sticky left-0 z-20 bg-yellow-500 text-white"
+                    style={{ backgroundColor: theme.colors.primary }}
+                  >
+                    Month
+                  </th>
 
+                  {[...Array(31)].map((_, i) => {
+                    const date = new Date(parseInt(selectedYear), 0, i + 1);
+                    const dayName = date.toLocaleDateString("en-US", {
+                      weekday: "short",
+                    });
+                    return (
+                      <th
+                        key={i}
+                        className="py-2 px-2 text-center center text-xs"
+                        title={dayName}
+                      >
+                        {i + 1}
+                        <div
+                          style={{
+                            fontSize: "10px",
+                            color: theme.colors.primaryLight,
+                          }}
+                        >
+                          {dayName}
+                        </div>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {months.map((monthName, monthIndex) => {
+                  const yearData =
+                    attendanceData.attendance[selectedYear] || {};
+                  const daysPresent = yearData[monthName] || [];
+                  const totalDays = daysInMonth(
+                    parseInt(selectedYear),
+                    monthIndex
+                  );
                   return (
-                    <td
-                      key={day}
-                      className="text-center border-r"
-                      style={{
-                        borderColor: theme.colors.neutralLight,
-                        color: isInvalidDay
-                          ? theme.colors.tertiary
-                          : isPresent
-                          ? "#16a34a" // Tailwind green-600
-                          : theme.colors.tertiary,
-                      }}
-                      aria-label={
-                        isInvalidDay
-                          ? "Invalid day"
-                          : isPresent
-                          ? "Present"
-                          : "Absent"
+                    <tr
+                      key={monthName}
+                      className={
+                        monthIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
                       }
                     >
-                      {isInvalidDay ? (
-                        <span className="text-xl">•</span>
-                      ) : isPresent ? (
-                        <Check className="w-4 h-4 mx-auto" />
-                      ) : (
-                        ""
-                      )}
-                    </td>
+                      <td className="py-2 px-4 center font-medium capitalize sticky left-0 z-10 bg-white">
+                        {monthName}
+                      </td>
+
+                      {[...Array(31)].map((_, dayIndex) => {
+                        const day = dayIndex + 1;
+                        const isPresent = daysPresent.includes(day);
+                        const isInvalid = day > totalDays;
+                        return (
+                          <td
+                            key={dayIndex}
+                            className="text-center center"
+                            style={{
+                              color: isInvalid
+                                ? theme.colors.tertiary
+                                : isPresent
+                                ? "#16a34a"
+                                : theme.colors.tertiary,
+                            }}
+                          >
+                            {isInvalid ? (
+                              <span className="text-xl">•</span>
+                            ) : isPresent ? (
+                              <Check className="w-4 h-4 mx-auto" />
+                            ) : (
+                              ""
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
                   );
                 })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  </section>
-)}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
-{/* Donations Table */}
-{activeTab === "donations" && (
-  <section>
-    <h2
-      className="text-3xl font-bold mb-6"
-      style={{ color: theme.colors.secondary, fontFamily: theme.fonts.heading }}
-    >
-      Monthly Offerings
-    </h2>
-    <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
-      <table
-        className="min-w-[900px] w-full border-collapse text-base"
-        style={{
-          fontFamily: theme.fonts.body,
-          color: theme.colors.neutralDark,
-          backgroundColor: theme.colors.surface,
-        }}
-      >
-        <thead
-          style={{
-            backgroundColor: theme.colors.secondary,
-            color: theme.colors.surface,
-            fontFamily: theme.fonts.heading,
-          }}
-        >
-          <tr>
-            <th
-              className="py-2 px-4 text-left border-r"
-              style={{ borderColor: theme.colors.neutralLight }}
-            >
-              Moon Cycle
-            </th>
-            <th
-              className="py-2 px-4 text-right border-r"
-              style={{ borderColor: theme.colors.neutralLight }}
-            >
-              Amount (₹)
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {months.map((monthName, idx) => {
-            const yearDonations =
-              donationData.donations_summary[selectedYear] || {};
-            const donationAmount = yearDonations[monthName] || 0;
-
-            return (
-              <tr
-                key={monthName}
+      {/* Donations Table */}
+      {activeTab === "donations" && (
+        <section>
+          <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
+            <table className="w-full border-collapse text-base">
+              <thead
                 style={{
-                  backgroundColor:
-                    idx % 2 === 0
-                      ? theme.colors.neutralLight
-                      : theme.colors.surface,
+                  backgroundColor: theme.colors.secondary,
+                  color: theme.colors.surface,
+                  fontFamily: theme.fonts.heading,
                 }}
               >
-                <td
-                  className="py-2 px-4 border-r font-medium capitalize"
-                  style={{ borderColor: theme.colors.neutralLight }}
-                >
-                  {monthName}
-                </td>
-                <td
-                  className="py-2 px-4 font-semibold text-right"
-                  style={{ borderColor: theme.colors.neutralLight, color: theme.colors.secondary }}
-                >
-                  ₹{donationAmount.toLocaleString()}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  </section>
-)}
-
+                <tr>
+                  <th className="py-2 px-4 text-left center">Month</th>
+                  <th className="py-2 px-4 text-left center">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {months.map((monthName, idx) => {
+                  const donation =
+                    donationData.donations_summary[selectedYear] || {};
+                  const amount = donation[monthName] || 0;
+                  return (
+                    <tr
+                      key={monthName}
+                      className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                    >
+                      <td className="py-2 px-4 center font-medium capitalize">
+                        {monthName}
+                      </td>
+                      <td className="py-2 px-4 font-semibold text-left text-emerald-600">
+                        ₹{amount.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   );
 };
