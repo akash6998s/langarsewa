@@ -1,202 +1,186 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink } from "react-router-dom";
+// import logo from "../../public/favicon.png";
 import {
   Home,
-  List,
+  Activity,
   Bell,
-  User,
   MoreHorizontal,
   ClipboardList,
   DollarSign,
-  FileText,
-  Users,
-  Banknote,
+  Receipt,
+  Wallet,
   LayoutDashboard,
+  UsersRound,
+  CircleUser,
+  UserCog,
 } from "lucide-react";
+import UserProfileDropdown from "./UserProfileDropdown";
+import { theme } from ".././theme";
 
 function Navbar() {
   const [showMore, setShowMore] = useState(false);
   const moreRef = useRef();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (moreRef.current && !moreRef.current.contains(event.target)) {
         setShowMore(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const { colors, fonts } = theme;
+
+  // Base style for nav links (inactive)
+  const baseNavStyle = {
+    fontFamily: fonts.body,
+    color: colors.neutralDark,
+    fontWeight: 400,
+    transition: "color 0.2s ease",
+    cursor: "pointer",
+  };
+
+  // Active style override
+  const activeNavStyle = {
+    color: colors.primary,
+    fontWeight: 600,
+  };
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-md z-[100] md:static md:shadow-none md:border-none">
-      <ul className="flex justify-around md:justify-start md:gap-10 p-2 text-sm text-gray-600 relative">
-        {/* Main nav items */}
-        <li>
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              `flex flex-col items-center ${
-                isActive ? "text-blue-600" : "text-gray-500"
-              }`
-            }
-          >
-            <Home size={20} />
-            <span className="text-xs">Home</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/activity"
-            className={({ isActive }) =>
-              `flex flex-col items-center ${
-                isActive ? "text-blue-600" : "text-gray-500"
-              }`
-            }
-          >
-            <List size={20} />
-            <span className="text-xs">Activity</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/notice"
-            className={({ isActive }) =>
-              `flex flex-col items-center ${
-                isActive ? "text-blue-600" : "text-gray-500"
-              }`
-            }
-          >
-            <Bell size={20} />
-            <span className="text-xs">Notice</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/profile"
-            className={({ isActive }) =>
-              `flex flex-col items-center ${
-                isActive ? "text-blue-600" : "text-gray-500"
-              }`
-            }
-          >
-            <User size={20} />
-            <span className="text-xs">Profile</span>
-          </NavLink>
-        </li>
+    <>
+      {/* Top branding */}
+      <div
+        className="w-full z-[101] md:hidden" // hide on md and up
+        style={{ fontFamily: fonts.body }}
+      >
+        <div className="flex items-center justify-end px-4 py-2 md:px-6 md:py-3">
+          {/* <img src={logo} alt="Logo" className="h-8 w-auto" /> */}
+          <UserProfileDropdown />
+        </div>
+      </div>
 
-        {/* More menu container */}
-        <li ref={moreRef} className="relative flex flex-col items-center">
-          {/* Submenu */}
-          {showMore && (
-            <ul
-              id="more-menu"
-              className="absolute bottom-full mb-2 flex flex-col bg-white border border-gray-200 rounded shadow-md"
-              style={{ left: "50%", transform: "translateX(-70%)" }}
+      {/* Navigation bar */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 shadow-md z-[100] md:static md: md:shadow-none md:px-6 md:py-3 md:flex md:items-center md:justify-end"
+        style={{ backgroundColor: colors.background, fontFamily: fonts.body }}
+      >
+        <ul className="flex justify-around md:justify-end md:gap-10 p-2 text-sm relative md:p-0 md:flex-grow-0">
+          {/* Main nav items */}
+          {[
+            { to: "/home", icon: <Home size={20} />, label: "Home" },
+            {
+              to: "/activity",
+              icon: <Activity size={20} />,
+              label: "Activity",
+            },
+            {
+              to: "/allmember",
+              icon: <UsersRound size={20} />,
+              label: "All Members",
+            },
+            // { to: "/notice", icon: <Bell size={20} />, label: "Notice" },
+            {
+              to: "/profile",
+              icon: <CircleUser size={20} />,
+              label: "Profile",
+            },
+          ].map(({ to, icon, label }) => (
+            <li key={to}>
+              <NavLink to={to}>
+                {({ isActive }) => (
+                  <div
+                    className="flex flex-col items-center"
+                    style={{
+                      ...baseNavStyle,
+                      ...(isActive ? activeNavStyle : {}),
+                    }}
+                  >
+                    {icon}
+                    <span className="text-xs">{label}</span>
+                  </div>
+                )}
+              </NavLink>
+            </li>
+          ))}
+
+          {/* More menu */}
+          <li ref={moreRef} className="relative flex flex-col items-center">
+            {showMore && (
+              <ul
+                id="more-menu"
+                className="absolute bottom-full mb-2 flex flex-col bg-white border border-gray-200 rounded shadow-md md:top-full md:mt-2 md:mb-0 md:right-0 md:left-auto"
+                style={{ fontFamily: fonts.body }}
+              >
+                {[
+                  {
+                    to: "/userslist",
+                    icon: <LayoutDashboard size={20} />,
+                    label: "Dashboard",
+                  },
+                  {
+                    to: "/managemembers",
+                    icon: <UserCog size={16} />,
+                    label: "Members",
+                  },
+                  {
+                    to: "/manageattendance",
+                    icon: <ClipboardList size={16} />,
+                    label: "Attendance",
+                  },
+                  {
+                    to: "/managedonation",
+                    icon: <DollarSign size={16} />,
+                    label: "Donation",
+                  },
+                  {
+                    to: "/managefinance",
+                    icon: <Wallet size={16} />,
+                    label: "Finance",
+                  },
+                  {
+                    to: "/manageexpense",
+                    icon: <Receipt size={16} />,
+                    label: "Expense",
+                  },
+                ].map(({ to, icon, label }) => (
+                  <li key={to}>
+                    <NavLink to={to}>
+                      {({ isActive }) => (
+                        <div
+                          className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-100"
+                          onClick={() => setShowMore(false)}
+                          style={{
+                            ...baseNavStyle,
+                            ...(isActive ? activeNavStyle : {}),
+                          }}
+                        >
+                          {icon}
+                          {label}
+                        </div>
+                      )}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <button
+              onClick={() => setShowMore((prev) => !prev)}
+              className="flex flex-col items-center focus:outline-none cursor-pointer"
+              aria-expanded={showMore}
+              aria-controls="more-menu"
+              style={{ ...baseNavStyle, color: colors.primary }}
             >
-              <li>
-                <NavLink
-                  to="/userslist"
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
-                      isActive ? "text-blue-600 font-semibold" : ""
-                    }`
-                  }
-                  onClick={() => setShowMore(false)}
-                >
-                  <LayoutDashboard size={20} />
-                  Dashboard
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/managemembers"
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
-                      isActive ? "text-blue-600 font-semibold" : ""
-                    }`
-                  }
-                  onClick={() => setShowMore(false)}
-                >
-                  <Users size={16} />
-                  Members
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/manageattendance"
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
-                      isActive ? "text-blue-600 font-semibold" : ""
-                    }`
-                  }
-                  onClick={() => setShowMore(false)}
-                >
-                  <ClipboardList size={16} />
-                  Attendance
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/managedonation"
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
-                      isActive ? "text-blue-600 font-semibold" : ""
-                    }`
-                  }
-                  onClick={() => setShowMore(false)}
-                >
-                  <DollarSign size={16} />
-                  Donation
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/managefinance"
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
-                      isActive ? "text-blue-600 font-semibold" : ""
-                    }`
-                  }
-                  onClick={() => setShowMore(false)}
-                >
-                  <Banknote size={16} />
-                  Finance
-                </NavLink>
-              </li>
-
-              <li>
-                <NavLink
-                  to="/manageexpense"
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 ${
-                      isActive ? "text-blue-600 font-semibold" : ""
-                    }`
-                  }
-                  onClick={() => setShowMore(false)}
-                >
-                  <FileText size={16} />
-                  Expense
-                </NavLink>
-              </li>
-            </ul>
-          )}
-
-          {/* More button */}
-          <button
-            onClick={() => setShowMore((prev) => !prev)}
-            className="flex flex-col items-center text-gray-500 focus:outline-none"
-            aria-expanded={showMore}
-            aria-controls="more-menu"
-          >
-            <MoreHorizontal size={20} />
-            <span className="text-xs">More</span>
-          </button>
-        </li>
-      </ul>
-    </nav>
+              <MoreHorizontal size={20} />
+              <span className="text-xs">More</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </>
   );
 }
 

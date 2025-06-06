@@ -53,32 +53,68 @@ const Profile = () => {
     fetchUserData();
   }, []);
 
-  if (loading) return <Loader />;
-  if (error) return <div className="text-red-600 p-4">{error}</div>;
-  if (!user) return <div className="p-4">No user data available.</div>;
+  if (loading)
+    return (
+      <div
+        className="flex items-center justify-center min-h-screen"
+        style={{ backgroundColor: theme.colors.background }}
+      >
+        <Loader />
+      </div>
+    );
+
+  if (error)
+    return (
+      <div
+        className="flex justify-center items-center min-h-screen px-4"
+        style={{ backgroundColor: theme.colors.accent + "22" }}
+      >
+        <p
+          className="text-lg font-semibold text-center max-w-md"
+          style={{ color: theme.colors.accent, fontFamily: theme.fonts.body }}
+        >
+          Error: {error}
+        </p>
+      </div>
+    );
+
+  if (!user)
+    return (
+      <div
+        className="flex justify-center items-center min-h-screen px-4"
+        style={{ backgroundColor: theme.colors.background }}
+      >
+        <p
+          className="text-lg font-semibold text-center max-w-md"
+          style={{ color: theme.colors.neutralDark, fontFamily: theme.fonts.body }}
+        >
+          No user data available.
+        </p>
+      </div>
+    );
 
   return (
     <div
-      className="bg-background flex items-center justify-center px-4 pt-16"
-      style={{ fontFamily: theme.fonts.body }}
+      className="flex items-center justify-center px-2 mt-8"
+      style={{ backgroundColor: theme.colors.background, fontFamily: theme.fonts.body }}
     >
       <div
-        className="bg-surface rounded-xl shadow-xl max-w-3xl w-full p-8"
-        style={{ color: theme.colors.neutralDark }}
+        className="w-full p-8"
+        style={{
+          color: theme.colors.neutralDark,
+        }}
       >
         {/* Header */}
         <div className="flex flex-col items-center space-y-4 mb-10">
           <img
             src={user.profilePic || "https://via.placeholder.com/150"}
             alt="Profile"
-            className="w-36 h-36 rounded-full border-4 border-primary object-cover"
+            className="w-36 h-36 rounded-full border-4"
+            style={{ borderColor: theme.colors.primary, objectFit: "cover" }}
           />
           <h1
             className="text-4xl font-bold"
-            style={{
-              fontFamily: theme.fonts.heading,
-              color: theme.colors.primary,
-            }}
+            style={{ fontFamily: theme.fonts.heading, color: theme.colors.primary }}
           >
             {user.firstName} {user.lastName}
           </h1>
@@ -87,10 +123,11 @@ const Profile = () => {
         {/* Profile Details */}
         <div>
           <h2
-            className="text-2xl font-semibold mb-6 border-b-2 border-primary pb-2"
+            className="text-2xl font-semibold mb-6 border-b-2 pb-2"
             style={{
               fontFamily: theme.fonts.heading,
               color: theme.colors.primary,
+              borderColor: theme.colors.primary,
             }}
           >
             Profile Details
@@ -98,8 +135,12 @@ const Profile = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Roll Number */}
-            <div className="flex items-start gap-4 text-neutralDark">
-              <IdCard className="text-primary flex-shrink-0" size={24} />
+            <div className="flex items-start gap-4" style={{ color: theme.colors.neutralDark }}>
+              <IdCard
+                className="flex-shrink-0"
+                size={24}
+                color={theme.colors.primary}
+              />
               <div className="min-w-0">
                 <p className="font-semibold">Roll Number</p>
                 <p className="text-sm break-words">{user.rollNumber}</p>
@@ -107,8 +148,12 @@ const Profile = () => {
             </div>
 
             {/* Phone */}
-            <div className="flex items-start gap-4 text-neutralDark">
-              <Phone className="text-primary flex-shrink-0" size={24} />
+            <div className="flex items-start gap-4" style={{ color: theme.colors.neutralDark }}>
+              <Phone
+                className="flex-shrink-0"
+                size={24}
+                color={theme.colors.primary}
+              />
               <div className="min-w-0">
                 <p className="font-semibold">Phone</p>
                 <p className="text-sm break-words">{user.phone}</p>
@@ -116,8 +161,12 @@ const Profile = () => {
             </div>
 
             {/* Email */}
-            <div className="flex items-start gap-4 text-neutralDark">
-              <Mail className="text-primary flex-shrink-0" size={24} />
+            <div className="flex items-start gap-4" style={{ color: theme.colors.neutralDark }}>
+              <Mail
+                className="flex-shrink-0"
+                size={24}
+                color={theme.colors.primary}
+              />
               <div className="min-w-0">
                 <p className="font-semibold">Email</p>
                 <p className="text-sm break-words">{user.email}</p>
@@ -125,8 +174,12 @@ const Profile = () => {
             </div>
 
             {/* Address */}
-            <div className="flex items-start gap-4 text-neutralDark">
-              <MapPin className="text-primary flex-shrink-0" size={24} />
+            <div className="flex items-start gap-4" style={{ color: theme.colors.neutralDark }}>
+              <MapPin
+                className="flex-shrink-0"
+                size={24}
+                color={theme.colors.primary}
+              />
               <div className="min-w-0">
                 <p className="font-semibold">Address</p>
                 <p className="text-sm break-words">{user.address}</p>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Loader from "./Loader";
-import { theme } from ".././theme";
+import { theme } from "../theme";
 
 const UsersList = () => {
   const [users, setUsers] = useState([]);
@@ -34,7 +34,7 @@ const UsersList = () => {
 
   const handleUpdateStatus = async (rollNumber, newStatus) => {
     if (rollNumber == 8) {
-      alert("You can not change the status of this Roll Number");
+      alert("You cannot change the status of this Roll Number");
     } else {
       try {
         const response = await fetch(
@@ -63,22 +63,22 @@ const UsersList = () => {
     switch (status) {
       case "approved":
         return {
-          bg: theme.colors.secondaryLight,
-          text: theme.colors.surface,
+          bg: theme.colors.secondary,
+          text: theme.colors.background,
         };
       case "pending":
         return {
-          bg: theme.colors.primaryLight,
-          text: theme.colors.surface,
+          bg: theme.colors.primary,
+          text: theme.colors.background,
         };
       case "reject":
         return {
-          bg: theme.colors.accent, // add transparency
-          text: theme.colors.surface,
+          bg: theme.colors.accent,
+          text: theme.colors.background,
         };
       default:
         return {
-          bg: theme.colors.tertiary,
+          bg: theme.colors.background,
           text: theme.colors.neutralDark,
         };
     }
@@ -103,14 +103,14 @@ const UsersList = () => {
 
   return (
     <div
-      className="min-h-screen p-6"
+      className="min-h-screen mt-8 px-2"
       style={{
         fontFamily: theme.fonts.body,
+        backgroundColor: theme.colors.background,
+        color: theme.colors.neutralDark,
       }}
     >
-      <div
-        className=""
-      >
+      <div>
         <h2
           className="text-4xl font-extrabold mb-12 text-center tracking-tight"
           style={{
@@ -122,18 +122,18 @@ const UsersList = () => {
         </h2>
 
         {/* Tabs */}
-        <div className="flex justify-center mb-8 rounded-lg shadow-sm bg-white border border-yellow-400 max-w-md mx-auto">
+        <div className="flex justify-center mb-8 rounded-lg shadow-sm max-w-md mx-auto border-2 border-yellow-400 bg-white">
           {["pending", "approved", "reject"].map((tab) => (
             <button
               key={tab}
-              className="w-1/3 py-3 font-semibold rounded-lg transition-colors duration-300 text-center"
+              className="w-1/3 py-3 font-semibold  transition-colors duration-300 text-center"
               onClick={() => setActiveTab(tab)}
               style={{
                 backgroundColor:
                   activeTab === tab ? theme.colors.primary : "transparent",
                 color:
                   activeTab === tab
-                    ? theme.colors.surface
+                    ? theme.colors.background
                     : theme.colors.neutralDark,
                 boxShadow:
                   activeTab === tab
@@ -149,12 +149,12 @@ const UsersList = () => {
         </div>
 
         {/* Table Container */}
-        <div className="overflow-x-auto rounded-3xl border border-gray-300 shadow-lg">
+        <div className="overflow-x-auto rounded border border-gray-300 shadow-lg bg-white">
           <table className="min-w-full border-collapse">
             <thead
               style={{
                 backgroundColor: theme.colors.primary,
-                color: theme.colors.surface,
+                color: theme.colors.background,
                 fontFamily: theme.fonts.heading,
               }}
             >
@@ -191,12 +191,20 @@ const UsersList = () => {
                       key={user.rollNumber}
                       className={`transition-colors duration-300 ${
                         idx % 2 === 0 ? "bg-gray-50" : "bg-white"
-                      } hover:bg-${theme.colors.primaryLight.replace("#", "")}`}
+                      }`}
                       style={{
                         cursor: "default",
                         userSelect: "none",
                         transitionProperty: "background-color",
                       }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor =
+                          theme.colors.primaryLight)
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor =
+                          idx % 2 === 0 ? "#F9FAFB" : "#FFFFFF")
+                      }
                     >
                       <td
                         className="px-10 py-5 font-medium"

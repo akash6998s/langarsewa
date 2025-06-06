@@ -28,6 +28,7 @@ const FinanceSummary = () => {
   }, []);
 
   if (loading) {
+    // Show Loader with white background (assuming your Loader.jsx uses white bg)
     return <Loader />;
   }
 

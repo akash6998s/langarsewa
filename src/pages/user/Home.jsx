@@ -1,28 +1,39 @@
 import React from "react";
 import AttendanceSheet from "../../components/AttendanceSheet";
-import UserProfileDropdown from "../../components/UserProfileDropdown";
 import { theme } from "../../theme";
 
 const Home = () => {
   return (
     <div
       style={{
-        backgroundColor: theme.colors.background,
+        fontFamily: theme.fonts.body, // '"Open Sans", sans-serif'
+        color: theme.colors.neutralDark, // '#374151'
       }}
-      className="min-h-screen bg-[#FFF8E7] pt-6 font-[Inter] text-[#1E293B] relative"
+      className="min-h-screen px-2 relative"
     >
-      {/* Top Right User Dropdown */}
-      <div className="absolute top-4 right-4">
-        <UserProfileDropdown />
-      </div>
+
 
       {/* Centered Heading */}
-      <h1 className="text-3xl md:text-4xl font-bold font-[Merriweather] text-[#9D174D] text-center mt-16 mb-4">
+      <h1
+        style={{
+          color: theme.colors.primary, // '#D97706'
+          fontFamily: theme.fonts.heading, // "'Poppins', sans-serif"
+        }}
+        className="text-3xl md:text-4xl font-bold text-center mt-8 mb-2"
+      >
         सुदर्शन सेना - भोजन वितरण
       </h1>
 
+      {/* Subtitle */}
+ 
+
       {/* Main Section */}
-      <div className="p-2">
+      <div
+        style={{
+          fontFamily: theme.fonts.body,
+        }}
+        className="mx-auto py-6 rounded-lg shadow"
+      >
         <AttendanceSheet />
       </div>
     </div>

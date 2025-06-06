@@ -6,6 +6,8 @@ import {
   Navigate,
 } from "react-router-dom";
 
+import { theme } from "./theme"; // import your theme
+
 // Pages
 import Home from "./pages/user/Home";
 import Login from "./pages/auth/Login";
@@ -52,41 +54,50 @@ function App() {
   if (showSplash) return <Splash />;
 
   return (
-    <Router>
-      {isLoggedIn && <Navbar onLogout={handleLogout} />}
-      <Routes>
-        {/* Public Route */}
-        <Route
-          path="/"
-          element={
-            isLoggedIn ? <Navigate to="/home" /> : <Login onLogin={handleLogin} />
-          }
-        />
+    <div
+      style={{
+        backgroundColor: theme.colors.background,
+        fontFamily: theme.fonts.body,
+        minHeight: "100vh",
+      }}
+      className="text-gray-800"
+    >
+      <Router>
+        {isLoggedIn && <Navbar onLogout={handleLogout} />}
+        <Routes>
+          {/* Public Route */}
+          <Route
+            path="/"
+            element={
+              isLoggedIn ? <Navigate to="/home" /> : <Login onLogin={handleLogin} />
+            }
+          />
 
-        {/* Protected Routes */}
-        {isLoggedIn ? (
-          <>
-            <Route path="/home" element={<Home />} />
-            <Route path="/activity" element={<Activity />} />
-            <Route path="/notice" element={<Notice />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/addmessage" element={<AddMessage />} />
-            <Route path="/addcomplaint" element={<AddComplaint />} />
-            <Route path="/addsuvichar" element={<AddSuvichar />} />
-            <Route path="/addsuggestion" element={<AddSuggestion />} />
-            <Route path="/manageattendance" element={<ManageAttendance />} />
-            <Route path="/managedonation" element={<ManageDonation />} />
-            <Route path="/manageexpense" element={<ManageExpense />} />
-            <Route path="/managemembers" element={<ManageMembers />} />
-            <Route path="/allmember" element={<AllMember />} />
-            <Route path="/managefinance" element={<ManageFinance />} />
-            <Route path="/userslist" element={<UsersList />} />
-          </>
-        ) : (
-          <Route path="*" element={<Navigate to="/" />} />
-        )}
-      </Routes>
-    </Router>
+          {/* Protected Routes */}
+          {isLoggedIn ? (
+            <>
+              <Route path="/home" element={<Home />} />
+              <Route path="/activity" element={<Activity />} />
+              <Route path="/notice" element={<Notice />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/addmessage" element={<AddMessage />} />
+              <Route path="/addcomplaint" element={<AddComplaint />} />
+              <Route path="/addsuvichar" element={<AddSuvichar />} />
+              <Route path="/addsuggestion" element={<AddSuggestion />} />
+              <Route path="/manageattendance" element={<ManageAttendance />} />
+              <Route path="/managedonation" element={<ManageDonation />} />
+              <Route path="/manageexpense" element={<ManageExpense />} />
+              <Route path="/managemembers" element={<ManageMembers />} />
+              <Route path="/allmember" element={<AllMember />} />
+              <Route path="/managefinance" element={<ManageFinance />} />
+              <Route path="/userslist" element={<UsersList />} />
+            </>
+          ) : (
+            <Route path="*" element={<Navigate to="/" />} />
+          )}
+        </Routes>
+      </Router>
+    </div>
   );
 }
 

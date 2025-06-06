@@ -74,21 +74,6 @@ const Activity = () => {
 
   const handleYearChange = (e) => setSelectedYear(e.target.value);
 
-  // Yearly attendance percentage (existing)
-  // const calculateYearlyAttendancePercentage = () => {
-  //   if (!attendanceData || !attendanceData.attendance[selectedYear]) return 0;
-  //   let totalDays = 0,
-  //     presentDays = 0;
-
-  //   months.forEach((month, idx) => {
-  //     totalDays += daysInMonth(parseInt(selectedYear), idx);
-  //     presentDays += (attendanceData.attendance[selectedYear][month] || []).length;
-  //   });
-
-  //   return totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(2) : 0;
-  // };
-
-  // Yearly donation total (existing)
   const calculateYearlyDonationTotal = () => {
     if (!donationData || !donationData.donations_summary[selectedYear])
       return 0;
@@ -99,7 +84,6 @@ const Activity = () => {
     );
   };
 
-  // New: Current month attendance percentage and days present
   const getCurrentMonthAttendanceStats = () => {
     if (!attendanceData || !attendanceData.attendance[selectedYear]) {
       return { percent: 0, presentDays: 0, currentDay: 0 };
@@ -107,15 +91,14 @@ const Activity = () => {
 
     const today = new Date();
     const currentMonthIndex = today.getMonth(); // 0-based month index
-    const currentDay = today.getDate(); // day number (e.g., 5 for 5th June)
+    const currentDay = today.getDate(); // day number
     const monthName = months[currentMonthIndex];
 
     const presentDaysArray =
       attendanceData.attendance[selectedYear][monthName] || [];
 
-    const presentTillToday = presentDaysArray.filter(
-      (day) => day <= currentDay
-    ).length;
+    const presentTillToday = presentDaysArray.filter((day) => day <= currentDay)
+      .length;
 
     const percent =
       currentDay > 0
@@ -132,7 +115,14 @@ const Activity = () => {
   if (loading) return <Loader />;
   if (error) {
     return (
-      <div className="max-w-md mx-auto mt-20 p-8 bg-red-100 rounded-lg shadow-lg text-red-700 text-center">
+      <div
+        className="max-w-md mx-auto mt-20 p-8 rounded-lg shadow-lg text-center"
+        style={{
+          backgroundColor: "#FEE2E2",
+          color: "#991B1B",
+          fontFamily: theme.fonts.body,
+        }}
+      >
         <h2 className="text-2xl font-bold mb-4">Oops! Something went wrong</h2>
         <p className="mb-2">{error}</p>
         <p>Please try refreshing the page or check your connection.</p>
@@ -141,21 +131,28 @@ const Activity = () => {
   }
 
   const availableYears = Object.keys(attendanceData.attendance);
-  // const yearlyAttendance = calculateYearlyAttendancePercentage();
   const yearlyDonation = calculateYearlyDonationTotal();
   const currentMonthStats = getCurrentMonthAttendanceStats();
 
   return (
     <div
-      className="max-w-7xl mx-auto pb-16 pt-8 px-4 bg-[#FEF3C7] rounded-xl shadow-xl font-sans min-h-screen"
-      style={{ fontFamily: theme.fonts.body }}
+      className="max-w-7xl mx-auto  px-2 mt-8 rounded-xl shadow-xl min-h-screen"
+      style={{
+        fontFamily: theme.fonts.body,
+        color: theme.colors.neutralDark,
+      }}
     >
       {/* Header and Toggle */}
-      <header className="mb-10 text-center">
+      <header className="mb-10 text-center select-none">
         <div
           onClick={() => setShowSummary((prev) => !prev)}
-          className="flex justify-center items-center cursor-pointer select-none mb-6"
+          className="inline-flex items-center cursor-pointer"
           aria-expanded={showSummary}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") setShowSummary((prev) => !prev);
+          }}
         >
           <h2
             className="text-4xl font-extrabold tracking-wide mr-3"
@@ -175,29 +172,26 @@ const Activity = () => {
             strokeWidth="2"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 5l7 7-7 7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </div>
       </header>
 
       {/* Summary Cards */}
       {showSummary && (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-4 mb-10">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
           {/* Presence This Month */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border-l-8 border-[#D97706] flex flex-col items-center">
+          <div
+            className="rounded-2xl shadow-lg p-8 border-l-8 flex flex-col items-center"
+            style={{ backgroundColor: "#fff", borderColor: "#D97706" }}
+          >
             <h3
               className="text-2xl font-semibold mb-2"
               style={{ color: theme.colors.primary }}
             >
               Presence Percentage
             </h3>
-            <p className="text-6xl font-bold text-gray-900">
-              {currentMonthStats.percent}%
-            </p>
+            <p className="text-6xl font-bold text-gray-900">{currentMonthStats.percent}%</p>
             <p className="mt-2 text-gray-600 text-lg">
               {`Present: ${currentMonthStats.presentDays} days`}
             </p>
@@ -207,7 +201,10 @@ const Activity = () => {
           </div>
 
           {/* Total Donation */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border-l-8 border-[#10B981] flex flex-col items-center">
+          <div
+            className="rounded-2xl shadow-lg p-8 border-l-8 flex flex-col items-center"
+            style={{ backgroundColor: "#fff", borderColor: "#10B981" }}
+          >
             <h3
               className="text-2xl font-semibold mb-2"
               style={{ color: theme.colors.secondary }}
@@ -222,12 +219,15 @@ const Activity = () => {
         </section>
       )}
 
-      {/* Year Dropdown (hidden but ready if needed) */}
-      <div className="mb-8 hidden flex justify-center">
-        <div className="flex w-full items-center justify-between gap-4 bg-white px-6 py-4 rounded-2xl shadow-lg border border-[#FCD34D] max-w-xl">
+      {/* Year Dropdown (hidden) */}
+      <div className="mb-8 hidden justify-center">
+        <div
+          className="flex w-full items-center justify-between gap-4 bg-white px-6 py-4 rounded-2xl shadow-lg border max-w-xl"
+          style={{ borderColor: "#FCD34D" }}
+        >
           <label
             htmlFor="year-select"
-            className="text-lg font-semibold text-gray-900 tracking-wide"
+            className="text-lg font-semibold tracking-wide"
             style={{
               fontFamily: theme.fonts.heading,
               color: theme.colors.primary,
@@ -239,7 +239,8 @@ const Activity = () => {
             id="year-select"
             value={selectedYear}
             onChange={handleYearChange}
-            className="px-5 py-2.5 rounded-xl bg-[#FFF7ED] border border-[#F59E0B] text-gray-800 font-medium shadow-inner focus:outline-none focus:ring-2 focus:ring-[#D97706] transition duration-200"
+            className="px-5 py-2.5 rounded-xl bg-[#FFF7ED] border text-gray-800 font-medium shadow-inner focus:outline-none focus:ring-2 transition duration-200"
+            style={{ borderColor: "#F59E0B", focusRingColor: "#D97706" }}
           >
             {availableYears.map((year) => (
               <option key={year} value={year}>
@@ -251,7 +252,10 @@ const Activity = () => {
       </div>
 
       {/* Tabs */}
-      <section className="flex justify-center mb-8 rounded-lg shadow-sm bg-white border border-yellow-400 max-w-md mx-auto">
+      <section
+        className="flex justify-center mb-8 rounded-lg shadow-sm border max-w-md mx-auto"
+        style={{ borderColor: theme.colors.secondary, backgroundColor: "#fff" }}
+      >
         <button
           onClick={() => setActiveTab("attendance")}
           className="w-1/2 py-3 font-semibold rounded-lg transition-colors duration-300 text-center"
@@ -298,7 +302,7 @@ const Activity = () => {
               >
                 <tr>
                   <th
-                    className="py-2 px-4 text-left center sticky left-0 z-20 bg-yellow-500 text-white"
+                    className="py-2 px-4 text-left sticky left-0 z-20 bg-yellow-500 text-white"
                     style={{ backgroundColor: theme.colors.primary }}
                   >
                     Month
@@ -312,7 +316,7 @@ const Activity = () => {
                     return (
                       <th
                         key={i}
-                        className="py-2 px-2 text-center center text-xs"
+                        className="py-2 px-2 text-center text-xs"
                         title={dayName}
                       >
                         {i + 1}
@@ -331,21 +335,18 @@ const Activity = () => {
               </thead>
               <tbody>
                 {months.map((monthName, monthIndex) => {
-                  const yearData =
-                    attendanceData.attendance[selectedYear] || {};
+                  const yearData = attendanceData.attendance[selectedYear] || {};
                   const daysPresent = yearData[monthName] || [];
-                  const totalDays = daysInMonth(
-                    parseInt(selectedYear),
-                    monthIndex
-                  );
+                  const totalDays = daysInMonth(parseInt(selectedYear), monthIndex);
                   return (
                     <tr
                       key={monthName}
-                      className={
-                        monthIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
-                      }
+                      className={monthIndex % 2 === 0 ? "bg-gray-50" : "bg-white"}
                     >
-                      <td className="py-2 px-4 center font-medium capitalize sticky left-0 z-10 bg-white">
+                      <td
+                        className="py-2 px-4 font-medium capitalize sticky left-0 z-10 bg-white"
+                        style={{ fontFamily: theme.fonts.body }}
+                      >
                         {monthName}
                       </td>
 
@@ -356,7 +357,7 @@ const Activity = () => {
                         return (
                           <td
                             key={dayIndex}
-                            className="text-center center"
+                            className="text-center"
                             style={{
                               color: isInvalid
                                 ? theme.colors.tertiary
@@ -397,8 +398,8 @@ const Activity = () => {
                 }}
               >
                 <tr>
-                  <th className="py-2 px-4 text-left center">Month</th>
-                  <th className="py-2 px-4 text-left center">Amount</th>
+                  <th className="py-2 px-4 text-left">Month</th>
+                  <th className="py-2 px-4 text-left">Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -411,7 +412,10 @@ const Activity = () => {
                       key={monthName}
                       className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
                     >
-                      <td className="py-2 px-4 center font-medium capitalize">
+                      <td
+                        className="py-2 px-4 font-medium capitalize"
+                        style={{ fontFamily: theme.fonts.body }}
+                      >
                         {monthName}
                       </td>
                       <td className="py-2 px-4 font-semibold text-left text-emerald-600">

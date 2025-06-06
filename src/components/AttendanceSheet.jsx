@@ -31,13 +31,11 @@ const AttendanceSheet = () => {
 
   const getDaysInMonth = (month, year) =>
     new Date(year, month + 1, 0).getDate();
-
   const days = getDaysInMonth(selectedMonth, selectedYear);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
-
     fetch("https://langarsewa-db.onrender.com/attendance")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch members");
@@ -66,41 +64,20 @@ const AttendanceSheet = () => {
   if (loading) return <Loader />;
   if (error)
     return (
-      <div className="text-red-600 font-semibold p-4 text-center">{error}</div>
+      <div
+        className="font-semibold text-center"
+        style={{ color: theme.colors.accent, fontFamily: theme.fonts.body }}
+      >
+        {error}
+      </div>
     );
-
-  // Sticky styles for first two columns
-  const stickyRollStyle = {
-    position: "sticky",
-    left: 0,
-    backgroundColor: theme.colors.surface,
-    zIndex: 4,
-    minWidth: "80px",
-    maxWidth: "80px",
-    paddingLeft: "12px",
-    paddingRight: "12px",
-  };
-  const stickyNameStyle = {
-    position: "sticky",
-    left: "80px", // width of roll column
-    backgroundColor: theme.colors.surface,
-    zIndex: 5,
-    minWidth: "180px",
-    maxWidth: "250px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    paddingLeft: "12px",
-    paddingRight: "12px",
-  };
 
   return (
     <div
-      className="min-h-screen pb-16 px-4 sm:px-8"
-      style={{
-        fontFamily: theme.fonts.body,
-      }}
+      className="min-h-screen pb-16"
+      style={{ fontFamily: theme.fonts.body, color: theme.colors.neutralDark }}
     >
+      {/* Filters and Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex gap-4 w-full sm:w-auto">
           <select
@@ -110,6 +87,8 @@ const AttendanceSheet = () => {
             style={{
               borderColor: theme.colors.primary,
               color: theme.colors.neutralDark,
+              fontFamily: theme.fonts.body,
+              backgroundColor: theme.colors.surface,
             }}
           >
             {months.map((month) => (
@@ -126,6 +105,8 @@ const AttendanceSheet = () => {
             style={{
               borderColor: theme.colors.primary,
               color: theme.colors.neutralDark,
+              fontFamily: theme.fonts.body,
+              backgroundColor: theme.colors.surface,
             }}
           >
             {years.map((year) => (
@@ -145,147 +126,219 @@ const AttendanceSheet = () => {
           style={{
             borderColor: theme.colors.accent,
             color: theme.colors.neutralDark,
+            fontFamily: theme.fonts.body,
+            backgroundColor: theme.colors.surface,
           }}
         />
       </div>
 
-      <div
-        className="overflow-x-auto rounded-md border shadow-md"
-        style={{ borderColor: theme.colors.neutralLight }}
-      >
-        <table
-          className="min-w-[900px] w-full border-collapse"
+      {/* Table or Empty Message */}
+      {filteredMembers.length > 0 ? (
+        <div
+          className="overflow-x-auto rounded-md border shadow-md"
           style={{
-            fontFamily: theme.fonts.body,
-            color: theme.colors.neutralDark,
+            borderColor: theme.colors.neutralLight,
             backgroundColor: theme.colors.surface,
-            tableLayout: "auto",
           }}
         >
-          <thead
-            style={{
-              backgroundColor: theme.colors.primary,
-              color: theme.colors.surface,
-              fontFamily: theme.fonts.heading,
-              position: "sticky",
-              top: 0,
-              zIndex: 10,
-            }}
-          >
-            <tr>
-              <th
-                className="py-3 px-4 text-left"
+          <div style={{ overflowX: "auto" }}>
+            <table
+              className="min-w-[900px] w-full border-collapse"
+              style={{
+                fontFamily: theme.fonts.body,
+                color: theme.colors.neutralDark,
+                tableLayout: "fixed",
+              }}
+            >
+              <thead
                 style={{
-                  ...stickyRollStyle,
                   backgroundColor: theme.colors.primary,
                   color: theme.colors.surface,
+                  fontFamily: theme.fonts.heading,
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 10,
                 }}
-                title="Roll Number"
               >
-                Roll
-              </th>
-              <th
-                className="py-3 px-4 text-left"
-                style={{
-                  ...stickyNameStyle,
-                  backgroundColor: theme.colors.primary,
-                  color: theme.colors.surface,
-                }}
-                title="Name"
-              >
-                Name
-              </th>
-              {[...Array(days)].map((_, i) => {
-                const date = new Date(selectedYear, selectedMonth, i + 1);
-                const dayName = date.toLocaleDateString("en-US", {
-                  weekday: "short",
-                });
-                return (
+                <tr>
                   <th
-                    key={i}
-                    className="py-2 px-2 text-center text-xs"
-                    title={dayName}
+                    className="py-3 px-2 text-left"
                     style={{
-                      borderColor: theme.colors.neutralLight,
-                      minWidth: "30px",
-                      maxWidth: "30px",
+                      position: "sticky",
+                      left: 0,
+                      backgroundColor: theme.colors.primary,
+                      color: theme.colors.surface,
+                      zIndex: 11,
+                      width: "60px",
+                      minWidth: "60px",
+                      maxWidth: "60px",
+                      paddingLeft: "8px",
+                      paddingRight: "8px",
+                      boxSizing: "border-box",
+                      fontFamily: theme.fonts.heading,
                     }}
                   >
-                    {i + 1}
-                    <div
-                      style={{
-                        fontSize: "10px",
-                        color: theme.colors.primaryLight,
-                      }}
-                    >
-                      {dayName}
-                    </div>
+                    Roll no.
                   </th>
-                );
-              })}
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredMembers.length > 0 ? (
-              filteredMembers.map((member, rowIndex) => {
-                const monthName = months[selectedMonth].name.toLowerCase();
-                const daysPresent =
-                  member.attendance?.[selectedYear]?.[monthName] || [];
-
-                return (
-                  <tr
-                    key={member.roll}
+                  <th
+                    className="py-3 px-2 text-left"
                     style={{
-                      backgroundColor:
-                        rowIndex % 2 === 0
-                          ? theme.colors.neutralLight
-                          : theme.colors.surface,
+                      position: "sticky",
+                      left: "60px",
+                      backgroundColor: theme.colors.primary,
+                      color: theme.colors.surface,
+                      zIndex: 12,
+                      width: "140px",
+                      minWidth: "140px",
+                      maxWidth: "140px",
+                      whiteSpace: "normal",
+                      wordBreak: "break-word",
+                      paddingLeft: "8px",
+                      paddingRight: "8px",
+                      boxSizing: "border-box",
+                      fontFamily: theme.fonts.heading,
                     }}
-                    className="hover:bg-primary/10"
                   >
-                    <td
-                      className="py-2 px-4 font-medium"
-                      style={stickyRollStyle}
-                      title={`Roll: ${member.roll}`}
-                    >
-                      {member.roll}
-                    </td>
-                    <td
-                      className="py-2 px-4"
-                      style={stickyNameStyle}
-                      title={`${member.name} ${member.last_name}`}
-                    >
-                      {member.name} {member.last_name}
-                    </td>
-                    {[...Array(days)].map((_, i) => (
-                      <td
+                    Name
+                  </th>
+
+                  {[...Array(days)].map((_, i) => {
+                    const date = new Date(selectedYear, selectedMonth, i + 1);
+                    const dayName = date.toLocaleDateString("en-US", {
+                      weekday: "short",
+                    });
+                    return (
+                      <th
                         key={i}
-                        className="text-center"
-                        style={{ borderColor: theme.colors.neutralLight }}
+                        className="py-1 px-1 text-center text-xs"
+                        title={dayName}
+                        style={{
+                          borderColor: theme.colors.neutralLight,
+                          width: "36px",
+                          minWidth: "36px",
+                          maxWidth: "36px",
+                          padding: "4px 2px",
+                          boxSizing: "border-box",
+                          color: theme.colors.surface,
+                          fontFamily: theme.fonts.body,
+                        }}
                       >
-                        {daysPresent.includes(i + 1) && (
-                          <Check className="w-4 h-4 text-green-600 mx-auto" />
-                        )}
+                        {i + 1}
+                        <div
+                          style={{
+                            fontSize: "10px",
+                            color: theme.colors.primaryLight,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {dayName}
+                        </div>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredMembers.map((member, rowIndex) => {
+                  const monthName = months[selectedMonth].name.toLowerCase();
+                  const daysPresent =
+                    member.attendance?.[selectedYear]?.[monthName] || [];
+
+                  return (
+                    <tr
+                      key={member.roll}
+                      style={{
+                        backgroundColor:
+                          rowIndex % 2 === 0
+                            ? theme.colors.neutralLight
+                            : theme.colors.surface,
+                        borderBottom: `1px solid ${theme.colors.neutralLight}`,
+                      }}
+                      className="hover:bg-[rgba(217, 119, 6, 0.1)]"
+                    >
+                      <td
+                        className="py-2 px-2 font-medium"
+                        style={{
+                          position: "sticky",
+                          left: 0,
+                          backgroundColor: theme.colors.surface,
+                          zIndex: 4,
+                          width: "60px",
+                          minWidth: "60px",
+                          maxWidth: "60px",
+                          paddingLeft: "8px",
+                          paddingRight: "8px",
+                          boxSizing: "border-box",
+                          fontFamily: theme.fonts.body,
+                          color: theme.colors.neutralDark,
+                        }}
+                      >
+                        {member.roll}
                       </td>
-                    ))}
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td
-                  colSpan={2 + days}
-                  className="text-center py-6"
-                  style={{ color: theme.colors.tertiary }}
-                >
-                  No members found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                      <td
+                        className="py-2 px-2"
+                        style={{
+                          position: "sticky",
+                          left: "60px",
+                          backgroundColor: theme.colors.surface,
+                          zIndex: 5,
+                          width: "140px",
+                          minWidth: "140px",
+                          maxWidth: "140px",
+                          whiteSpace: "normal",
+                          wordBreak: "break-word",
+                          paddingLeft: "8px",
+                          paddingRight: "8px",
+                          boxSizing: "border-box",
+                          fontFamily: theme.fonts.body,
+                          color: theme.colors.neutralDark,
+                        }}
+                      >
+                        {member.name} {member.last_name}
+                      </td>
+
+                      {[...Array(days)].map((_, i) => (
+                        <td
+                          key={i}
+                          className="text-center"
+                          style={{
+                            borderColor: theme.colors.neutralLight,
+                            width: "36px",
+                            minWidth: "36px",
+                            maxWidth: "36px",
+                            padding: "4px 2px",
+                            boxSizing: "border-box",
+                            color: theme.colors.success,
+                          }}
+                        >
+                          {daysPresent.includes(i + 1) && (
+                            <Check
+                              className="w-4 h-4 mx-auto"
+                              style={{ color: theme.colors.secondary }}
+                            />
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div
+          className="w-full text-center py-10 text-lg font-medium"
+          style={{
+            fontFamily: theme.fonts.body,
+            color: theme.colors.tertiary,
+            backgroundColor: theme.colors.surface,
+          }}
+        >
+          No members found.
+        </div>
+      )}
     </div>
   );
 };

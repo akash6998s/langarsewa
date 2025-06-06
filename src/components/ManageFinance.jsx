@@ -40,11 +40,15 @@ const ManageFinance = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const donationsRes = await fetch("https://langarsewa-db.onrender.com/donations");
+        const donationsRes = await fetch(
+          "https://langarsewa-db.onrender.com/donations"
+        );
         const donationsJson = await donationsRes.json();
         setDonationsData(donationsJson);
 
-        const expensesRes = await fetch("https://langarsewa-db.onrender.com/expenses");
+        const expensesRes = await fetch(
+          "https://langarsewa-db.onrender.com/expenses"
+        );
         const expensesJson = await expensesRes.json();
         const normalizedData = expensesJson.map((expense) => ({
           ...expense,
@@ -91,13 +95,16 @@ const ManageFinance = () => {
 
   return (
     <div
-      className="min-h-screen py-6 px-6 lg:px-10 rounded-xl shadow-lg"
+      className="min-h-screen mt-8 pb-6 px-2 rounded-xl shadow-lg"
       style={{ fontFamily: theme.fonts.body, color: theme.colors.neutralDark }}
     >
       <FinanceSummary />
 
       {/* Tabs */}
-      <div className="flex justify-center mb-8 rounded-lg shadow-sm bg-white border border-yellow-400 max-w-md mx-auto">
+      <div
+        className="flex justify-center mb-8 rounded-lg shadow-sm  mx-auto border"
+        style={{ borderColor: theme.colors.secondary }}
+      >
         {["donations", "expense"].map((tab) => (
           <button
             key={tab}
@@ -127,9 +134,12 @@ const ManageFinance = () => {
 
       {/* Content */}
       {activeTab === "donations" && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden max-w-6xl mx-auto mb-12">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden  mx-auto mb-12">
           {/* Filters */}
-          <div className="bg-yellow-50 pb-6 flex flex-wrap justify-between gap-6 items-center rounded-t-lg border-b border-yellow-300">
+          <div
+            className="bg-yellow-50 pb-6 flex flex-wrap justify-between gap-6 items-center rounded-t-lg border-b"
+            style={{ borderColor: theme.colors.secondary }}
+          >
             <div className="w-full flex gap-4">
               <div className="w-1/2">
                 <Select
@@ -183,8 +193,12 @@ const ManageFinance = () => {
                           ? "Show paid only"
                           : "Show unpaid only"
                       }
+                      style={{
+                        color: theme.colors.accent,
+                        backgroundColor: theme.colors.secondary,
+                      }}
                     >
-                      <Filter size={16} />
+                      <Filter size={16} stroke={theme.colors.primary} />
                     </button>
                   </div>
                 ),
@@ -203,10 +217,13 @@ const ManageFinance = () => {
       )}
 
       {activeTab === "expense" && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden max-w-6xl mx-auto mb-12">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden  mx-auto mb-12">
           {/* Filters */}
-          <div className="bg-yellow-50 p-6 flex flex-wrap justify-between gap-6 items-center rounded-t-lg border-b border-yellow-300">
-            <div className="w-full flex gap-4">
+          <div
+            className="bg-yellow-50 p-6 flex flex-wrap justify-between gap-6 items-center rounded-t-lg border-b"
+            style={{ borderColor: theme.colors.secondary }}
+          >
+            <div className="w-full flex gap-4 px-6">
               <div className="w-1/2">
                 <Select
                   label="Year"
@@ -230,7 +247,7 @@ const ManageFinance = () => {
                 />
               </div>
             </div>
-            <div className="w-full sm:w-1/2 md:w-1/3">
+            <div className="w-full sm:w-1/2 md:w-1/3 px-6">
               <SearchInput
                 placeholder="Search by description"
                 value={searchTerm}
@@ -267,13 +284,18 @@ const ManageFinance = () => {
 // Reusable Select component
 const Select = ({ options, value, onChange, theme }) => (
   <div>
-
     <select
       value={value}
       onChange={onChange}
-      className="w-full rounded-md border border-yellow-400 bg-yellow-100 px-4 py-2 text-yellow-900 shadow-sm
-        focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition"
-      style={{ fontFamily: theme.fonts.body }}
+      className="w-full rounded-md border px-4 py-2 shadow-sm
+        focus:outline-none focus:ring-2 transition"
+      style={{
+        fontFamily: theme.fonts.body,
+        borderColor: theme.colors.secondary,
+        backgroundColor: theme.colors.background,
+        color: theme.colors.neutralDark,
+        focus: { ringColor: theme.colors.secondary },
+      }}
     >
       {options.map((opt, i) => (
         <option
@@ -292,15 +314,19 @@ const Select = ({ options, value, onChange, theme }) => (
 // Reusable SearchInput component
 const SearchInput = ({ placeholder, value, onChange, theme }) => (
   <div>
-
     <input
       type="text"
       placeholder={placeholder}
       value={value}
       onChange={onChange}
-      className="w-full rounded-md border border-yellow-400 bg-yellow-100 px-4 py-2 text-yellow-900 shadow-sm
-        focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition"
-      style={{ fontFamily: theme.fonts.body }}
+      className="w-full rounded-md border px-4 py-2 shadow-sm
+        focus:outline-none focus:ring-2 transition"
+      style={{
+        fontFamily: theme.fonts.body,
+        borderColor: theme.colors.secondary,
+        backgroundColor: theme.colors.background,
+        color: theme.colors.neutralDark,
+      }}
     />
   </div>
 );

@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, ChevronDown } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { theme } from "../theme";
+
+const { colors, fonts } = theme;
 
 function UserProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,47 +42,56 @@ function UserProfileDropdown() {
   };
 
   return (
-    <div className="flex items-end justify-end mb-6">
+    <div className="flex items-center justify-end" style={{ fontFamily: fonts.body }}>
       <div className="relative" ref={dropdownRef}>
-        {/* User Icon Button */}
+        {/* User Icon Button with Down Arrow */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-center p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex items-center gap-1 px-3 py-1 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary cursor-pointer"
           aria-haspopup="true"
           aria-expanded={isOpen}
           aria-label="User menu"
+          style={{ color: colors.neutralDark }}
+          type="button"
         >
           <User size={24} />
+          <ChevronDown size={20} className={`${isOpen ? "rotate-180" : "rotate-0"} transition-transform`} />
         </button>
 
         {/* Dropdown Menu */}
         {isOpen && (
           <div
-            className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50"
+            className="absolute right-0 mt-2 w-52 rounded-md shadow-lg py-2 z-50 ring-1 ring-black ring-opacity-5"
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="user-menu-button"
+            style={{ backgroundColor: colors.surface, border: `1px solid ${colors.neutralLight}` }}
           >
             <NavLink
               to="/profile"
+              onClick={() => setIsOpen(false)}
+              role="menuitem"
               className={({ isActive }) =>
-                `flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${
-                  isActive ? "bg-gray-50" : ""
+                `flex items-center gap-3 px-5 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                  isActive ? "bg-primaryLight text-primary" : "text-neutralDark"
                 }`
               }
-              role="menuitem"
-              onClick={() => setIsOpen(false)}
+              style={{ fontFamily: fonts.body }}
             >
-              <User size={16} />
+              <User size={18} color={colors.primary} />
               My Profile
             </NavLink>
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700"
               role="menuitem"
+              className="flex items-center gap-3 w-full text-left px-5 py-2 text-sm font-medium rounded-md transition-colors duration-200 hover:bg-red-50 hover:text-red-700"
+              style={{
+                color: colors.accent,
+                fontFamily: fonts.body,
+              }}
             >
-              <LogOut size={16} />
+              <LogOut size={18} color={colors.accent} />
               Logout
             </button>
           </div>
