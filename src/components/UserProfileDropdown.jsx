@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { User, LogOut, ChevronDown } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { Navigate, NavLink, useNavigate } from "react-router-dom";
 import { theme } from "../theme";
 
 const { colors, fonts } = theme;
@@ -8,6 +8,7 @@ const { colors, fonts } = theme;
 function UserProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -35,10 +36,10 @@ function UserProfileDropdown() {
   // Logout functionality
   const handleLogout = () => {
     console.log("Logging out...");
-    localStorage.clear();       // Clear all local storage
-    sessionStorage.clear();     // Clear all session storage
-    setIsOpen(false);           // Close the dropdown
-    window.location.reload();   // Refresh the page
+    localStorage.clear();    
+    sessionStorage.clear();     
+    navigate('/')
+    // window.location.reload();   
   };
 
   return (

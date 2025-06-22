@@ -454,7 +454,7 @@ function ManageMember() {
                 <select
                   value={rollNumber}
                   onChange={handleRollNumberChange}
-                  className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
+                  className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 text-base text-[#4e342e] h-12"
                   required
                 >
                   <option value="">Select Roll Number</option>
@@ -466,31 +466,32 @@ function ManageMember() {
                 </select>
               </div>
 
-              {/* Name */}
+              {/* First Name */}
               <input
                 type="text"
                 placeholder="First Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
+                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 text-base text-[#4e342e] h-12"
                 required
               />
+
               {/* Last Name */}
               <input
                 type="text"
                 placeholder="Last Name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
+                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 text-base text-[#4e342e] h-12"
               />
 
-              {/* Phone Number */}
+              {/* Phone */}
               <input
                 type="tel"
                 placeholder="Phone Number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
+                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 text-base text-[#4e342e] h-12"
                 pattern="\d{10}"
                 title="Phone number must be 10 digits"
               />
@@ -501,15 +502,16 @@ function ManageMember() {
                 placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
+                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 text-base text-[#4e342e] h-12"
               />
+
               {/* Address */}
               <input
                 type="text"
                 placeholder="Address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 col-span-2"
+                className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400 text-base text-[#4e342e] h-12"
               />
             </div>
 

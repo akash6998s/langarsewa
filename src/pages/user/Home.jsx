@@ -11,8 +11,6 @@ const Home = () => {
       }}
       className="min-h-screen px-2 relative"
     >
-
-
       {/* Centered Heading */}
       <h1
         style={{
@@ -25,7 +23,6 @@ const Home = () => {
       </h1>
 
       {/* Subtitle */}
- 
 
       {/* Main Section */}
       <div

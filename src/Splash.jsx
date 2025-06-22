@@ -1,9 +1,13 @@
-import splashImg from './assets/splash.png'; // Adjust path if image is elsewhere
+import splashImg from './assets/splash.png';
 
 function Splash() {
   return (
-    <div className="flex items-center justify-center h-screen bg-white">
-      <img src={splashImg} alt="Splash" className="w-64 h-auto" />
+    <div className="flex items-center justify-center w-screen h-screen bg-white">
+      <img
+        src={splashImg}
+        alt="Splash"
+        className="w-full h-full object-contain"
+      />
     </div>
   );
 }

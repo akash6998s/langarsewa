@@ -57,8 +57,11 @@ const AllMember = () => {
 
   return (
     <div
-      className="min-h-screen mt-8 px-2"
-      style={{ backgroundColor: theme.colors.background, fontFamily: theme.fonts.body }}
+      className="min-h-screen mt-8 py-24 px-2"
+      style={{
+        backgroundColor: theme.colors.background,
+        fontFamily: theme.fonts.body,
+      }}
     >
       <h1
         className="text-4xl font-bold mb-10 text-center drop-shadow-sm"
@@ -92,7 +95,10 @@ const AllMember = () => {
               >
                 {member.name.trim()} {member.last_name.trim()}
               </h2>
-              <div className="text-sm space-y-2" style={{ color: theme.colors.neutralDark }}>
+              <div
+                className="text-sm space-y-2"
+                style={{ color: theme.colors.neutralDark }}
+              >
                 <p className="flex items-center gap-2">
                   <IdentificationIcon
                     className="h-5 w-5 flex-shrink-0"
