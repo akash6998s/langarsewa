@@ -134,10 +134,10 @@ const ManageFinance = () => {
 
       {/* Content */}
       {activeTab === "donations" && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden  mx-auto mb-12">
+        <div className="shadow-md overflow-hidden  mx-auto mb-12">
           {/* Filters */}
           <div
-            className="bg-yellow-50 pb-6 flex flex-wrap justify-between gap-6 items-center rounded-t-lg border-b"
+            className="pb-6 flex flex-wrap justify-between gap-6 items-center rounded-t-lg border-b"
             style={{ borderColor: theme.colors.secondary }}
           >
             <div className="w-full flex gap-4">
@@ -217,7 +217,7 @@ const ManageFinance = () => {
       )}
 
       {activeTab === "expense" && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden  mx-auto mb-12">
+        <div className="rounded-lg shadow-md overflow-hidden  mx-auto mb-12">
           {/* Filters */}
           <div
             className="bg-yellow-50 p-6 flex flex-wrap justify-between gap-6 items-center rounded-t-lg border-b"
@@ -360,7 +360,7 @@ const Table = ({ columns, data, emptyMessage, theme }) => (
           })}
         </tr>
       </thead>
-      <tbody className="bg-white divide-y divide-yellow-100">
+      <tbody className="divide-y divide-yellow-100">
         {data.length > 0 ? (
           data.map((row, idx) => (
             <tr

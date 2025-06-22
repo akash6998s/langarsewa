@@ -130,7 +130,7 @@ const Activity = () => {
 
   return (
     <div
-      className="max-w-7xl mx-auto px-2 mt-8 rounded-xl shadow-xl min-h-screen"
+      className="max-w-7xl mx-auto px-2 mt-8 pb-16 rounded-xl shadow-xl min-h-screen"
       style={{
         fontFamily: theme.fonts.body,
         color: theme.colors.neutralDark,
