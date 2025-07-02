@@ -26,7 +26,6 @@ function ManageMember() {
 
   const API_URL = "https://langar-backend.onrender.com/api/members";
 
-  // Fetch Members
   const fetchMembers = async () => {
     try {
       setLoading(true);
@@ -47,7 +46,6 @@ function ManageMember() {
     fetchMembers();
   }, []);
 
-  // Popup Helper
   const showPopup = (message, type) => {
     setPopup({ message, type });
     setTimeout(() => {
@@ -55,7 +53,6 @@ function ManageMember() {
     }, 3000);
   };
 
-  // Autofill Add/Edit
   const handleRollNumberChange = (e) => {
     const value = e.target.value;
     setRollNumber(value);
@@ -74,7 +71,6 @@ function ManageMember() {
     }
   };
 
-  // Handle Image Preview
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setPic(file);
@@ -90,7 +86,6 @@ function ManageMember() {
     }
   };
 
-  // Add or Edit Member
   const handleAddEdit = async (e) => {
     e.preventDefault();
     if (!rollNumber || !name) {
@@ -123,7 +118,6 @@ function ManageMember() {
       showPopup("Member added/updated successfully.", "success");
       fetchMembers();
 
-      // Reset form
       setRollNumber("");
       setName("");
       setLastName("");
@@ -138,7 +132,6 @@ function ManageMember() {
     }
   };
 
-  // Autofill Delete
   useEffect(() => {
     const member = members.find((m) => m.RollNumber === delRollNumber);
     if (member) {
@@ -150,7 +143,6 @@ function ManageMember() {
     }
   }, [delRollNumber, members]);
 
-  // Delete Member
   const handleDelete = async (e) => {
     e.preventDefault();
     if (!delRollNumber) {
@@ -187,30 +179,30 @@ function ManageMember() {
   if (loading) return <Loader />;
 
   return (
-    <div className="bg-gradient-to-br from-[#fefcea] via-[#f8e1c1] to-[#fbd6c1] text-[#4e342e] font-serif">
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        <h1 className="text-5xl font-bold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
-          सदस्य प्रबंधन
+    <div className="text-[#4e342e] font-serif">
+      <div className="mx-auto px-4 pt-10 pb-24 max-w-4xl">
+        <h1 className="text-3xl font-extrabold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
+          Manage Member
         </h1>
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">
           <button
             onClick={() => setTab("addEdit")}
-            className={`px-8 py-3 rounded-l-full border-y border-l border-[#c08457] text-lg transition-all duration-300 shadow-sm ${
+            className={`px-8 py-3 rounded-l-full border border-[#d7a76b] text-lg shadow-md ${
               tab === "addEdit"
-                ? "bg-[#4caf50] text-white font-semibold shadow-lg"
-                : "bg-white text-[#4e342e] hover:bg-green-100"
+                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold scale-105"
+                : "bg-white text-[#8b4513] hover:bg-amber-100"
             }`}
           >
-            Add/Edit Member
+            Add / Edit Member
           </button>
           <button
             onClick={() => setTab("delete")}
-            className={`px-8 py-3 rounded-r-full border-y border-r border-[#c08457] text-lg transition-all duration-300 shadow-sm ${
+            className={`px-8 py-3 rounded-r-full border border-[#d7a76b] text-lg shadow-md ${
               tab === "delete"
-                ? "bg-[#e53935] text-white font-semibold shadow-lg"
-                : "bg-white text-[#4e342e] hover:bg-red-100"
+                ? "bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold scale-105"
+                : "bg-white text-[#8b4513] hover:bg-rose-100"
             }`}
           >
             Delete Member
@@ -221,14 +213,14 @@ function ManageMember() {
         {tab === "addEdit" && (
           <form
             onSubmit={handleAddEdit}
-            className="bg-white/80 p-8 rounded-3xl shadow-2xl border border-yellow-100 space-y-6 backdrop-blur-md max-w-3xl mx-auto"
+            className="bg-[#fffdf7] rounded-3xl shadow-xl p-8 space-y-6 border border-orange-200"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="col-span-full">
                 <select
                   value={rollNumber}
                   onChange={handleRollNumberChange}
-                  className="w-full border p-3 rounded-lg bg-[#fffdf7]"
+                  className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
                 >
                   <option value="">Select Roll Number</option>
                   {rollNumbers.map((roll) => (
@@ -249,7 +241,7 @@ function ManageMember() {
                 placeholder="First Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-[#fffdf7]"
+                className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
                 required
               />
               <input
@@ -257,21 +249,21 @@ function ManageMember() {
                 placeholder="Last Name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-[#fffdf7]"
+                className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
               />
               <input
                 type="text"
                 placeholder="Phone Number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-[#fffdf7]"
+                className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
               />
               <input
                 type="text"
                 placeholder="Address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-[#fffdf7]"
+                className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
               />
 
               {/* Image Upload */}
@@ -280,14 +272,14 @@ function ManageMember() {
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
-                  className="w-full border p-3 rounded-lg bg-[#fffdf7]"
+                  className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
                 />
                 {picPreview && (
                   <div className="mt-2">
                     <img
                       src={picPreview}
                       alt="Preview"
-                      className="w-32 h-32 object-cover rounded-lg border"
+                      className="w-28 h-28 object-cover rounded-full border shadow"
                     />
                   </div>
                 )}
@@ -297,7 +289,7 @@ function ManageMember() {
             <div className="text-center">
               <button
                 type="submit"
-                className="w-full py-4 rounded-xl bg-green-600 hover:bg-green-700 text-white text-xl font-semibold transition shadow-lg"
+                className="w-full py-4 rounded-2xl bg-green-600 hover:bg-green-700 text-white text-xl font-semibold transition shadow-lg"
               >
                 Add / Edit Member
               </button>
@@ -309,12 +301,12 @@ function ManageMember() {
         {tab === "delete" && (
           <form
             onSubmit={handleDelete}
-            className="bg-white/80 p-8 rounded-3xl shadow-2xl border border-yellow-100 space-y-6 backdrop-blur-md max-w-3xl mx-auto"
+            className="bg-[#fffdf7] rounded-3xl shadow-xl p-8 space-y-6 border border-orange-200"
           >
             <select
               value={delRollNumber}
               onChange={(e) => setDelRollNumber(e.target.value)}
-              className="w-full border p-3 rounded-lg bg-[#fffdf7]"
+              className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
             >
               <option value="">Select Roll Number</option>
               {rollNumbers.map((roll) => (
@@ -330,21 +322,21 @@ function ManageMember() {
                 placeholder="First Name"
                 value={delName}
                 readOnly
-                className="w-full border p-3 rounded-lg bg-[#fffdf7]"
+                className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
               />
               <input
                 type="text"
                 placeholder="Last Name"
                 value={delLastName}
                 readOnly
-                className="w-full border p-3 rounded-lg bg-[#fffdf7]"
+                className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
               />
             </div>
 
             <div className="text-center">
               <button
                 type="submit"
-                className="w-full py-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xl font-semibold transition shadow-lg"
+                className="w-full py-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xl font-semibold transition shadow-lg"
               >
                 Delete Member
               </button>

@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import { VitePWA } from 'vite-plugin-pwa'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   plugins: [
@@ -9,7 +9,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon.png', 'icons/icon-192x192.png', 'icons/icon-512x512.png', 'splash.png'],
+      includeAssets: [
+        'favicon.svg',
+        'favicon.ico',
+        'apple-touch-icon.png',
+        'icons/icon-192x192.png',
+        'icons/icon-512x512.png',
+        'splash.png',
+      ],
       manifest: {
         name: 'Sudarshan Sena',
         short_name: 'Langar',
@@ -21,15 +28,21 @@ export default defineConfig({
           {
             src: '/icons/icon-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: '/icons/icon-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      }
-    })
-  ]
-})
+            type: 'image/png',
+          },
+        ],
+      },
+    }),
+  ],
+
+  // ✅ Add this server configuration to access on mobile
+  server: {
+    host: '0.0.0.0',  // Allows connections from any IP in the local network
+    port: 5173,       // Or any port you prefer
+  },
+});

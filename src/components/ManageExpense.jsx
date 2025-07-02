@@ -3,8 +3,18 @@ import Loader from "./Loader";
 import Popup from "./Popup";
 
 const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function ManageExpense() {
@@ -22,7 +32,6 @@ function ManageExpense() {
 
   const backendUrl = "https://langar-backend.onrender.com/api/expenses";
 
-  // Fetch expenses when tab changes to delete
   useEffect(() => {
     if (tab === "delete") {
       fetchExpenses();
@@ -90,7 +99,8 @@ function ManageExpense() {
   };
 
   const handleDeleteById = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this expense?")) return;
+    if (!window.confirm("Are you sure you want to delete this expense?"))
+      return;
 
     try {
       setLoading(true);
@@ -112,36 +122,38 @@ function ManageExpense() {
   };
 
   const filteredExpenses = expenses.filter(
-    (exp) => exp.Year === String(year) && exp.Month.toLowerCase() === month.toLowerCase()
+    (exp) =>
+      exp.Year === String(year) &&
+      exp.Month.toLowerCase() === month.toLowerCase()
   );
 
   if (loading) return <Loader />;
 
   return (
-    <div className=" bg-gradient-to-br from-[#fefcea] via-[#f8e1c1] to-[#fbd6c1] text-[#4e342e] font-serif">
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        <h1 className="text-5xl font-bold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
-          खर्च प्रबंधन
+    <div className="text-[#4e342e] font-serif">
+      <div className="mx-auto px-4 py-10 max-w-4xl">
+        <h1 className="text-3xl font-extrabold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
+          Manage Expense
         </h1>
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">
           <button
             onClick={() => setTab("add")}
-            className={`px-8 py-3 rounded-l-full border-y border-l border-[#c08457] text-lg transition-all duration-300 shadow-sm ${
+            className={`px-8 py-3 rounded-l-full border border-[#d7a76b] text-lg shadow-md ${
               tab === "add"
-                ? "bg-[#4caf50] text-white font-semibold shadow-lg"
-                : "bg-white text-[#4e342e] hover:bg-green-100"
+                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold scale-105"
+                : "bg-white text-[#8b4513] hover:bg-amber-100"
             }`}
           >
             Add Expense
           </button>
           <button
             onClick={() => setTab("delete")}
-            className={`px-8 py-3 rounded-r-full border-y border-r border-[#c08457] text-lg transition-all duration-300 shadow-sm ${
+            className={`px-8 py-3 rounded-r-full border border-[#d7a76b] text-lg shadow-md ${
               tab === "delete"
-                ? "bg-[#e53935] text-white font-semibold shadow-lg"
-                : "bg-white text-[#4e342e] hover:bg-red-100"
+                ? "bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold scale-105"
+                : "bg-white text-[#8b4513] hover:bg-rose-100"
             }`}
           >
             Delete Expense
@@ -152,13 +164,13 @@ function ManageExpense() {
         {tab === "add" && (
           <form
             onSubmit={handleAddExpense}
-            className="bg-white/80 p-8 rounded-3xl shadow-2xl border border-yellow-100 space-y-6 backdrop-blur-md"
+            className="bg-[#fffdf7] rounded-3xl shadow-xl p-8 space-y-6 border border-orange-200"
           >
             <div className="grid sm:grid-cols-3 gap-4">
               <select
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="border p-3 rounded-lg bg-[#fffdf7]"
+                className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
               >
                 {years.map((y) => (
                   <option key={y} value={y}>
@@ -170,7 +182,7 @@ function ManageExpense() {
               <select
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
-                className="border p-3 rounded-lg bg-[#fffdf7]"
+                className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
               >
                 {months.map((m) => (
                   <option key={m} value={m}>
@@ -186,7 +198,7 @@ function ManageExpense() {
                 placeholder="Enter Amount"
                 min="0"
                 step="0.01"
-                className="border p-3 rounded-lg bg-[#fffdf7]"
+                className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
                 required
               />
             </div>
@@ -196,14 +208,14 @@ function ManageExpense() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Description"
-              className="w-full border p-3 rounded-lg bg-[#fffdf7]"
+              className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
               required
             />
 
             <div className="text-center">
               <button
                 type="submit"
-                className="w-full py-4 rounded-xl bg-green-600 hover:bg-green-700 text-white text-xl font-semibold transition shadow-lg"
+                className="w-full py-4 rounded-2xl bg-green-600 hover:bg-green-700 text-white text-xl font-semibold transition shadow-lg"
               >
                 Add Expense
               </button>
@@ -214,12 +226,12 @@ function ManageExpense() {
         {/* Delete Expense Section */}
         {tab === "delete" && (
           <div>
-            <div className="bg-white/80 p-8 rounded-3xl shadow-2xl border border-yellow-100 space-y-6 backdrop-blur-md mb-6">
-              <div className="grid sm:grid-cols-2 gap-4 mb-6">
+            <div className="bg-[#fffdf7] rounded-3xl shadow-xl p-8 space-y-6 border border-orange-200 mb-6">
+              <div className="grid sm:grid-cols-2 gap-4">
                 <select
                   value={year}
                   onChange={(e) => setYear(Number(e.target.value))}
-                  className="border p-3 rounded-lg bg-[#fffdf7]"
+                  className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
                 >
                   {years.map((y) => (
                     <option key={y} value={y}>
@@ -231,7 +243,7 @@ function ManageExpense() {
                 <select
                   value={month}
                   onChange={(e) => setMonth(e.target.value)}
-                  className="border p-3 rounded-lg bg-[#fffdf7]"
+                  className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
                 >
                   {months.map((m) => (
                     <option key={m} value={m}>
@@ -243,22 +255,31 @@ function ManageExpense() {
             </div>
 
             {filteredExpenses.length > 0 ? (
-              <ul className="max-w-4xl mx-auto space-y-3 overflow-y-auto">
+              <ul className="max-w-4xl mx-auto pb-8 space-y-4 overflow-y-auto font-sans">
                 {filteredExpenses.map(({ ID, Description, Amount }) => (
                   <li
                     key={ID}
-                    className="flex items-start bg-yellow-50 rounded-lg p-3 shadow-sm border border-yellow-100"
+                    className="bg-white rounded-xl p-5 shadow-lg border border-gray-100 transform hover:scale-[1.01] transition-all duration-200 ease-out flex flex-col"
                   >
-                    <div className="flex-grow mr-4">
-                      <p className="font-semibold text-[#4e342e]">{Description}</p>
-                      <p className="font-bold">₹ {Amount}</p>
+                    {/* Top Row: Amount (left) and Delete Button (right) */}
+                    <div className="flex items-center justify-between w-full mb-3">
+                      <p className="font-bold text-teal-600 text-xl">
+                        ₹ {Amount}
+                      </p>
+                      <button
+                        onClick={() => handleDeleteById(ID)}
+                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
+                      >
+                        Delete
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleDeleteById(ID)}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
-                    >
-                      Delete
-                    </button>
+
+                    {/* Bottom Row: Description (full width) */}
+                    <div className="w-full">
+                      <p className="font-medium text-gray-800 text-lg leading-snug">
+                        {Description}
+                      </p>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -270,7 +291,6 @@ function ManageExpense() {
           </div>
         )}
 
-        {/* Popup */}
         <Popup
           message={popup.message}
           type={popup.type}

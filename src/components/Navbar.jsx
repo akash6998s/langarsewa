@@ -3,12 +3,17 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   Home,
   Activity,
+  ClipboardList,
+  DollarSign,
+  Receipt,
+  Wallet,
+  LayoutDashboard,
   UsersRound,
   CircleUser,
   ShieldCheck,
 } from "lucide-react";
 import UserProfileDropdown from "./UserProfileDropdown";
-import { theme } from "../theme";
+import { theme } from ".././theme";
 
 function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -36,25 +41,25 @@ function Navbar() {
 
   return (
     <>
-      {/* Top Right User Profile for desktop */}
+      {/* Top branding - hide if URL is /superadmin */}
       {location.pathname !== "/superadmin" && (
         <div
           className="w-full z-[101] md:hidden"
           style={{ fontFamily: fonts.body }}
         >
-          <div className="flex items-center justify-end px-4 py-2">
+          <div className="flex items-center justify-end px-4 py-2 md:px-6 md:py-3">
             <UserProfileDropdown />
           </div>
         </div>
       )}
 
-      {/* Navigation Bar */}
+      {/* Navigation bar */}
       <nav
         className="fixed bottom-0 left-0 right-0 shadow-md z-[100] md:static md:shadow-none md:px-6 md:py-3 md:flex md:items-center md:justify-end"
         style={{ backgroundColor: colors.background, fontFamily: fonts.body }}
       >
-        <ul className="flex justify-around md:justify-end md:gap-10 p-2 text-sm relative md:p-0">
-          {/* Main Nav Items */}
+        <ul className="flex justify-around md:justify-end md:gap-10 p-2 text-sm relative md:p-0 md:flex-grow-0">
+          {/* Main nav items */}
           {[
             { to: "/home", icon: <Home size={20} />, label: "Home" },
             { to: "/activity", icon: <Activity size={20} />, label: "Activity" },
@@ -79,7 +84,7 @@ function Navbar() {
             </li>
           ))}
 
-          {/* SuperAdmin */}
+          {/* SuperAdmin Nav - visible only if isAdmin */}
           {isAdmin && (
             <li>
               <NavLink to="/superadmin">

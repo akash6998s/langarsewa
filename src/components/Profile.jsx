@@ -130,7 +130,7 @@ const Profile = () => {
             Profile Details
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Roll Number */}
             <div className="flex items-start gap-4">
               <IdCard className="flex-shrink-0" size={24} color={theme.colors.primary} />

@@ -169,7 +169,7 @@ const AttendanceSheet = () => {
 
         <input
           type="text"
-          placeholder="Search by name or roll"
+          placeholder="Search by name or roll number"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="border rounded px-4 py-2 w-full sm:w-72 text-sm shadow-sm"

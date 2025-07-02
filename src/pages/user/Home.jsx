@@ -12,7 +12,7 @@ const Home = () => {
       }}
     >
       <h1
-        className="text-3xl md:text-4xl font-bold text-center mt-4 mb-2"
+        className="text-2xl  font-bold text-center my-4"
         style={{
           color: theme.colors.primary,
           fontFamily: theme.fonts.heading,
@@ -21,7 +21,7 @@ const Home = () => {
         सुदर्शन सेना - भोजन वितरण
       </h1>
 
-      <div className="">
+      <div className="pb-16">
         <AttendanceSheet />
       </div>
     </div>

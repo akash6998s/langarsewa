@@ -213,42 +213,40 @@ const Activity = () => {
       )}
 
       {/* Dropdown Filters */}
-      <div className="flex gap-6 justify-center items-center mb-8">
+     <div className="flex gap-4 w-full sm:w-auto mb-6">
   {/* Year Dropdown */}
-  <div className="flex flex-col w-1/2">
-    <label className="mb-1 font-semibold text-sm text-yellow-600">
-      Select Year
-    </label>
-    <select
-      className="bg-[#FFF7ED] border border-yellow-400 px-5 py-2 rounded-xl focus:outline-none shadow-sm w-full"
-      value={selectedYear}
-      onChange={(e) => setSelectedYear(e.target.value)}
-    >
-      {Object.keys(attendanceData?.attendance || {}).map((year) => (
-        <option key={year} value={year}>
-          {year}
-        </option>
-      ))}
-    </select>
-  </div>
+  <select
+    value={selectedYear}
+    onChange={(e) => setSelectedYear(e.target.value)}
+    className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
+    style={{
+      borderColor: theme.colors.primary,
+      backgroundColor: theme.colors.surface,
+    }}
+  >
+    {Object.keys(attendanceData?.attendance || {}).map((year) => (
+      <option key={year} value={year}>
+        {year}
+      </option>
+    ))}
+  </select>
 
   {/* Month Dropdown */}
-  <div className="flex flex-col w-1/2">
-    <label className="mb-1 font-semibold text-sm text-yellow-600">
-      Select Month
-    </label>
-    <select
-      className="bg-[#FFF7ED] border border-yellow-400 px-5 py-2 rounded-xl focus:outline-none shadow-sm w-full"
-      value={selectedMonth}
-      onChange={(e) => setSelectedMonth(Number(e.target.value))}
-    >
-      {months.map((month, index) => (
-        <option key={index} value={index}>
-          {month.charAt(0).toUpperCase() + month.slice(1)}
-        </option>
-      ))}
-    </select>
-  </div>
+  <select
+    value={selectedMonth}
+    onChange={(e) => setSelectedMonth(Number(e.target.value))}
+    className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
+    style={{
+      borderColor: theme.colors.primary,
+      backgroundColor: theme.colors.surface,
+    }}
+  >
+    {months.map((month, index) => (
+      <option key={index} value={index}>
+        {month.charAt(0).toUpperCase() + month.slice(1)}
+      </option>
+    ))}
+  </select>
 </div>
 
 

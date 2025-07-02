@@ -3,11 +3,23 @@ import Loader from "./Loader";
 import Popup from "./Popup";
 
 const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
-
-const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
+const years = Array.from(
+  { length: 10 },
+  (_, i) => new Date().getFullYear() - i
+);
 const dates = Array.from({ length: 31 }, (_, i) => i + 1);
 
 function ManageAttendance() {
@@ -26,7 +38,6 @@ function ManageAttendance() {
 
   const API_URL = "https://langar-backend.onrender.com/api";
 
-  // ✅ Fetch members
   const fetchMembers = async () => {
     try {
       setLoading(true);
@@ -44,7 +55,6 @@ function ManageAttendance() {
     fetchMembers();
   }, []);
 
-  // ✅ Popup helper
   const showPopup = (message, type) => {
     setPopup({ message, type });
     setTimeout(() => {
@@ -54,9 +64,7 @@ function ManageAttendance() {
 
   const toggleRoll = (roll) => {
     setSelectedRolls((prev) =>
-      prev.includes(roll)
-        ? prev.filter((r) => r !== roll)
-        : [...prev, roll]
+      prev.includes(roll) ? prev.filter((r) => r !== roll) : [...prev, roll]
     );
   };
 
@@ -115,30 +123,30 @@ function ManageAttendance() {
   if (loading) return <Loader />;
 
   return (
-    <div className="bg-gradient-to-br from-[#fefcea] via-[#f8e1c1] to-[#fbd6c1] text-[#4e342e] font-serif">
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        <h1 className="text-5xl font-bold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
-          सेवा उपस्थिति प्रबंधन
+    <div className="text-[#4e342e] font-serif">
+      <div className="mx-auto px-4 py-10 max-w-4xl">
+        <h1 className="text-3xl font-extrabold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
+          Manage Attendance
         </h1>
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">
           <button
             onClick={() => handleTabChange("add")}
-            className={`px-8 py-3 rounded-l-full border-y border-l border-[#c08457] text-lg transition-all duration-300 shadow-sm ${
+            className={`px-8 py-3 rounded-l-full border border-[#d7a76b] text-lg shadow-md ${
               tab === "add"
-                ? "bg-[#ff9800] text-white font-semibold shadow-lg"
-                : "bg-white text-[#8b4513] hover:bg-[#ffecb3]"
+                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold scale-105"
+                : "bg-white text-[#8b4513] hover:bg-amber-100"
             }`}
           >
             Add Attendance
           </button>
           <button
             onClick={() => handleTabChange("delete")}
-            className={`px-8 py-3 rounded-r-full border-y border-r border-[#c08457] text-lg transition-all duration-300 shadow-sm ${
+            className={`px-8 py-3 rounded-r-full border border-[#d7a76b] text-lg shadow-md ${
               tab === "delete"
-                ? "bg-[#e53935] text-white font-semibold shadow-lg"
-                : "bg-white text-[#8b4513] hover:bg-[#ffcdd2]"
+                ? "bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold scale-105"
+                : "bg-white text-[#8b4513] hover:bg-rose-100"
             }`}
           >
             Delete Attendance
@@ -148,13 +156,13 @@ function ManageAttendance() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white/80 p-8 rounded-3xl shadow-2xl border border-yellow-100 space-y-6 backdrop-blur-md"
+          className="bg-[#fffdf7] rounded-3xl shadow-xl p-8 space-y-6 border border-orange-200"
         >
           <div className="grid sm:grid-cols-3 gap-4">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="border p-3 rounded-lg bg-[#fffdf7]"
+              className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
             >
               {months.map((m) => (
                 <option key={m} value={m}>
@@ -166,7 +174,7 @@ function ManageAttendance() {
             <select
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="border p-3 rounded-lg bg-[#fffdf7]"
+              className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
             >
               {dates.map((d) => (
                 <option key={d} value={d}>
@@ -178,7 +186,7 @@ function ManageAttendance() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="border p-3 rounded-lg bg-[#fffdf7]"
+              className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
             >
               {years.map((y) => (
                 <option key={y} value={y}>
@@ -201,7 +209,7 @@ function ManageAttendance() {
           <div className="text-center">
             <button
               type="submit"
-              className={`w-full py-4 rounded-xl text-white text-xl font-semibold transition-all duration-300 shadow-lg ${
+              className={`w-full py-4 rounded-2xl text-white text-xl font-semibold transition-all duration-300 shadow-lg ${
                 tab === "add"
                   ? "bg-green-600 hover:bg-green-700"
                   : "bg-red-600 hover:bg-red-700"
@@ -215,50 +223,50 @@ function ManageAttendance() {
 
       {/* Roll Number Selection Popup */}
       {showPopupRoll && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#fffdf7] rounded-3xl p-8 w-[95%] max-w-lg overflow-y-auto shadow-2xl border border-orange-200 max-h-[90vh]">
-            <h3 className="text-3xl font-extrabold text-center mb-7 text-[#8b4513] tracking-wide">
-              Select Roll Numbers
-            </h3>
-            <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="relative w-[95%] max-w-lg overflow-y-auto rounded-3xl border border-orange-200 bg-[#fffdf7] px-4 pb-12 shadow-2xl max-h-[90vh]">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPopupRoll(false)}
+              className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-red-500 text-white shadow-md hover:bg-red-600 hover:scale-110 transition"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+
+            {/* Increase pt-16 to a higher value like pt-24 or pt-32 for more space */}
+            <div className="mb-6 grid grid-cols-4 gap-4 pt-24"> {/* Changed from pt-16 to pt-24 */}
               {members.length > 0 ? (
                 members.map((member) => {
                   const roll = String(member.RollNumber);
                   const isSelected = selectedRolls.includes(roll);
+
                   return (
                     <button
                       key={member.RollNumber}
                       onClick={() => toggleRoll(roll)}
-                      className={`p-3 rounded-lg text-lg font-bold transition-all duration-200 border border-gray-200 flex items-center justify-center shadow-sm hover:shadow-md transform hover:-translate-y-0.5
-                        ${
-                          isSelected
-                            ? "bg-[#f59e0b] text-white border-[#e67e22] shadow-lg"
-                            : "bg-white text-[#5a2e0e] hover:bg-yellow-50 hover:border-yellow-200"
-                        }
-                      `}
+                      className={`
+                  flex items-center justify-center rounded-xl border border-gray-200 p-3 text-lg font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 transform hover:shadow-md
+                  ${
+                    isSelected
+                      ? "scale-105 border-amber-500 bg-gradient-to-r from-amber-500 to-orange-400 text-white shadow-lg"
+                      : "bg-white text-[#5a2e0e] hover:border-yellow-200 hover:bg-yellow-50"
+                  }
+                `}
                     >
                       {member.RollNumber}
                     </button>
                   );
                 })
               ) : (
-                <p className="col-span-full text-center text-gray-600 text-lg">
+                <p className="col-span-full text-center text-lg text-gray-600">
                   No members found.
                 </p>
               )}
             </div>
-            <div className="mt-6 text-center">
-              <button
-                onClick={() => setShowPopupRoll(false)}
-                className="bg-gradient-to-r from-[#ff9800] to-[#f57c00] text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-[#f57c00] hover:to-[#ef6c00] shadow-xl transition transform hover:scale-105"
-              >
-                Done
-              </button>
-            </div>
           </div>
         </div>
       )}
-
       {/* Popup Notification */}
       <Popup
         message={popup.message}
