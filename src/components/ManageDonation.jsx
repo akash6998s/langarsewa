@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Loader from "./Loader";
 import Popup from "./Popup";
+import { theme } from "../theme";
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -25,7 +26,6 @@ function ManageDonation() {
 
   const API_URL = "https://langar-backend.onrender.com/api";
 
-  // Fetch Members
   const fetchMembers = async () => {
     try {
       setLoading(true);
@@ -122,9 +122,12 @@ function ManageDonation() {
   if (loading) return <Loader />;
 
   return (
-    <div className="text-[#4e342e] font-serif">
-      <div className="mx-auto px-4 py-10 max-w-4xl">
-        <h1 className="text-3xl font-extrabold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
+    <div className="font-serif" style={{ color: theme.colors.neutralDark }}>
+      <div className="mx-auto px-4 pt-4 max-w-4xl pb-20">
+        <h1
+          className="text-2xl font-extrabold text-center mb-10 tracking-wide drop-shadow-md"
+          style={{ color: theme.colors.primary }}
+        >
           Manage Donation
         </h1>
 
@@ -132,21 +135,37 @@ function ManageDonation() {
         <div className="flex justify-center mb-8">
           <button
             onClick={() => handleTabChange("add")}
-            className={`px-8 py-3 rounded-l-full border border-[#d7a76b] text-lg shadow-md ${
+            className={`px-8 py-3 rounded-l-full border text-lg shadow-md ${
               tab === "add"
-                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold scale-105"
-                : "bg-white text-[#8b4513] hover:bg-amber-100"
+                ? "text-white font-semibold scale-105"
+                : "hover:bg-amber-100"
             }`}
+            style={{
+              borderColor: theme.colors.primaryLight,
+              background:
+                tab === "add"
+                  ? `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`
+                  : theme.colors.surface,
+              color: tab === "add" ? theme.colors.surface : theme.colors.primary,
+            }}
           >
             Add Donation
           </button>
           <button
             onClick={() => handleTabChange("delete")}
-            className={`px-8 py-3 rounded-r-full border border-[#d7a76b] text-lg shadow-md ${
+            className={`px-8 py-3 rounded-r-full border text-lg shadow-md ${
               tab === "delete"
-                ? "bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold scale-105"
-                : "bg-white text-[#8b4513] hover:bg-rose-100"
+                ? "text-white font-semibold scale-105"
+                : "hover:bg-rose-100"
             }`}
+            style={{
+              borderColor: theme.colors.primaryLight,
+              background:
+                tab === "delete"
+                  ? `linear-gradient(to right, ${theme.colors.accent}, #f43f5e)`
+                  : theme.colors.surface,
+              color: tab === "delete" ? theme.colors.surface : theme.colors.primary,
+            }}
           >
             Delete Donation
           </button>
@@ -155,13 +174,18 @@ function ManageDonation() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-[#fffdf7] rounded-3xl shadow-xl p-8 space-y-6 border border-orange-200"
+          className="rounded-3xl shadow-xl p-8 space-y-6 border"
+          style={{
+            backgroundColor: theme.colors.background,
+            borderColor: theme.colors.primaryLight,
+          }}
         >
           <div className="grid sm:grid-cols-3 gap-4">
             <select
               value={year}
               onChange={(e) => setYear(e.target.value)}
-              className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
+              className="border p-3 rounded-xl shadow-md"
+              style={{ backgroundColor: theme.colors.surface }}
             >
               {years.map((y) => (
                 <option key={y} value={y}>
@@ -173,7 +197,8 @@ function ManageDonation() {
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
+              className="border p-3 rounded-xl shadow-md"
+              style={{ backgroundColor: theme.colors.surface }}
             >
               {months.map((m) => (
                 <option key={m} value={m}>
@@ -188,7 +213,8 @@ function ManageDonation() {
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter Donation Amount"
               required={tab === "add"}
-              className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
+              className="border p-3 rounded-xl shadow-md"
+              style={{ backgroundColor: theme.colors.surface }}
               min="0"
             />
           </div>
@@ -197,7 +223,10 @@ function ManageDonation() {
             <button
               type="button"
               onClick={() => setShowPopupRoll(true)}
-              className="bg-gradient-to-r from-yellow-500 to-orange-400 text-white px-8 py-3 rounded-xl hover:scale-105 transition shadow-md"
+              className="text-white px-8 py-3 rounded-xl hover:scale-105 transition shadow-md"
+              style={{
+                background: `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`,
+              }}
             >
               Select Roll Number
             </button>
@@ -207,7 +236,11 @@ function ManageDonation() {
                 {selectedRolls.map((roll) => (
                   <span
                     key={roll}
-                    className="bg-[#ffe082] text-[#4e342e] px-4 py-1 rounded-full text-sm shadow"
+                    className="px-4 py-1 rounded-full text-sm shadow"
+                    style={{
+                      backgroundColor: theme.colors.primaryLight,
+                      color: theme.colors.neutralDark,
+                    }}
                   >
                     {roll}
                   </span>
@@ -219,11 +252,11 @@ function ManageDonation() {
           <div className="text-center">
             <button
               type="submit"
-              className={`w-full py-4 rounded-2xl text-white text-xl font-semibold transition-all duration-300 shadow-lg ${
-                tab === "add"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-red-600 hover:bg-red-700"
-              }`}
+              className="w-full py-4 rounded-2xl text-white text-xl font-semibold transition-all duration-300 shadow-lg"
+              style={{
+                backgroundColor:
+                  tab === "add" ? theme.colors.secondary : theme.colors.accent,
+              }}
             >
               {tab === "add" ? "Submit Donation" : "Delete Donation"}
             </button>
@@ -234,12 +267,19 @@ function ManageDonation() {
       {/* Roll Number Popup */}
       {showPopupRoll && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="relative w-[95%] max-w-lg overflow-y-auto rounded-3xl border border-orange-200 bg-[#fffdf7] px-4 pb-12 shadow-2xl max-h-[90vh]">
-
-            {/* Close Button */}
+          <div
+            className="relative w-[95%] max-w-lg overflow-y-auto rounded-3xl border px-4 pb-12 shadow-2xl max-h-[90vh]"
+            style={{
+              backgroundColor: theme.colors.background,
+              borderColor: theme.colors.primaryLight,
+            }}
+          >
             <button
               onClick={() => setShowPopupRoll(false)}
-              className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-red-500 text-white shadow-md hover:bg-red-600 hover:scale-110 transition"
+              className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-white shadow-md hover:scale-110 transition"
+              style={{
+                backgroundColor: theme.colors.accent,
+              }}
               aria-label="Close"
             >
               &times;
@@ -255,20 +295,30 @@ function ManageDonation() {
                     <button
                       key={roll}
                       onClick={() => toggleRoll(roll)}
-                      className={`flex items-center justify-center rounded-xl border border-gray-200 p-3 text-lg font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 transform hover:shadow-md
-                        ${
-                          isSelected
-                            ? "scale-105 border-amber-500 bg-gradient-to-r from-amber-500 to-orange-400 text-white shadow-lg"
-                            : "bg-white text-[#5a2e0e] hover:border-yellow-200 hover:bg-yellow-50"
-                        }
-                      `}
+                      className={`flex items-center justify-center rounded-xl border p-3 text-lg font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 transform hover:shadow-md ${
+                        isSelected ? "scale-105 shadow-lg" : ""
+                      }`}
+                      style={{
+                        background: isSelected
+                          ? `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`
+                          : theme.colors.surface,
+                        color: isSelected
+                          ? theme.colors.surface
+                          : theme.colors.primary,
+                        borderColor: isSelected
+                          ? theme.colors.primary
+                          : theme.colors.neutralLight,
+                      }}
                     >
                       {roll}
                     </button>
                   );
                 })
               ) : (
-                <p className="col-span-full text-center text-lg text-gray-600">
+                <p
+                  className="col-span-full text-center text-lg"
+                  style={{ color: theme.colors.tertiary }}
+                >
                   No members found.
                 </p>
               )}

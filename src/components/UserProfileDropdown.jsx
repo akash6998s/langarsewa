@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { User, LogOut, ChevronDown } from "lucide-react";
-import { Navigate, NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { theme } from "../theme";
 
 const { colors, fonts } = theme;
@@ -10,90 +10,91 @@ function UserProfileDropdown() {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // Close dropdown when clicking outside
+  // Close dropdown on outside click or ESC key
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
       }
-    }
-
-    function handleKeyDown(event) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    }
+    };
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
 
     document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-
+    document.addEventListener("keydown", handleEsc);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleEsc);
     };
   }, []);
 
-  // Logout functionality
   const handleLogout = () => {
-    console.log("Logging out...");
-    localStorage.clear();    
-    sessionStorage.clear();     
-    navigate('/')
-    // window.location.reload();   
+    localStorage.clear();
+    sessionStorage.clear();
+    navigate("/");
   };
 
   return (
-    <div className="flex items-center justify-end" style={{ fontFamily: fonts.body }}>
+    <div
+      className="flex items-center justify-end"
+      style={{ fontFamily: fonts.body }}
+    >
       <div className="relative" ref={dropdownRef}>
-        {/* User Icon Button with Down Arrow */}
+        {/* User Icon Button */}
         <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-1 px-3 py-1 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary cursor-pointer"
+          onClick={() => setIsOpen((prev) => !prev)}
+          className="flex items-center gap-1 px-3 py-2 rounded-xl hover:bg-gray-100 transition"
           aria-haspopup="true"
           aria-expanded={isOpen}
-          aria-label="User menu"
-          style={{ color: colors.neutralDark }}
-          type="button"
+          style={{
+            color: colors.neutralDark,
+            border: `1px solid ${colors.secondary}33`,
+            backgroundColor: colors.surface,
+          }}
         >
-          <User size={24} />
-          <ChevronDown size={20} className={`${isOpen ? "rotate-180" : "rotate-0"} transition-transform`} />
+          <User size={22} />
+          <ChevronDown
+            size={18}
+            className={`transition-transform ${
+              isOpen ? "rotate-180" : "rotate-0"
+            }`}
+          />
         </button>
 
         {/* Dropdown Menu */}
         {isOpen && (
           <div
-            className="absolute right-0 mt-2 w-52 rounded-md shadow-lg py-2 z-50 ring-1 ring-black ring-opacity-5"
-            role="menu"
-            aria-orientation="vertical"
-            aria-labelledby="user-menu-button"
-            style={{ backgroundColor: colors.surface, border: `1px solid ${colors.neutralLight}` }}
+            className="absolute right-0 mt-2 w-52 rounded-2xl shadow-xl border z-50"
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: `${colors.secondary}33`,
+              fontFamily: fonts.body,
+            }}
           >
             <NavLink
               to="/profile"
               onClick={() => setIsOpen(false)}
-              role="menuitem"
               className={({ isActive }) =>
-                `flex items-center gap-3 px-5 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                  isActive ? "bg-primaryLight text-primary" : "text-neutralDark"
+                `flex items-center gap-3 px-5 py-3 text-sm rounded-2xl transition ${
+                  isActive
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "hover:bg-yellow-50 text-neutral-700"
                 }`
               }
               style={{ fontFamily: fonts.body }}
             >
               <User size={18} color={colors.primary} />
-              My Profile
+              <span>My Profile</span>
             </NavLink>
 
             <button
               onClick={handleLogout}
-              role="menuitem"
-              className="flex items-center gap-3 w-full text-left px-5 py-2 text-sm font-medium rounded-md transition-colors duration-200 hover:bg-red-50 hover:text-red-700"
-              style={{
-                color: colors.accent,
-                fontFamily: fonts.body,
-              }}
+              className="flex items-center gap-3 w-full px-5 py-3 text-sm rounded-2xl hover:bg-red-50 text-red-700 transition"
+              style={{ fontFamily: fonts.body }}
             >
               <LogOut size={18} color={colors.accent} />
-              Logout
+              <span>Logout</span>
             </button>
           </div>
         )}

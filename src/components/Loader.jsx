@@ -1,15 +1,36 @@
 import React from "react";
+import { theme } from "../theme";
 
-const Loader = () => (
-  <div className="fixed inset-0 bg-white bg-opacity-40 backdrop-blur-sm flex flex-col justify-center items-center z-50">
-    <div className="flex flex-col items-center space-y-6">
-      {/* Spinner with a soft color */}
-      <div className="w-16 h-16 border-8 border-solid border-transparent border-t-orange-600 rounded-full animate-spin"></div>
+const Loader = () => {
+  return (
+    <div
+      className="fixed inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50"
+      style={{ backgroundColor: theme.colors.background + "CC" }} // Slightly transparent background
+    >
+      <div className="flex flex-col items-center space-y-6">
+        {/* Spinner */}
+        <div
+          className="w-16 h-16 rounded-full border-8 border-solid border-t-transparent animate-spin"
+          style={{
+            borderColor: `${theme.colors.primary}33`,
+            borderTopColor: theme.colors.primary,
+          }}
+        ></div>
 
-      {/* Spiritual Text with 'Jai Gurudev' */}
-      <div className="text-orange-700 font-semibold text-2xl">Loading...</div>
+        {/* Loading Text */}
+        <div
+          className="font-semibold text-2xl"
+          style={{
+            color: theme.colors.primary,
+            fontFamily: theme.fonts.heading,
+          }}
+        >
+          Loading...
+        </div>
+
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Loader;

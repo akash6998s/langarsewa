@@ -5,7 +5,7 @@ import {
   IdentificationIcon,
 } from "@heroicons/react/24/solid";
 import Loader from "./Loader";
-import { theme } from ".././theme";
+import { theme } from "../theme";
 
 const AllMember = () => {
   const [members, setMembers] = useState([]);
@@ -15,7 +15,9 @@ const AllMember = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await fetch("https://langar-backend.onrender.com/api/members");
+        const res = await fetch(
+          "https://langar-backend.onrender.com/api/members"
+        );
         if (!res.ok) throw new Error(`Status: ${res.status}`);
         const data = await res.json();
         setMembers(data);
@@ -80,9 +82,12 @@ const AllMember = () => {
               borderColor: theme.colors.secondary + "33",
             }}
           >
-            {/* Image in Circle */}
+            {/* Image */}
             <div className="mt-6 mb-4">
-              <div className="w-32 h-32 rounded-full bg-white border flex items-center justify-center overflow-hidden">
+              <div
+                className="w-32 h-32 rounded-full bg-white border shadow flex items-center justify-center overflow-hidden"
+                style={{ borderColor: theme.colors.secondary }}
+              >
                 <img
                   src={`https://langar-backend.onrender.com/uploads/${member.Photo}`}
                   alt={`${member.Name} ${member.LastName}`}
@@ -91,7 +96,7 @@ const AllMember = () => {
               </div>
             </div>
 
-            {/* Info Section */}
+            {/* Info */}
             <div className="px-5 pb-5 w-full">
               <h2
                 className="text-xl font-semibold mb-3 text-center"
@@ -100,7 +105,7 @@ const AllMember = () => {
                 {member.Name.trim()} {member.LastName.trim()}
               </h2>
               <div
-                className="text-sm space-y-2 text-left"
+                className="text-sm space-y-3"
                 style={{ color: theme.colors.neutralDark }}
               >
                 <p className="flex items-center gap-2">
@@ -108,21 +113,23 @@ const AllMember = () => {
                     className="h-5 w-5"
                     style={{ color: theme.colors.primary }}
                   />
-                  <span>Roll No: {member.RollNumber}</span>
+                  <span className="truncate">
+                    Roll No: {member.RollNumber}
+                  </span>
                 </p>
                 <p className="flex items-center gap-2">
                   <PhoneIcon
                     className="h-5 w-5"
                     style={{ color: theme.colors.secondary }}
                   />
-                  <span>{member.PhoneNumber}</span>
+                  <span className="truncate">{member.PhoneNumber}</span>
                 </p>
                 <p className="flex items-center gap-2">
                   <MapPinIcon
                     className="h-5 w-5"
                     style={{ color: theme.colors.accent }}
                   />
-                  <span>{member.Address}</span>
+                  <span className="truncate">{member.Address}</span>
                 </p>
               </div>
             </div>

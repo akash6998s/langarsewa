@@ -16,18 +16,8 @@ const Activity = () => {
   const [showSummary, setShowSummary] = useState(false);
 
   const months = [
-    "january",
-    "february",
-    "march",
-    "april",
-    "may",
-    "june",
-    "july",
-    "august",
-    "september",
-    "october",
-    "november",
-    "december",
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december",
   ];
 
   const daysInMonth = (year, monthIndex) =>
@@ -50,9 +40,7 @@ const Activity = () => {
         Object.keys(attendanceRaw).forEach((year) => {
           formattedAttendance[year] = {};
           Object.keys(attendanceRaw[year]).forEach((month) => {
-            formattedAttendance[year][month.toLowerCase()] = attendanceRaw[
-              year
-            ][month]
+            formattedAttendance[year][month.toLowerCase()] = attendanceRaw[year][month]
               .split(",")
               .map((day) => parseInt(day.trim()))
               .filter((num) => !isNaN(num));
@@ -147,7 +135,7 @@ const Activity = () => {
 
   return (
     <div
-      className="max-w-7xl mx-auto px-2 mt-8 pb-16 rounded-xl shadow-xl min-h-[calc(100vh-120px)]"
+      className="max-w-7xl mx-auto px-2 mt-8 pb-20 rounded-xl shadow-xl min-h-[calc(100vh-120px)]"
       style={{ fontFamily: theme.fonts.body, color: theme.colors.neutralDark }}
     >
       {/* Header Toggle */}
@@ -174,11 +162,7 @@ const Activity = () => {
             strokeWidth="2"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 5l7 7-7 7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </div>
       </header>
@@ -186,22 +170,34 @@ const Activity = () => {
       {/* Summary Cards */}
       {showSummary && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          {/* Attendance Summary */}
-          <div className="rounded-2xl shadow-lg p-6 border-l-8 border-yellow-500 bg-white text-center">
-            <h3 className="text-xl font-semibold text-yellow-600 mb-2">
+          <div
+            className="rounded-2xl shadow-lg p-6 border-l-8 bg-white text-center"
+            style={{ borderColor: theme.colors.accent }}
+          >
+            <h3
+              className="text-xl font-semibold mb-2"
+              style={{ color: theme.colors.accent }}
+            >
               Attendance Summary
             </h3>
             <p className="text-5xl font-bold">{selectedMonthStats.percent}%</p>
             <p className="mt-2">
               Present: {selectedMonthStats.presentDays} /{" "}
-              {selectedMonthStats.totalDays} days in {months[selectedMonth]}{" "}
+              {selectedMonthStats.totalDays} days in{" "}
+              {months[selectedMonth].charAt(0).toUpperCase() +
+                months[selectedMonth].slice(1)}{" "}
               {selectedYear}
             </p>
           </div>
 
-          {/* Donation Summary */}
-          <div className="rounded-2xl shadow-lg p-6 border-l-8 border-emerald-500 bg-white text-center">
-            <h3 className="text-2xl font-semibold text-emerald-600 mb-2">
+          <div
+            className="rounded-2xl shadow-lg p-6 border-l-8 bg-white text-center"
+            style={{ borderColor: theme.colors.primary }}
+          >
+            <h3
+              className="text-2xl font-semibold mb-2"
+              style={{ color: theme.colors.primary }}
+            >
               Total Donation
             </h3>
             <p className="text-6xl font-bold text-gray-900">
@@ -213,49 +209,54 @@ const Activity = () => {
       )}
 
       {/* Dropdown Filters */}
-     <div className="flex gap-4 w-full sm:w-auto mb-6">
-  {/* Year Dropdown */}
-  <select
-    value={selectedYear}
-    onChange={(e) => setSelectedYear(e.target.value)}
-    className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
-    style={{
-      borderColor: theme.colors.primary,
-      backgroundColor: theme.colors.surface,
-    }}
-  >
-    {Object.keys(attendanceData?.attendance || {}).map((year) => (
-      <option key={year} value={year}>
-        {year}
-      </option>
-    ))}
-  </select>
+      <div className="flex gap-4 w-full sm:w-auto mb-6">
+        <select
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(e.target.value)}
+          className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
+          style={{
+            borderColor: theme.colors.primary,
+            backgroundColor: theme.colors.surface,
+          }}
+        >
+          {Object.keys(attendanceData?.attendance || {}).map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
 
-  {/* Month Dropdown */}
-  <select
-    value={selectedMonth}
-    onChange={(e) => setSelectedMonth(Number(e.target.value))}
-    className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
-    style={{
-      borderColor: theme.colors.primary,
-      backgroundColor: theme.colors.surface,
-    }}
-  >
-    {months.map((month, index) => (
-      <option key={index} value={index}>
-        {month.charAt(0).toUpperCase() + month.slice(1)}
-      </option>
-    ))}
-  </select>
-</div>
-
+        <select
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(Number(e.target.value))}
+          className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
+          style={{
+            borderColor: theme.colors.primary,
+            backgroundColor: theme.colors.surface,
+          }}
+        >
+          {months.map((month, index) => (
+            <option key={index} value={index}>
+              {month.charAt(0).toUpperCase() + month.slice(1)}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Tabs */}
-      <div className="flex justify-center mb-6 rounded-lg shadow border border-emerald-500 bg-white max-w-md mx-auto">
+      <div
+        className="flex justify-center mb-6 rounded-lg shadow border max-w-md mx-auto"
+        style={{
+          backgroundColor: theme.colors.primary,
+          borderColor: theme.colors.primary,
+        }}
+      >
         <button
           onClick={() => setActiveTab("attendance")}
           className={`w-1/2 py-3 font-semibold rounded-lg transition ${
-            activeTab === "attendance" ? "bg-yellow-500 text-white" : ""
+            activeTab === "attendance"
+              ? "bg-white text-black"
+              : "text-white"
           }`}
         >
           Attendance
@@ -263,7 +264,9 @@ const Activity = () => {
         <button
           onClick={() => setActiveTab("donations")}
           className={`w-1/2 py-3 font-semibold rounded-lg transition ${
-            activeTab === "donations" ? "bg-emerald-500 text-white" : ""
+            activeTab === "donations"
+              ? "bg-white text-black"
+              : "text-white"
           }`}
         >
           Donations
@@ -272,11 +275,19 @@ const Activity = () => {
 
       {/* Attendance Table */}
       {activeTab === "attendance" && (
-        <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
+        <div
+          className="overflow-x-auto rounded-xl shadow-lg border bg-white"
+          style={{ borderColor: theme.colors.tertiary }}
+        >
           <table className="min-w-[900px] w-full border-collapse text-sm">
-            <thead>
+            <thead
+              style={{
+                backgroundColor: theme.colors.primary,
+                color: theme.colors.surface,
+              }}
+            >
               <tr>
-                <th className="py-2 px-4 text-left sticky left-0 z-20 bg-yellow-500 text-white border border-gray-300">
+                <th className="py-2 px-4 text-left sticky left-0 z-20">
                   Month
                 </th>
                 {[...Array(31)].map((_, i) => {
@@ -287,13 +298,12 @@ const Activity = () => {
                   return (
                     <th
                       key={i}
-                      className="py-2 px-2 text-center text-xs border border-gray-300"
+                      className="py-2 px-2 text-center text-xs border"
+                      style={{ borderColor: theme.colors.tertiary }}
                       title={dayName}
                     >
                       {i + 1}
-                      <div className="text-[10px] text-yellow-100">
-                        {dayName}
-                      </div>
+                      <div className="text-[10px]">{dayName}</div>
                     </th>
                   );
                 })}
@@ -303,16 +313,23 @@ const Activity = () => {
               {months.map((monthName, monthIndex) => {
                 const yearData = attendanceData.attendance[selectedYear] || {};
                 const daysPresent = yearData[monthName] || [];
-                const totalDays = daysInMonth(
-                  parseInt(selectedYear),
-                  monthIndex
-                );
+                const totalDays = daysInMonth(parseInt(selectedYear), monthIndex);
                 return (
                   <tr
                     key={monthName}
-                    className={monthIndex % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                    className={
+                      monthIndex % 2 === 0
+                        ? "bg-[rgba(6,95,70,0.05)]"
+                        : "bg-white"
+                    }
                   >
-                    <td className="py-2 px-4 font-medium capitalize sticky left-0 z-10 bg-white border border-gray-300">
+                    <td
+                      className="py-2 px-4 font-medium capitalize sticky left-0 z-10 border"
+                      style={{
+                        backgroundColor: theme.colors.surface,
+                        borderColor: theme.colors.tertiary,
+                      }}
+                    >
                       {monthName}
                     </td>
                     {[...Array(31)].map((_, dayIndex) => {
@@ -322,13 +339,14 @@ const Activity = () => {
                       return (
                         <td
                           key={dayIndex}
-                          className="text-center border border-gray-300"
+                          className="text-center border"
                           style={{
                             color: isInvalid
                               ? theme.colors.tertiary
                               : isPresent
-                              ? "#16a34a"
+                              ? theme.colors.success
                               : theme.colors.tertiary,
+                            borderColor: theme.colors.tertiary,
                           }}
                         >
                           {isInvalid ? (
@@ -351,14 +369,24 @@ const Activity = () => {
 
       {/* Donations Table */}
       {activeTab === "donations" && (
-        <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
+        <div
+          className="overflow-x-auto rounded-xl shadow-lg border bg-white"
+          style={{ borderColor: theme.colors.tertiary }}
+        >
           <table className="w-full border-collapse text-base">
-            <thead>
+            <thead
+              style={{
+                backgroundColor: theme.colors.primary,
+                color: theme.colors.surface,
+              }}
+            >
               <tr>
-                <th className="py-2 px-4 text-left border border-gray-300">
+                <th className="py-2 px-4 text-left border"
+                  style={{ borderColor: theme.colors.tertiary }}>
                   Month
                 </th>
-                <th className="py-2 px-4 text-left border border-gray-300">
+                <th className="py-2 px-4 text-left border"
+                  style={{ borderColor: theme.colors.tertiary }}>
                   Amount
                 </th>
               </tr>
@@ -371,12 +399,19 @@ const Activity = () => {
                 return (
                   <tr
                     key={monthName}
-                    className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                    className={
+                      idx % 2 === 0 ? "bg-[rgba(6,95,70,0.05)]" : "bg-white"
+                    }
                   >
-                    <td className="py-2 px-4 font-medium capitalize border border-gray-300">
+                    <td className="py-2 px-4 font-medium capitalize border"
+                      style={{ borderColor: theme.colors.tertiary }}>
                       {monthName}
                     </td>
-                    <td className="py-2 px-4 font-semibold text-emerald-600 border border-gray-300">
+                    <td className="py-2 px-4 font-semibold"
+                      style={{
+                        color: theme.colors.primary,
+                        borderColor: theme.colors.tertiary,
+                      }}>
                       ₹{amount.toLocaleString()}
                     </td>
                   </tr>

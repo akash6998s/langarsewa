@@ -11,13 +11,8 @@ import Splash from "./Splash";
 import SuperAdmin from "./components/SuperAdmin";
 import Navbar from "./components/Navbar";
 import Activity from "./components/Activity";
-import Notice from "./components/Notice";
 import Profile from "./components/Profile";
 import AllMember from "./components/AllMember";
-import AddMessage from "./components/AddMessage";
-import AddComplaint from "./components/AddComplaint";
-import AddSuvichar from "./components/AddSuvichar";
-import AddSuggestion from "./components/AddSuggestion";
 
 function AppWrapper() {
   return (
@@ -56,12 +51,7 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<Home />} />
           <Route path="/activity" element={<Activity />} />
-          <Route path="/notice" element={<Notice />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/addmessage" element={<AddMessage />} />
-          <Route path="/addcomplaint" element={<AddComplaint />} />
-          <Route path="/addsuvichar" element={<AddSuvichar />} />
-          <Route path="/addsuggestion" element={<AddSuggestion />} />
           <Route path="/allmember" element={<AllMember />} />
           <Route path="/superadmin" element={<SuperAdmin />} />
         </Routes>

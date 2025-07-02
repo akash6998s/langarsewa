@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Mail, Phone, MapPin, IdCard } from "lucide-react";
 import Loader from "./Loader";
-import { theme } from ".././theme";
+import { theme } from "../theme";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -18,7 +18,9 @@ const Profile = () => {
           return;
         }
 
-        const response = await fetch(`https://langar-backend.onrender.com/api/members/${rollNumber}`);
+        const response = await fetch(
+          `https://langar-backend.onrender.com/api/members/${rollNumber}`
+        );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -64,7 +66,7 @@ const Profile = () => {
     return (
       <div
         className="flex justify-center items-center min-h-screen px-4"
-        style={{ backgroundColor: theme.colors.accent + "22" }}
+        style={{ backgroundColor: theme.colors.background }}
       >
         <p
           className="text-lg font-semibold text-center max-w-md"
@@ -78,11 +80,11 @@ const Profile = () => {
   if (!user)
     return (
       <div
-        className="flex justify-center items-center  px-2"
+        className="flex justify-center items-center px-4"
         style={{ backgroundColor: theme.colors.background }}
       >
         <p
-          className="text-lg font-semibold text-center max-w-md"
+          className="text-lg font-semibold text-center"
           style={{ color: theme.colors.neutralDark, fontFamily: theme.fonts.body }}
         >
           No user data available.
@@ -92,26 +94,37 @@ const Profile = () => {
 
   return (
     <div
-      className="flex items-center justify-center px-2 mt-8"
-      style={{ backgroundColor: theme.colors.background, fontFamily: theme.fonts.body }}
+      className="flex pb-20 items-center justify-center px-2 mt-8"
+      style={{
+        backgroundColor: theme.colors.background,
+        fontFamily: theme.fonts.body,
+      }}
     >
       <div
-        className="w-full p-8"
+        className="w-full max-w-3xl p-8"
         style={{
+          borderColor: theme.colors.secondary + "33",
           color: theme.colors.neutralDark,
         }}
       >
         {/* Header */}
         <div className="flex flex-col items-center space-y-4 mb-10">
-          <img
-            src={user.profilePic || "https://via.placeholder.com/150"}
-            alt="Profile"
-            className="w-36 h-36 rounded-full border-4"
-            style={{ borderColor: theme.colors.primary, objectFit: "cover" }}
-          />
+          <div className="w-36 h-36 rounded-full border-4 shadow-md overflow-hidden">
+            <img
+              src={
+                user.profilePic || "https://via.placeholder.com/150?text=No+Image"
+              }
+              alt="Profile"
+              className="w-full h-full object-cover"
+              style={{ borderColor: theme.colors.primary }}
+            />
+          </div>
           <h1
             className="text-4xl font-bold"
-            style={{ fontFamily: theme.fonts.heading, color: theme.colors.primary }}
+            style={{
+              color: theme.colors.primary,
+              fontFamily: theme.fonts.heading,
+            }}
           >
             {user.firstName} {user.lastName}
           </h1>
@@ -122,52 +135,57 @@ const Profile = () => {
           <h2
             className="text-2xl font-semibold mb-6 border-b-2 pb-2"
             style={{
-              fontFamily: theme.fonts.heading,
               color: theme.colors.primary,
               borderColor: theme.colors.primary,
+              fontFamily: theme.fonts.heading,
             }}
           >
             Profile Details
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Roll Number */}
-            <div className="flex items-start gap-4">
-              <IdCard className="flex-shrink-0" size={24} color={theme.colors.primary} />
-              <div>
-                <p className="font-semibold">Roll Number</p>
-                <p className="text-sm break-words">{user.rollNumber}</p>
-              </div>
-            </div>
+            <ProfileItem
+              icon={<IdCard color={theme.colors.primary} />}
+              label="Roll Number"
+              value={user.rollNumber}
+            />
 
             {/* Phone */}
-            <div className="flex items-start gap-4">
-              <Phone className="flex-shrink-0" size={24} color={theme.colors.primary} />
-              <div>
-                <p className="font-semibold">Phone</p>
-                <p className="text-sm break-words">{user.phone}</p>
-              </div>
-            </div>
+            <ProfileItem
+              icon={<Phone color={theme.colors.primary} />}
+              label="Phone"
+              value={user.phone}
+            />
 
             {/* Email */}
-            <div className="flex items-start gap-4">
-              <Mail className="flex-shrink-0" size={24} color={theme.colors.primary} />
-              <div>
-                <p className="font-semibold">Email</p>
-                <p className="text-sm break-words">{user.email}</p>
-              </div>
-            </div>
+            <ProfileItem
+              icon={<Mail color={theme.colors.primary} />}
+              label="Email"
+              value={user.email}
+            />
 
             {/* Address */}
-            <div className="flex items-start gap-4">
-              <MapPin className="flex-shrink-0" size={24} color={theme.colors.primary} />
-              <div>
-                <p className="font-semibold">Address</p>
-                <p className="text-sm break-words">{user.address}</p>
-              </div>
-            </div>
+            <ProfileItem
+              icon={<MapPin color={theme.colors.primary} />}
+              label="Address"
+              value={user.address}
+            />
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
+
+// Reusable Profile Detail Item
+const ProfileItem = ({ icon, label, value }) => {
+  return (
+    <div className="flex items-start gap-4">
+      <div className="mt-1">{icon}</div>
+      <div>
+        <p className="font-semibold">{label}</p>
+        <p className="text-sm break-words">{value}</p>
       </div>
     </div>
   );

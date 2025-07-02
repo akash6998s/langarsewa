@@ -52,7 +52,9 @@ const AttendanceSheet = () => {
         const attendanceRes = await fetch(
           "https://langar-backend.onrender.com/api/attendance"
         );
-        const membersRes = await fetch("https://langar-backend.onrender.com/api/members");
+        const membersRes = await fetch(
+          "https://langar-backend.onrender.com/api/members"
+        );
 
         if (!attendanceRes.ok) throw new Error("Failed to fetch attendance");
         if (!membersRes.ok) throw new Error("Failed to fetch members");
@@ -121,7 +123,10 @@ const AttendanceSheet = () => {
     return (
       <div
         className="font-semibold text-center"
-        style={{ color: theme.colors.accent, fontFamily: theme.fonts.body }}
+        style={{
+          color: theme.colors.accent,
+          fontFamily: theme.fonts.body,
+        }}
       >
         {error}
       </div>
@@ -129,7 +134,10 @@ const AttendanceSheet = () => {
 
   return (
     <div
-      style={{ fontFamily: theme.fonts.body, color: theme.colors.neutralDark }}
+      style={{
+        fontFamily: theme.fonts.body,
+        color: theme.colors.neutralDark,
+      }}
     >
       {/* Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -174,8 +182,8 @@ const AttendanceSheet = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="border rounded px-4 py-2 w-full sm:w-72 text-sm shadow-sm"
           style={{
-            borderColor: theme.colors.accent,
-            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.primary,
+              backgroundColor: theme.colors.surface,
           }}
         />
       </div>
@@ -185,8 +193,8 @@ const AttendanceSheet = () => {
         <div
           className="overflow-x-auto rounded-md border shadow-md"
           style={{
-            borderColor: "#e5e7eb",
             backgroundColor: theme.colors.surface,
+            borderColor: "#e5e7eb",
           }}
         >
           <div

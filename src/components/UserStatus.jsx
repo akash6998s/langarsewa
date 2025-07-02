@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Loader from "./Loader";
 import Popup from "./Popup";
 import { Check, X } from "lucide-react";
+import { theme } from "../theme";
 
 const API_URL = "https://langar-backend.onrender.com";
 
@@ -71,10 +72,23 @@ function UserStatus() {
   if (loading) return <Loader />;
 
   return (
-    <div className="bg-gradient-to-br from-[#fffaf0] via-[#fff2e0] to-[#ffe4d4] text-[#4e342e] font-sans min-h-screen">
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold text-center mb-10 text-[#7b341e] drop-shadow-md">
-          New Users Dashboard
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: theme.colors.background,
+        fontFamily: theme.fonts.body,
+        color: theme.colors.neutralDark,
+      }}
+    >
+      <div className="mx-auto px-4 pt-4 max-w-4xl pb-20">
+        <h1
+          className="text-4xl font-extrabold text-center mb-10 drop-shadow-md"
+          style={{
+            color: theme.colors.primary,
+            fontFamily: theme.fonts.heading,
+          }}
+        >
+          Dashboard
         </h1>
 
         {users.length === 0 ? (
@@ -86,13 +100,19 @@ function UserStatus() {
             {users.map((user, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-3xl shadow-xl border border-yellow-200 p-6 flex flex-col justify-between"
+                className="rounded-3xl shadow-xl border p-6 flex flex-col justify-between"
+                style={{
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.primaryLight,
+                }}
               >
                 {/* User Info */}
                 <div className="space-y-3 mb-6">
                   <div>
                     <p className="text-sm text-gray-500">Roll Number</p>
-                    <p className="font-semibold text-lg">{user.RollNumber}</p>
+                    <p className="font-semibold text-lg">
+                      {user.RollNumber}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Login ID</p>
@@ -104,13 +124,21 @@ function UserStatus() {
                 <div className="flex justify-between items-center">
                   <button
                     onClick={() => handleAction(user.RollNumber, "approve")}
-                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md transition"
+                    className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold shadow-md hover:brightness-110 active:scale-95"
+                    style={{
+                      backgroundColor: theme.colors.secondary,
+                      color: theme.colors.background,
+                    }}
                   >
                     <Check size={18} /> Approve
                   </button>
                   <button
                     onClick={() => handleAction(user.RollNumber, "delete")}
-                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold shadow-md transition"
+                    className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold shadow-md hover:brightness-110 active:scale-95"
+                    style={{
+                      backgroundColor: theme.colors.accent,
+                      color: theme.colors.background,
+                    }}
                   >
                     <X size={18} /> Delete
                   </button>

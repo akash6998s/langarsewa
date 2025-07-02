@@ -1,20 +1,11 @@
 import { useState, useEffect } from "react";
 import Loader from "./Loader";
 import Popup from "./Popup";
+import { theme } from "../theme";
 
 const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ];
 
 function ManageExpense() {
@@ -33,9 +24,7 @@ function ManageExpense() {
   const backendUrl = "https://langar-backend.onrender.com/api/expenses";
 
   useEffect(() => {
-    if (tab === "delete") {
-      fetchExpenses();
-    }
+    if (tab === "delete") fetchExpenses();
   }, [tab]);
 
   const fetchExpenses = async () => {
@@ -54,9 +43,7 @@ function ManageExpense() {
 
   const showPopup = (message, type) => {
     setPopup({ message, type });
-    setTimeout(() => {
-      setPopup({ message: "", type: "" });
-    }, 3000);
+    setTimeout(() => setPopup({ message: "", type: "" }), 3000);
   };
 
   const handleAddExpense = async (e) => {
@@ -84,7 +71,6 @@ function ManageExpense() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       if (!response.ok) throw new Error("Failed to add expense.");
 
       showPopup("Expense added successfully!", "success");
@@ -130,9 +116,12 @@ function ManageExpense() {
   if (loading) return <Loader />;
 
   return (
-    <div className="text-[#4e342e] font-serif">
-      <div className="mx-auto px-4 py-10 max-w-4xl">
-        <h1 className="text-3xl font-extrabold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
+    <div className="font-serif" style={{ color: theme.colors.neutralDark }}>
+      <div className="mx-auto px-4 pt-4 max-w-4xl pb-20">
+        <h1
+          className="text-2xl font-extrabold text-center mb-10 tracking-wide drop-shadow-md"
+          style={{ color: theme.colors.primary }}
+        >
           Manage Expense
         </h1>
 
@@ -140,21 +129,38 @@ function ManageExpense() {
         <div className="flex justify-center mb-8">
           <button
             onClick={() => setTab("add")}
-            className={`px-8 py-3 rounded-l-full border border-[#d7a76b] text-lg shadow-md ${
+            className={`px-8 py-3 rounded-l-full border text-lg shadow-md ${
               tab === "add"
-                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold scale-105"
-                : "bg-white text-[#8b4513] hover:bg-amber-100"
+                ? "text-white font-semibold scale-105"
+                : "hover:bg-amber-100"
             }`}
+            style={{
+              borderColor: theme.colors.primaryLight,
+              background:
+                tab === "add"
+                  ? `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`
+                  : theme.colors.surface,
+              color: tab === "add" ? theme.colors.surface : theme.colors.primary,
+            }}
           >
             Add Expense
           </button>
+
           <button
             onClick={() => setTab("delete")}
-            className={`px-8 py-3 rounded-r-full border border-[#d7a76b] text-lg shadow-md ${
+            className={`px-8 py-3 rounded-r-full border text-lg shadow-md ${
               tab === "delete"
-                ? "bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold scale-105"
-                : "bg-white text-[#8b4513] hover:bg-rose-100"
+                ? "text-white font-semibold scale-105"
+                : "hover:bg-rose-100"
             }`}
+            style={{
+              borderColor: theme.colors.primaryLight,
+              background:
+                tab === "delete"
+                  ? `linear-gradient(to right, ${theme.colors.accent}, #f43f5e)`
+                  : theme.colors.surface,
+              color: tab === "delete" ? theme.colors.surface : theme.colors.primary,
+            }}
           >
             Delete Expense
           </button>
@@ -164,13 +170,18 @@ function ManageExpense() {
         {tab === "add" && (
           <form
             onSubmit={handleAddExpense}
-            className="bg-[#fffdf7] rounded-3xl shadow-xl p-8 space-y-6 border border-orange-200"
+            className="rounded-3xl shadow-xl p-8 space-y-6 border"
+            style={{
+              backgroundColor: theme.colors.background,
+              borderColor: theme.colors.primaryLight,
+            }}
           >
             <div className="grid sm:grid-cols-3 gap-4">
               <select
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
+                className="border p-3 rounded-xl shadow-md"
+                style={{ backgroundColor: theme.colors.surface }}
               >
                 {years.map((y) => (
                   <option key={y} value={y}>
@@ -182,7 +193,8 @@ function ManageExpense() {
               <select
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
-                className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
+                className="border p-3 rounded-xl shadow-md"
+                style={{ backgroundColor: theme.colors.surface }}
               >
                 {months.map((m) => (
                   <option key={m} value={m}>
@@ -198,7 +210,8 @@ function ManageExpense() {
                 placeholder="Enter Amount"
                 min="0"
                 step="0.01"
-                className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
+                className="border p-3 rounded-xl shadow-md"
+                style={{ backgroundColor: theme.colors.surface }}
                 required
               />
             </div>
@@ -208,14 +221,18 @@ function ManageExpense() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Description"
-              className="w-full border p-3 rounded-xl bg-[#fffaf3] shadow-md"
+              className="w-full border p-3 rounded-xl shadow-md"
+              style={{ backgroundColor: theme.colors.surface }}
               required
             />
 
             <div className="text-center">
               <button
                 type="submit"
-                className="w-full py-4 rounded-2xl bg-green-600 hover:bg-green-700 text-white text-xl font-semibold transition shadow-lg"
+                className="w-full py-4 rounded-2xl text-white text-xl font-semibold transition shadow-lg"
+                style={{
+                  backgroundColor: theme.colors.secondary,
+                }}
               >
                 Add Expense
               </button>
@@ -226,12 +243,19 @@ function ManageExpense() {
         {/* Delete Expense Section */}
         {tab === "delete" && (
           <div>
-            <div className="bg-[#fffdf7] rounded-3xl shadow-xl p-8 space-y-6 border border-orange-200 mb-6">
+            <div
+              className="rounded-3xl shadow-xl p-8 space-y-6 border mb-6"
+              style={{
+                backgroundColor: theme.colors.background,
+                borderColor: theme.colors.primaryLight,
+              }}
+            >
               <div className="grid sm:grid-cols-2 gap-4">
                 <select
                   value={year}
                   onChange={(e) => setYear(Number(e.target.value))}
-                  className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
+                  className="border p-3 rounded-xl shadow-md"
+                  style={{ backgroundColor: theme.colors.surface }}
                 >
                   {years.map((y) => (
                     <option key={y} value={y}>
@@ -243,7 +267,8 @@ function ManageExpense() {
                 <select
                   value={month}
                   onChange={(e) => setMonth(e.target.value)}
-                  className="border p-3 rounded-xl bg-[#fffaf3] shadow-md"
+                  className="border p-3 rounded-xl shadow-md"
+                  style={{ backgroundColor: theme.colors.surface }}
                 >
                   {months.map((m) => (
                     <option key={m} value={m}>
@@ -259,24 +284,32 @@ function ManageExpense() {
                 {filteredExpenses.map(({ ID, Description, Amount }) => (
                   <li
                     key={ID}
-                    className="bg-white rounded-xl p-5 shadow-lg border border-gray-100 transform hover:scale-[1.01] transition-all duration-200 ease-out flex flex-col"
+                    className="rounded-xl p-5 shadow-lg border transform hover:scale-[1.01] transition-all duration-200 ease-out flex flex-col"
+                    style={{
+                      backgroundColor: theme.colors.surface,
+                      borderColor: theme.colors.neutralLight,
+                    }}
                   >
-                    {/* Top Row: Amount (left) and Delete Button (right) */}
                     <div className="flex items-center justify-between w-full mb-3">
-                      <p className="font-bold text-teal-600 text-xl">
+                      <p
+                        className="font-bold text-xl"
+                        style={{ color: theme.colors.secondary }}
+                      >
                         ₹ {Amount}
                       </p>
                       <button
                         onClick={() => handleDeleteById(ID)}
-                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
+                        className="px-4 py-2 text-white rounded-lg font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none"
+                        style={{
+                          backgroundColor: theme.colors.accent,
+                        }}
                       >
                         Delete
                       </button>
                     </div>
 
-                    {/* Bottom Row: Description (full width) */}
                     <div className="w-full">
-                      <p className="font-medium text-gray-800 text-lg leading-snug">
+                      <p className="font-medium text-lg leading-snug">
                         {Description}
                       </p>
                     </div>
@@ -284,7 +317,10 @@ function ManageExpense() {
                 ))}
               </ul>
             ) : (
-              <p className="text-center text-[#7b451e] font-semibold">
+              <p
+                className="text-center font-semibold"
+                style={{ color: theme.colors.primary }}
+              >
                 No expenses found for {month}, {year}.
               </p>
             )}
