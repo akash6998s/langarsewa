@@ -5,32 +5,23 @@ import { theme } from "../../theme";
 const Home = () => {
   return (
     <div
+      className="flex flex-col h-full px-2"
       style={{
-        fontFamily: theme.fonts.body, // '"Open Sans", sans-serif'
-        color: theme.colors.neutralDark, // '#374151'
+        fontFamily: theme.fonts.body,
+        color: theme.colors.neutralDark,
       }}
-      className="min-h-screen px-2 relative"
     >
-      {/* Centered Heading */}
       <h1
+        className="text-3xl md:text-4xl font-bold text-center mt-4 mb-2"
         style={{
-          color: theme.colors.primary, // '#D97706'
-          fontFamily: theme.fonts.heading, // "'Poppins', sans-serif"
+          color: theme.colors.primary,
+          fontFamily: theme.fonts.heading,
         }}
-        className="text-3xl md:text-4xl font-bold text-center mt-8 mb-2"
       >
         सुदर्शन सेना - भोजन वितरण
       </h1>
 
-      {/* Subtitle */}
-
-      {/* Main Section */}
-      <div
-        style={{
-          fontFamily: theme.fonts.body,
-        }}
-        className="mx-auto py-6 rounded-lg shadow"
-      >
+      <div className="">
         <AttendanceSheet />
       </div>
     </div>

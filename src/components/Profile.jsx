@@ -18,30 +18,27 @@ const Profile = () => {
           return;
         }
 
-        const response = await fetch(`https://langarsewa-db.onrender.com/members`);
+        const response = await fetch(`https://langar-backend.onrender.com/api/members/${rollNumber}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+
         const data = await response.json();
 
-        const foundUser = data.find(
-          (member) => String(member.roll_no) === rollNumber
-        );
-
-        if (foundUser) {
+        if (data && data.member) {
           setUser({
-            profilePic: foundUser.img
-              ? `https://langarsewa-db.onrender.com/images/${foundUser.img}`
+            profilePic: data.member.Photo
+              ? `https://langar-backend.onrender.com/uploads/${data.member.Photo}`
               : "",
-            firstName: foundUser.name,
-            lastName: foundUser.last_name,
-            rollNumber: foundUser.roll_no,
-            phone: foundUser.phone_no || "N/A",
-            email: foundUser.email || "N/A",
-            address: foundUser.address || "N/A",
+            firstName: data.member.Name,
+            lastName: data.member.LastName,
+            rollNumber: data.RollNumber,
+            phone: data.member.PhoneNumber || "N/A",
+            email: data.member.Email || "N/A",
+            address: data.member.Address || "N/A",
           });
         } else {
-          setError("User not found for the given roll number.");
+          setError("User data not found.");
         }
       } catch (e) {
         setError("Failed to fetch user data: " + e.message);
@@ -81,7 +78,7 @@ const Profile = () => {
   if (!user)
     return (
       <div
-        className="flex justify-center items-center min-h-screen px-4"
+        className="flex justify-center items-center  px-2"
         style={{ backgroundColor: theme.colors.background }}
       >
         <p
@@ -135,52 +132,36 @@ const Profile = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Roll Number */}
-            <div className="flex items-start gap-4" style={{ color: theme.colors.neutralDark }}>
-              <IdCard
-                className="flex-shrink-0"
-                size={24}
-                color={theme.colors.primary}
-              />
-              <div className="min-w-0">
+            <div className="flex items-start gap-4">
+              <IdCard className="flex-shrink-0" size={24} color={theme.colors.primary} />
+              <div>
                 <p className="font-semibold">Roll Number</p>
                 <p className="text-sm break-words">{user.rollNumber}</p>
               </div>
             </div>
 
             {/* Phone */}
-            <div className="flex items-start gap-4" style={{ color: theme.colors.neutralDark }}>
-              <Phone
-                className="flex-shrink-0"
-                size={24}
-                color={theme.colors.primary}
-              />
-              <div className="min-w-0">
+            <div className="flex items-start gap-4">
+              <Phone className="flex-shrink-0" size={24} color={theme.colors.primary} />
+              <div>
                 <p className="font-semibold">Phone</p>
                 <p className="text-sm break-words">{user.phone}</p>
               </div>
             </div>
 
             {/* Email */}
-            <div className="flex items-start gap-4" style={{ color: theme.colors.neutralDark }}>
-              <Mail
-                className="flex-shrink-0"
-                size={24}
-                color={theme.colors.primary}
-              />
-              <div className="min-w-0">
+            <div className="flex items-start gap-4">
+              <Mail className="flex-shrink-0" size={24} color={theme.colors.primary} />
+              <div>
                 <p className="font-semibold">Email</p>
                 <p className="text-sm break-words">{user.email}</p>
               </div>
             </div>
 
             {/* Address */}
-            <div className="flex items-start gap-4" style={{ color: theme.colors.neutralDark }}>
-              <MapPin
-                className="flex-shrink-0"
-                size={24}
-                color={theme.colors.primary}
-              />
-              <div className="min-w-0">
+            <div className="flex items-start gap-4">
+              <MapPin className="flex-shrink-0" size={24} color={theme.colors.primary} />
+              <div>
                 <p className="font-semibold">Address</p>
                 <p className="text-sm break-words">{user.address}</p>
               </div>

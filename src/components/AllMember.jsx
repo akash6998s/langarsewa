@@ -15,7 +15,7 @@ const AllMember = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await fetch("https://langarsewa-db.onrender.com/members");
+        const res = await fetch("https://langar-backend.onrender.com/api/members");
         if (!res.ok) throw new Error(`Status: ${res.status}`);
         const data = await res.json();
         setMembers(data);
@@ -57,7 +57,7 @@ const AllMember = () => {
 
   return (
     <div
-      className="min-h-screen mt-8 py-24 px-2"
+      className="min-h-screen mt-8 pb-24 px-2"
       style={{
         backgroundColor: theme.colors.background,
         fontFamily: theme.fonts.body,
@@ -70,55 +70,59 @@ const AllMember = () => {
         Our Members
       </h1>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {members.map((member) => (
           <div
-            key={member.roll_no}
-            className="rounded-3xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border"
+            key={member.RollNumber}
+            className="rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border flex flex-col items-center"
             style={{
               backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.secondary + "33", // slight transparency for border
+              borderColor: theme.colors.secondary + "33",
             }}
           >
-            <div className="w-full aspect-w-1 aspect-h-1">
-              <img
-                src={`https://langarsewa-db.onrender.com/images/${member.img}`}
-                alt={`${member.name} ${member.last_name}`}
-                className="w-full h-full object-cover"
-              />
+            {/* Image in Circle */}
+            <div className="mt-6 mb-4">
+              <div className="w-32 h-32 rounded-full bg-white border flex items-center justify-center overflow-hidden">
+                <img
+                  src={`https://langar-backend.onrender.com/uploads/${member.Photo}`}
+                  alt={`${member.Name} ${member.LastName}`}
+                  className="w-full h-full object-contain"
+                />
+              </div>
             </div>
 
-            <div className="p-5">
+            {/* Info Section */}
+            <div className="px-5 pb-5 w-full">
               <h2
-                className="text-xl font-semibold mb-2 text-center"
+                className="text-xl font-semibold mb-3 text-center"
                 style={{ color: theme.colors.neutralDark }}
               >
-                {member.name.trim()} {member.last_name.trim()}
+                {member.Name.trim()} {member.LastName.trim()}
               </h2>
               <div
-                className="text-sm space-y-2"
+                className="text-sm space-y-2 text-left"
                 style={{ color: theme.colors.neutralDark }}
               >
                 <p className="flex items-center gap-2">
                   <IdentificationIcon
-                    className="h-5 w-5 flex-shrink-0"
+                    className="h-5 w-5"
                     style={{ color: theme.colors.primary }}
                   />
-                  <span>Roll No: {member.roll_no}</span>
+                  <span>Roll No: {member.RollNumber}</span>
                 </p>
                 <p className="flex items-center gap-2">
                   <PhoneIcon
-                    className="h-5 w-5 flex-shrink-0"
+                    className="h-5 w-5"
                     style={{ color: theme.colors.secondary }}
                   />
-                  <span>{member.phone_no}</span>
+                  <span>{member.PhoneNumber}</span>
                 </p>
                 <p className="flex items-center gap-2">
                   <MapPinIcon
-                    className="h-5 w-5 flex-shrink-0"
+                    className="h-5 w-5"
                     style={{ color: theme.colors.accent }}
                   />
-                  <span>{member.address}</span>
+                  <span>{member.Address}</span>
                 </p>
               </div>
             </div>

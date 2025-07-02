@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Loader from "./Loader";
 import { Check } from "lucide-react";
-import { theme } from ".././theme";
+import { theme } from "../theme";
 
 const Activity = () => {
   const [attendanceData, setAttendanceData] = useState(null);
@@ -37,46 +37,64 @@ const Activity = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null);
         const rollNumber = localStorage.getItem("rollNumber");
 
-        const attendanceResponse = await fetch(
-          `https://langarsewa-db.onrender.com/attendance/${rollNumber}`
+        const response = await fetch(
+          `https://langar-backend.onrender.com/api/members/${rollNumber}`
         );
-        if (!attendanceResponse.ok)
-          throw new Error(`Attendance error: ${attendanceResponse.status}`);
-        const attendanceJson = await attendanceResponse.json();
-        setAttendanceData(attendanceJson);
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        const data = await response.json();
 
-        const donationResponse = await fetch(
-          `https://langarsewa-db.onrender.com/donations/summary/${rollNumber}`
-        );
-        if (!donationResponse.ok)
-          throw new Error(`Donations error: ${donationResponse.status}`);
-        const donationJson = await donationResponse.json();
-        setDonationData(donationJson);
+        const formattedAttendance = {};
+        const attendanceRaw = data.attendance || {};
+        Object.keys(attendanceRaw).forEach((year) => {
+          formattedAttendance[year] = {};
+          Object.keys(attendanceRaw[year]).forEach((month) => {
+            formattedAttendance[year][month.toLowerCase()] = attendanceRaw[
+              year
+            ][month]
+              .split(",")
+              .map((day) => parseInt(day.trim()))
+              .filter((num) => !isNaN(num));
+          });
+        });
 
-        const availableYears = Object.keys(attendanceJson.attendance);
+        const formattedDonations = {};
+        const donationRaw = data.donations || {};
+        Object.keys(donationRaw).forEach((year) => {
+          formattedDonations[year] = {};
+          Object.keys(donationRaw[year]).forEach((month) => {
+            formattedDonations[year][month.toLowerCase()] = parseInt(
+              donationRaw[year][month] || 0
+            );
+          });
+        });
+
+        setAttendanceData({ attendance: formattedAttendance });
+        setDonationData({ donations_summary: formattedDonations });
+
+        const availableYears = Object.keys(formattedAttendance);
         if (
-          !availableYears.includes(selectedYear) &&
-          availableYears.length > 0
+          availableYears.length > 0 &&
+          !availableYears.includes(selectedYear)
         ) {
           setSelectedYear(availableYears[availableYears.length - 1]);
         }
+
+        setError(null);
       } catch (e) {
         setError(e.message);
-        console.error("Error fetching data:", e);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
   const calculateYearlyDonationTotal = () => {
     if (!donationData || !donationData.donations_summary[selectedYear])
       return 0;
-
     return Object.values(donationData.donations_summary[selectedYear]).reduce(
       (sum, val) => sum + val,
       0
@@ -111,16 +129,15 @@ const Activity = () => {
   if (error) {
     return (
       <div
-        className="max-w-md mx-auto mt-20 p-8 rounded-lg shadow-lg text-center"
-        style={{
-          backgroundColor: "#FEE2E2",
-          color: "#991B1B",
-          fontFamily: theme.fonts.body,
-        }}
+        className="flex justify-center items-center min-h-screen px-4"
+        style={{ backgroundColor: theme.colors.background }}
       >
-        <h2 className="text-2xl font-bold mb-4">Oops! Something went wrong</h2>
-        <p className="mb-2">{error}</p>
-        <p>Please try refreshing the page or check your connection.</p>
+        <p
+          className="text-lg font-semibold"
+          style={{ color: theme.colors.accent, fontFamily: theme.fonts.body }}
+        >
+          Error: {error}
+        </p>
       </div>
     );
   }
@@ -130,24 +147,14 @@ const Activity = () => {
 
   return (
     <div
-      className="max-w-7xl mx-auto px-2 mt-8 pb-16 rounded-xl shadow-xl min-h-screen"
-      style={{
-        fontFamily: theme.fonts.body,
-        color: theme.colors.neutralDark,
-      }}
+      className="max-w-7xl mx-auto px-2 mt-8 pb-16 rounded-xl shadow-xl min-h-[calc(100vh-120px)]"
+      style={{ fontFamily: theme.fonts.body, color: theme.colors.neutralDark }}
     >
-      {/* Header and Toggle */}
+      {/* Header Toggle */}
       <header className="mb-10 text-center select-none">
         <div
           onClick={() => setShowSummary((prev) => !prev)}
           className="inline-flex items-center cursor-pointer"
-          aria-expanded={showSummary}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ")
-              setShowSummary((prev) => !prev);
-          }}
         >
           <h2
             className="text-4xl font-extrabold tracking-wide mr-3"
@@ -178,68 +185,23 @@ const Activity = () => {
 
       {/* Summary Cards */}
       {showSummary && (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
-          {/* Column 1: Month Dropdown + Attendance Summary */}
-          <div className="flex flex-col gap-6 items-center">
-            <div
-              className="flex w-full items-center justify-between gap-4 bg-white px-6 py-4 rounded-2xl shadow-lg border max-w-xl"
-              style={{ borderColor: "#FCD34D" }}
-            >
-              <label
-                htmlFor="month-select"
-                className="text-lg font-semibold tracking-wide"
-                style={{
-                  fontFamily: theme.fonts.heading,
-                  color: theme.colors.primary,
-                }}
-              >
-                Select Month
-              </label>
-              <select
-                id="month-select"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="px-5 py-2.5 rounded-xl bg-[#FFF7ED] border text-gray-800 font-medium shadow-inner focus:outline-none focus:ring-2 transition duration-200"
-                style={{ borderColor: "#F59E0B" }}
-              >
-                {months.map((month, index) => (
-                  <option key={index} value={index}>
-                    {month.charAt(0).toUpperCase() + month.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div
-            className="rounded-2xl shadow-lg p-6 border-l-8 w-full text-center"
-            style={{ backgroundColor: "#fff", borderColor: "#D97706" }}
-          >
-            <h3
-              className="text-xl font-semibold mb-2"
-              style={{ color: theme.colors.primary }}
-            >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          {/* Attendance Summary */}
+          <div className="rounded-2xl shadow-lg p-6 border-l-8 border-yellow-500 bg-white text-center">
+            <h3 className="text-xl font-semibold text-yellow-600 mb-2">
               Attendance Summary
             </h3>
-            <p className="text-5xl font-bold text-gray-900">
-              {selectedMonthStats.percent}%
-            </p>
-            <p className="mt-2 text-gray-600 text-lg">
-              Present: {selectedMonthStats.presentDays} days
-            </p>
-            <p className="text-sm text-gray-500">
-              out of {selectedMonthStats.totalDays} days in{" "}
-              {months[selectedMonth]} {selectedYear}
+            <p className="text-5xl font-bold">{selectedMonthStats.percent}%</p>
+            <p className="mt-2">
+              Present: {selectedMonthStats.presentDays} /{" "}
+              {selectedMonthStats.totalDays} days in {months[selectedMonth]}{" "}
+              {selectedYear}
             </p>
           </div>
-          {/* Column 2: Donation Summary */}
-          <div
-            className="rounded-2xl shadow-lg p-6 border-l-8 w-full text-center"
-            style={{ backgroundColor: "#fff", borderColor: "#10B981" }}
-          >
-            <h3
-              className="text-2xl font-semibold mb-2"
-              style={{ color: theme.colors.secondary }}
-            >
+
+          {/* Donation Summary */}
+          <div className="rounded-2xl shadow-lg p-6 border-l-8 border-emerald-500 bg-white text-center">
+            <h3 className="text-2xl font-semibold text-emerald-600 mb-2">
               Total Donation
             </h3>
             <p className="text-6xl font-bold text-gray-900">
@@ -247,181 +209,184 @@ const Activity = () => {
             </p>
             <p className="mt-2 text-gray-500">For the year {selectedYear}</p>
           </div>
-        </section>
+        </div>
       )}
 
+      {/* Dropdown Filters */}
+      <div className="flex gap-6 justify-center items-center mb-8">
+  {/* Year Dropdown */}
+  <div className="flex flex-col w-1/2">
+    <label className="mb-1 font-semibold text-sm text-yellow-600">
+      Select Year
+    </label>
+    <select
+      className="bg-[#FFF7ED] border border-yellow-400 px-5 py-2 rounded-xl focus:outline-none shadow-sm w-full"
+      value={selectedYear}
+      onChange={(e) => setSelectedYear(e.target.value)}
+    >
+      {Object.keys(attendanceData?.attendance || {}).map((year) => (
+        <option key={year} value={year}>
+          {year}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Month Dropdown */}
+  <div className="flex flex-col w-1/2">
+    <label className="mb-1 font-semibold text-sm text-yellow-600">
+      Select Month
+    </label>
+    <select
+      className="bg-[#FFF7ED] border border-yellow-400 px-5 py-2 rounded-xl focus:outline-none shadow-sm w-full"
+      value={selectedMonth}
+      onChange={(e) => setSelectedMonth(Number(e.target.value))}
+    >
+      {months.map((month, index) => (
+        <option key={index} value={index}>
+          {month.charAt(0).toUpperCase() + month.slice(1)}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
+
+
       {/* Tabs */}
-      <section
-        className="flex justify-center mb-8 rounded-lg shadow-sm border max-w-md mx-auto"
-        style={{ borderColor: theme.colors.secondary, backgroundColor: "#fff" }}
-      >
+      <div className="flex justify-center mb-6 rounded-lg shadow border border-emerald-500 bg-white max-w-md mx-auto">
         <button
           onClick={() => setActiveTab("attendance")}
-          className="w-1/2 py-3 font-semibold rounded-lg transition-colors duration-300 text-center"
-          style={{
-            backgroundColor:
-              activeTab === "attendance" ? theme.colors.primary : "transparent",
-            color:
-              activeTab === "attendance"
-                ? theme.colors.surface
-                : theme.colors.neutralDark,
-          }}
+          className={`w-1/2 py-3 font-semibold rounded-lg transition ${
+            activeTab === "attendance" ? "bg-yellow-500 text-white" : ""
+          }`}
         >
           Attendance
         </button>
         <button
           onClick={() => setActiveTab("donations")}
-          className="w-1/2 py-3 font-semibold rounded-lg transition-colors duration-300 text-center"
-          style={{
-            backgroundColor:
-              activeTab === "donations"
-                ? theme.colors.secondary
-                : "transparent",
-            color:
-              activeTab === "donations"
-                ? theme.colors.surface
-                : theme.colors.neutralDark,
-          }}
+          className={`w-1/2 py-3 font-semibold rounded-lg transition ${
+            activeTab === "donations" ? "bg-emerald-500 text-white" : ""
+          }`}
         >
           Donations
         </button>
-      </section>
+      </div>
 
       {/* Attendance Table */}
       {activeTab === "attendance" && (
-        <section>
-          <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
-            <table className="min-w-[900px] w-full border-collapse text-sm">
-              <thead
-                style={{
-                  backgroundColor: theme.colors.primary,
-                  color: theme.colors.surface,
-                  fontFamily: theme.fonts.heading,
-                }}
-              >
-                <tr>
-                  <th className="py-2 px-4 text-left sticky left-0 z-20 bg-yellow-500 text-white">
-                    Month
-                  </th>
-                  {[...Array(31)].map((_, i) => {
-                    const date = new Date(parseInt(selectedYear), 0, i + 1);
-                    const dayName = date.toLocaleDateString("en-US", {
-                      weekday: "short",
-                    });
-                    return (
-                      <th
-                        key={i}
-                        className="py-2 px-2 text-center text-xs"
-                        title={dayName}
-                      >
-                        {i + 1}
-                        <div
-                          style={{
-                            fontSize: "10px",
-                            color: theme.colors.primaryLight,
-                          }}
-                        >
-                          {dayName}
-                        </div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {months.map((monthName, monthIndex) => {
-                  const yearData =
-                    attendanceData.attendance[selectedYear] || {};
-                  const daysPresent = yearData[monthName] || [];
-                  const totalDays = daysInMonth(
-                    parseInt(selectedYear),
-                    monthIndex
-                  );
+        <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
+          <table className="min-w-[900px] w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 text-left sticky left-0 z-20 bg-yellow-500 text-white border border-gray-300">
+                  Month
+                </th>
+                {[...Array(31)].map((_, i) => {
+                  const date = new Date(parseInt(selectedYear), 0, i + 1);
+                  const dayName = date.toLocaleDateString("en-US", {
+                    weekday: "short",
+                  });
                   return (
-                    <tr
-                      key={monthName}
-                      className={
-                        monthIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
-                      }
+                    <th
+                      key={i}
+                      className="py-2 px-2 text-center text-xs border border-gray-300"
+                      title={dayName}
                     >
-                      <td className="py-2 px-4 font-medium capitalize sticky left-0 z-10 bg-white">
-                        {monthName}
-                      </td>
-                      {[...Array(31)].map((_, dayIndex) => {
-                        const day = dayIndex + 1;
-                        const isPresent = daysPresent.includes(day);
-                        const isInvalid = day > totalDays;
-                        return (
-                          <td
-                            key={dayIndex}
-                            className="text-center"
-                            style={{
-                              color: isInvalid
-                                ? theme.colors.tertiary
-                                : isPresent
-                                ? "#16a34a"
-                                : theme.colors.tertiary,
-                            }}
-                          >
-                            {isInvalid ? (
-                              <span className="text-xl">•</span>
-                            ) : isPresent ? (
-                              <Check className="w-4 h-4 mx-auto" />
-                            ) : (
-                              ""
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
+                      {i + 1}
+                      <div className="text-[10px] text-yellow-100">
+                        {dayName}
+                      </div>
+                    </th>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-        </section>
+              </tr>
+            </thead>
+            <tbody>
+              {months.map((monthName, monthIndex) => {
+                const yearData = attendanceData.attendance[selectedYear] || {};
+                const daysPresent = yearData[monthName] || [];
+                const totalDays = daysInMonth(
+                  parseInt(selectedYear),
+                  monthIndex
+                );
+                return (
+                  <tr
+                    key={monthName}
+                    className={monthIndex % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                  >
+                    <td className="py-2 px-4 font-medium capitalize sticky left-0 z-10 bg-white border border-gray-300">
+                      {monthName}
+                    </td>
+                    {[...Array(31)].map((_, dayIndex) => {
+                      const day = dayIndex + 1;
+                      const isPresent = daysPresent.includes(day);
+                      const isInvalid = day > totalDays;
+                      return (
+                        <td
+                          key={dayIndex}
+                          className="text-center border border-gray-300"
+                          style={{
+                            color: isInvalid
+                              ? theme.colors.tertiary
+                              : isPresent
+                              ? "#16a34a"
+                              : theme.colors.tertiary,
+                          }}
+                        >
+                          {isInvalid ? (
+                            <span className="text-xl">•</span>
+                          ) : isPresent ? (
+                            <Check className="w-4 h-4 mx-auto" />
+                          ) : (
+                            ""
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Donations Table */}
       {activeTab === "donations" && (
-        <section>
-          <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
-            <table className="w-full border-collapse text-base">
-              <thead
-                style={{
-                  backgroundColor: theme.colors.secondary,
-                  color: theme.colors.surface,
-                  fontFamily: theme.fonts.heading,
-                }}
-              >
-                <tr>
-                  <th className="py-2 px-4 text-left">Month</th>
-                  <th className="py-2 px-4 text-left">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {months.map((monthName, idx) => {
-                  const donation =
-                    donationData.donations_summary[selectedYear] || {};
-                  const amount = donation[monthName] || 0;
-                  return (
-                    <tr
-                      key={monthName}
-                      className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                    >
-                      <td className="py-2 px-4 font-medium capitalize">
-                        {monthName}
-                      </td>
-                      <td className="py-2 px-4 font-semibold text-left text-emerald-600">
-                        ₹{amount.toLocaleString()}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-300 bg-white">
+          <table className="w-full border-collapse text-base">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 text-left border border-gray-300">
+                  Month
+                </th>
+                <th className="py-2 px-4 text-left border border-gray-300">
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {months.map((monthName, idx) => {
+                const donation =
+                  donationData.donations_summary[selectedYear] || {};
+                const amount = donation[monthName] || 0;
+                return (
+                  <tr
+                    key={monthName}
+                    className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                  >
+                    <td className="py-2 px-4 font-medium capitalize border border-gray-300">
+                      {monthName}
+                    </td>
+                    <td className="py-2 px-4 font-semibold text-emerald-600 border border-gray-300">
+                      ₹{amount.toLocaleString()}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

@@ -1,18 +1,10 @@
 import { useEffect, useState } from "react";
+import Loader from "./Loader";
+import Popup from "./Popup";
 
 const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
 ];
 
 function ManageDonation() {
@@ -21,28 +13,44 @@ function ManageDonation() {
 
   const [tab, setTab] = useState("add");
   const [year, setYear] = useState(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState(
-    months[new Date().getMonth()]
-  );
+  const [selectedMonth, setSelectedMonth] = useState(months[new Date().getMonth()]);
   const [selectedRolls, setSelectedRolls] = useState([]);
   const [amount, setAmount] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
-  const [message, setMessage] = useState(null); // {type: 'success'|'error', text: string}
+
+  const [showPopupRoll, setShowPopupRoll] = useState(false);
+  const [popup, setPopup] = useState({ message: "", type: "" });
 
   const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch members on component mount
+  const API_URL = "https://langar-backend.onrender.com/api";
+
+  // ✅ Fetch Members
+  const fetchMembers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/members`);
+      const data = await res.json();
+      setMembers(data);
+    } catch (err) {
+      showPopup("Failed to load members.", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("https://langarsewa-db.onrender.com/members")
-      .then((res) => res.json())
-      .then((data) => setMembers(data))
-      .catch((err) => {
-        console.error("Error fetching members:", err);
-        showMessage("Failed to load members.", "error");
-      });
+    fetchMembers();
   }, []);
 
-  // Single-select toggle for roll numbers:
+  // ✅ Popup helper
+  const showPopup = (message, type) => {
+    setPopup({ message, type });
+    setTimeout(() => {
+      setPopup({ message: "", type: "" });
+    }, 3000);
+  };
+
   const toggleRoll = (roll) => {
     if (selectedRolls.includes(roll)) {
       setSelectedRolls([]);
@@ -51,95 +59,74 @@ function ManageDonation() {
     }
   };
 
-  const showMessage = (text, type = "success") => {
-    setMessage({ text, type });
-  };
-
-  const closeMessagePopup = () => {
-    setMessage(null);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (tab === "add" && (!amount || isNaN(amount) || Number(amount) <= 0)) {
-      setMessage({
-        type: "error",
-        text: "Please enter a valid donation amount.",
-      });
+      showPopup("Please enter a valid donation amount.", "error");
       return;
     }
 
     if (selectedRolls.length === 0) {
-      setMessage({ type: "error", text: "Please select a roll number." });
+      showPopup("Please select a roll number.", "error");
       return;
     }
 
     try {
+      setLoading(true);
+
       for (const roll of selectedRolls) {
         const payload = {
-          roll_no: roll,
-          year: String(year),
-          month: selectedMonth.toLowerCase(),
-          amount: Number(amount),
+          RollNumber: roll,
+          Year: String(year),
+          Month: selectedMonth,
+          Amount: amount
         };
 
-        let response, data;
-        if (tab === "add") {
-          response = await fetch("https://langarsewa-db.onrender.com/donations", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-          data = await response.json();
-          if (!response.ok) {
-            throw new Error(
-              data.message || `Failed to add donation for roll ${roll}`
-            );
-          }
-        } else {
-          response = await fetch(
-            "https://langarsewa-db.onrender.com/donations/deduct-donation",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            }
-          );
-          data = await response.json();
-          if (!response.ok) {
-            throw new Error(
-              data.message || `Failed to delete donation for roll ${roll}`
-            );
-          }
+        const apiUrl =
+          tab === "add"
+            ? `${API_URL}/donations/add`
+            : `${API_URL}/donations/delete`;
+
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(errorData || "Something went wrong");
         }
       }
 
-      setMessage({
-        type: "success",
-        text:
-          tab === "add"
-            ? "Donations added successfully!"
-            : "Donations deleted successfully!",
-      });
+      showPopup(
+        tab === "add"
+          ? "Donations added successfully!"
+          : "Donations deleted successfully!",
+        "success"
+      );
+
       setSelectedRolls([]);
       setAmount("");
-      setShowPopup(false);
+      setShowPopupRoll(false);
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.message || "Something went wrong.",
-      });
+      showPopup(error.message || "Something went wrong.", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (loading) return <Loader />;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fefcea] via-[#f8e1c1] to-[#fbd6c1] text-[#4e342e] font-serif">
+    <div className=" bg-gradient-to-br from-[#fefcea] via-[#f8e1c1] to-[#fbd6c1] text-[#4e342e] font-serif">
       <div className="max-w-5xl mx-auto px-4 py-10">
         <h1 className="text-5xl font-bold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
           सेवा दान प्रबंधन
         </h1>
 
+        {/* Tabs */}
         <div className="flex justify-center mb-8">
           <button
             onClick={() => setTab("add")}
@@ -163,6 +150,7 @@ function ManageDonation() {
           </button>
         </div>
 
+        {/* Form */}
         <form
           onSubmit={handleSubmit}
           className="bg-white/80 p-8 rounded-3xl shadow-2xl border border-yellow-100 space-y-6 backdrop-blur-md"
@@ -171,7 +159,7 @@ function ManageDonation() {
             <select
               value={year}
               onChange={(e) => setYear(e.target.value)}
-              className="border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="border p-3 rounded-lg bg-[#fffdf7]"
             >
               {years.map((y) => (
                 <option key={y} value={y}>
@@ -183,7 +171,7 @@ function ManageDonation() {
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="border p-3 rounded-lg bg-[#fffdf7]"
             >
               {months.map((m) => (
                 <option key={m} value={m}>
@@ -198,20 +186,20 @@ function ManageDonation() {
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter Donation Amount"
               required={tab === "add"}
-              className="border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="border p-3 rounded-lg bg-[#fffdf7]"
               min="0"
-              step="0.01"
             />
           </div>
 
           <div className="text-center">
             <button
               type="button"
-              onClick={() => setShowPopup(true)}
+              onClick={() => setShowPopupRoll(true)}
               className="bg-gradient-to-r from-yellow-500 to-orange-400 text-white px-8 py-3 rounded-xl hover:scale-105 transition shadow-md"
             >
               Select Roll Number
             </button>
+
             {selectedRolls.length > 0 && (
               <div className="mt-5 flex flex-wrap justify-center gap-2">
                 {selectedRolls.map((roll) => (
@@ -241,33 +229,29 @@ function ManageDonation() {
         </form>
       </div>
 
-      {/* Popup Roll Selector */}
-      {showPopup && (
+      {/* Roll Number Popup */}
+      {showPopupRoll && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#fffdf7] rounded-3xl p-8 w-[95%] max-w-lg overflow-y-auto shadow-2xl border border-orange-200 max-h-[90vh] transform scale-95 animate-scaleIn">
-            <h3 className="text-3xl font-extrabold text-center mb-7 text-[#8b4513] tracking-wide">
+          <div className="bg-[#fffdf7] rounded-3xl p-8 w-[95%] max-w-lg overflow-y-auto shadow-2xl border border-orange-200 max-h-[90vh]">
+            <h3 className="text-3xl font-extrabold text-center mb-7 text-[#8b4513]">
               Select Roll Numbers
             </h3>
             <div className="grid grid-cols-4 gap-4 mb-6">
-              {" "}
-              {/* Adjusted grid for more columns */}
               {members.length > 0 ? (
                 members.map((member) => {
-                  const roll = String(member.roll_no);
+                  const roll = String(member.RollNumber);
                   const isSelected = selectedRolls.includes(roll);
                   return (
                     <button
-                      key={member.roll_no}
+                      key={roll}
                       onClick={() => toggleRoll(roll)}
-                      className={`p-3 rounded-lg text-lg font-bold transition-all duration-200 border border-gray-200 flex items-center justify-center shadow-sm hover:shadow-md transform hover:-translate-y-0.5
-                        ${
-                          isSelected
-                            ? "bg-[#f59e0b] text-white border-[#e67e22] shadow-lg"
-                            : "bg-white text-[#5a2e0e] hover:bg-yellow-50 hover:border-yellow-200"
-                        }
-                      `}
+                      className={`p-3 rounded-lg text-lg font-bold border flex items-center justify-center shadow-sm ${
+                        isSelected
+                          ? "bg-[#f59e0b] text-white border-[#e67e22] shadow-lg"
+                          : "bg-white text-[#5a2e0e] hover:bg-yellow-50 hover:border-yellow-200"
+                      }`}
                     >
-                      {member.roll_no}
+                      {roll}
                     </button>
                   );
                 })
@@ -279,8 +263,8 @@ function ManageDonation() {
             </div>
             <div className="mt-6 text-center">
               <button
-                onClick={() => setShowPopup(false)}
-                className="bg-gradient-to-r from-[#ff9800] to-[#f57c00] text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-[#f57c00] hover:to-[#ef6c00] shadow-xl transition transform hover:scale-105"
+                onClick={() => setShowPopupRoll(false)}
+                className="bg-gradient-to-r from-[#ff9800] to-[#f57c00] text-white px-8 py-3 rounded-full text-lg font-semibold hover:scale-105"
               >
                 Done
               </button>
@@ -289,30 +273,12 @@ function ManageDonation() {
         </div>
       )}
 
-      {/* Message Popup Modal */}
-      {message && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-60">
-          <div
-            className={`max-w-sm w-full p-6 rounded-xl shadow-lg text-center ${
-              message.type === "success"
-                ? "bg-green-100 text-green-900 border border-green-400"
-                : "bg-red-100 text-red-900 border border-red-400"
-            }`}
-          >
-            <p className="text-lg font-semibold mb-4">{message.text}</p>
-            <button
-              onClick={closeMessagePopup}
-              className={`px-6 py-2 rounded-lg font-semibold transition ${
-                message.type === "success"
-                  ? "bg-green-500 text-white hover:bg-green-600"
-                  : "bg-red-500 text-white hover:bg-red-600"
-              }`}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Popup Message */}
+      <Popup
+        message={popup.message}
+        type={popup.type}
+        onClose={() => setPopup({ message: "", type: "" })}
+      />
     </div>
   );
 }

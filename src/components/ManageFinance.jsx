@@ -1,62 +1,77 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Loader from "./Loader";
-import FinanceSummary from "./FinanceSummary";
-import { theme } from ".././theme";
-import { Filter } from "lucide-react";
+import Popup from "./Popup";
+import { theme } from "../theme";
 
 const ManageFinance = () => {
+  const [members, setMembers] = useState([]);
+  const [donations, setDonations] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [summary, setSummary] = useState({});
+
   const [activeTab, setActiveTab] = useState("donations");
+
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear().toString()
   );
   const [selectedMonth, setSelectedMonth] = useState(
-    new Date().toLocaleString("default", { month: "long" }).toLowerCase()
+    new Date().toLocaleString("default", { month: "long" })
   );
-  const [donationsData, setDonationsData] = useState([]);
-  const [expenseData, setExpenseData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [filterMode, setFilterMode] = useState("all"); // all, paid, unpaid
+
+  const [loading, setLoading] = useState(false);
+  const [popup, setPopup] = useState({ message: "", type: "" });
 
   const months = [
-    "january",
-    "february",
-    "march",
-    "april",
-    "may",
-    "june",
-    "july",
-    "august",
-    "september",
-    "october",
-    "november",
-    "december",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
   ];
+
   const years = Array.from({ length: 5 }, (_, i) =>
     (new Date().getFullYear() - i).toString()
   );
 
+  const showPopup = (message, type) => {
+    setPopup({ message, type });
+    setTimeout(() => {
+      setPopup({ message: "", type: "" });
+    }, 3000);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
-        const donationsRes = await fetch(
-          "https://langarsewa-db.onrender.com/donations"
-        );
-        const donationsJson = await donationsRes.json();
-        setDonationsData(donationsJson);
+        setLoading(true);
 
-        const expensesRes = await fetch(
-          "https://langarsewa-db.onrender.com/expenses"
-        );
-        const expensesJson = await expensesRes.json();
-        const normalizedData = expensesJson.map((expense) => ({
-          ...expense,
-          month: months[expense.month - 1],
-        }));
-        setExpenseData(normalizedData);
+        const [membersRes, donationsRes, expensesRes, summaryRes] =
+          await Promise.all([
+            fetch("https://langar-backend.onrender.com/api/members"),
+            fetch("https://langar-backend.onrender.com/api/donations"),
+            fetch("https://langar-backend.onrender.com/api/expenses"),
+            fetch("https://langar-backend.onrender.com/api/summary"),
+          ]);
+
+        if (
+          !membersRes.ok ||
+          !donationsRes.ok ||
+          !expensesRes.ok ||
+          !summaryRes.ok
+        ) {
+          throw new Error("Failed to fetch one or more APIs");
+        }
+
+        const membersData = await membersRes.json();
+        const donationsData = await donationsRes.json();
+        const expensesData = await expensesRes.json();
+        const summaryData = await summaryRes.json();
+
+        setMembers(membersData);
+        setDonations(donationsData);
+        setExpenses(expensesData);
+        setSummary(summaryData);
       } catch (err) {
         console.error("Error fetching data:", err);
+        showPopup("Error fetching data", "error");
       } finally {
         setLoading(false);
       }
@@ -65,332 +80,174 @@ const ManageFinance = () => {
     fetchData();
   }, []);
 
-  const filteredDonations = donationsData.filter((entry) => {
-    const amount = entry.donations?.[selectedYear]?.[selectedMonth] ?? 0;
-    const fullName = `${entry.name} ${entry.last_name}`;
-    const matchesSearch =
-      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.roll.toString().includes(searchTerm.toLowerCase());
+  const getDonationAmount = (rollNumber) => {
+    const entry = donations.find(
+      (d) => (d?.RollNumber || "").toString() === (rollNumber || "").toString()
+    );
+    return entry?.[selectedYear]?.[selectedMonth] ?? 0;
+  };
 
-    if (filterMode === "paid" && amount <= 0) return false;
-    if (filterMode === "unpaid" && amount > 0) return false;
-
-    return matchesSearch;
-  });
-
-  const filteredExpenses = expenseData.filter(
+  const filteredExpenses = expenses.filter(
     (expense) =>
-      expense.year.toString() === selectedYear &&
-      expense.month === selectedMonth &&
-      expense.description.toLowerCase().includes(searchTerm.toLowerCase())
+      expense.Year?.toString() === selectedYear &&
+      expense.Month?.toLowerCase() === selectedMonth.toLowerCase() &&
+      expense.Description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const toggleFilterMode = () => {
-    setFilterMode((prev) =>
-      prev === "all" ? "paid" : prev === "paid" ? "unpaid" : "all"
-    );
-  };
+  const filteredMembers = members.filter(
+    (member) =>
+      member.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.RollNumber.toString().includes(searchTerm)
+  );
 
   if (loading) return <Loader />;
 
   return (
     <div
-      className="min-h-screen mt-8 pb-6 px-2 rounded-xl shadow-lg"
+      className=" mt-8 pb-6 px-4 rounded-xl shadow-lg"
       style={{ fontFamily: theme.fonts.body, color: theme.colors.neutralDark }}
     >
-      <FinanceSummary />
+      {/* Dashboard Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Card label="Total Donations" value={summary.totalDonations || 0} />
+        <Card label="Total Expenses" value={summary.totalExpenses || 0} />
+        <Card
+          label="Deleted Donations"
+          value={summary.totalDeletedDonations || 0}
+        />
+        <Card label="Balance" value={summary.balance || 0} />
+      </div>
 
       {/* Tabs */}
-      <div
-        className="flex justify-center mb-8 rounded-lg shadow-sm  mx-auto border"
-        style={{ borderColor: theme.colors.secondary }}
-      >
-        {["donations", "expense"].map((tab) => (
+      <div className="flex justify-center mb-6 border rounded-lg overflow-hidden">
+        {["donations", "expenses"].map((tab) => (
           <button
             key={tab}
-            className="w-1/2 py-3 font-semibold rounded-lg transition-colors duration-300 text-center"
             onClick={() => {
               setActiveTab(tab);
               setSearchTerm("");
-              setFilterMode("all");
             }}
-            style={{
-              backgroundColor:
-                activeTab === tab ? theme.colors.primary : "transparent",
-              color:
-                activeTab === tab
-                  ? theme.colors.surface
-                  : theme.colors.neutralDark,
-              boxShadow:
-                activeTab === tab
-                  ? `0 4px 6px -1px ${theme.colors.primaryLight}`
-                  : "none",
-            }}
+            className={`w-1/2 py-2 font-semibold ${
+              activeTab === tab
+                ? "bg-yellow-400 text-white"
+                : "bg-white text-yellow-700"
+            }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
         ))}
       </div>
 
-      {/* Content */}
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        <select
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(e.target.value)}
+          className="border rounded px-4 py-2"
+        >
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          className="border rounded px-4 py-2"
+        >
+          {months.map((month) => (
+            <option key={month} value={month}>
+              {month}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="text"
+          placeholder={
+            activeTab === "donations"
+              ? "Search by name or roll"
+              : "Search by description"
+          }
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border rounded px-4 py-2 flex-1"
+        />
+      </div>
+
+      {/* Donations Table */}
       {activeTab === "donations" && (
-        <div className="shadow-md overflow-hidden  mx-auto mb-12">
-          {/* Filters */}
-          <div
-            className="pb-6 flex flex-wrap justify-between gap-6 items-center rounded-t-lg border-b"
-            style={{ borderColor: theme.colors.secondary }}
-          >
-            <div className="w-full flex gap-4">
-              <div className="w-1/2">
-                <Select
-                  label="Year"
-                  options={years}
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  theme={theme}
-                />
-              </div>
-              <div className="w-1/2">
-                <Select
-                  label="Month"
-                  options={months.map(
-                    (m) => m.charAt(0).toUpperCase() + m.slice(1)
-                  )}
-                  value={selectedMonth}
-                  onChange={(e) =>
-                    setSelectedMonth(e.target.value.toLowerCase())
-                  }
-                  theme={theme}
-                />
-              </div>
-            </div>
-            <div className="w-full sm:w-1/2 md:w-1/3">
-              <SearchInput
-                placeholder="Search by name or roll no."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                theme={theme}
-              />
-            </div>
-          </div>
-
-          {/* Donations Table */}
-          <Table
-            columns={[
-              { header: "Roll No.", key: "roll" },
-              { header: "Name", key: "name" },
-              {
-                header: (
-                  <div className="flex flex-col items-center gap-1">
-                    <span>Amount</span>
-                    <button
-                      onClick={toggleFilterMode}
-                      className="p-1 rounded bg-yellow-300 text-yellow-900 hover:bg-yellow-400 transition flex items-center justify-center"
-                      title={
-                        filterMode === "all"
-                          ? "Show all"
-                          : filterMode === "paid"
-                          ? "Show paid only"
-                          : "Show unpaid only"
-                      }
-                      style={{
-                        color: theme.colors.accent,
-                        backgroundColor: theme.colors.secondary,
-                      }}
-                    >
-                      <Filter size={16} stroke={theme.colors.primary} />
-                    </button>
-                  </div>
-                ),
-                key: "amount",
-              },
-            ]}
-            data={filteredDonations.map((entry) => ({
-              roll: entry.roll,
-              name: `${entry.name} ${entry.last_name}`,
-              amount: entry.donations?.[selectedYear]?.[selectedMonth] ?? 0,
-            }))}
-            emptyMessage="No donation data found."
-            theme={theme}
-          />
+        <div className="overflow-x-auto">
+          <table className="w-full border border-gray-300">
+            <thead className="bg-yellow-200">
+              <tr>
+                <th className="border px-4 py-2">Roll No.</th>
+                <th className="border px-4 py-2">Name</th>
+                <th className="border px-4 py-2">
+                  Donation ({selectedMonth} {selectedYear})
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredMembers.map((member) => (
+                <tr key={member.RollNumber} className="hover:bg-yellow-50">
+                  <td className="border px-4 py-2">{member.RollNumber}</td>
+                  <td className="border px-4 py-2">
+                    {member.Name} {member.LastName}
+                  </td>
+                  <td className="border px-4 py-2 text-right">
+                    {getDonationAmount(member.RollNumber)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {activeTab === "expense" && (
-        <div className="rounded-lg shadow-md overflow-hidden  mx-auto mb-12">
-          {/* Filters */}
-          <div
-            className="bg-yellow-50 p-6 flex flex-wrap justify-between gap-6 items-center rounded-t-lg border-b"
-            style={{ borderColor: theme.colors.secondary }}
-          >
-            <div className="w-full flex gap-4 px-6">
-              <div className="w-1/2">
-                <Select
-                  label="Year"
-                  options={years}
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  theme={theme}
-                />
-              </div>
-              <div className="w-1/2">
-                <Select
-                  label="Month"
-                  options={months.map(
-                    (m) => m.charAt(0).toUpperCase() + m.slice(1)
-                  )}
-                  value={selectedMonth}
-                  onChange={(e) =>
-                    setSelectedMonth(e.target.value.toLowerCase())
-                  }
-                  theme={theme}
-                />
-              </div>
-            </div>
-            <div className="w-full sm:w-1/2 md:w-1/3 px-6">
-              <SearchInput
-                placeholder="Search by description"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                theme={theme}
-              />
-            </div>
-          </div>
-
-          {/* Expenses Table */}
-          <Table
-            columns={[
-              { header: "Year", key: "year" },
-              { header: "Month", key: "month" },
-              { header: "Amount", key: "amount" },
-              { header: "Description", key: "description" },
-            ]}
-            data={filteredExpenses.map((expense) => ({
-              year: expense.year,
-              month:
-                expense.month.charAt(0).toUpperCase() + expense.month.slice(1),
-              amount: expense.amount,
-              description: expense.description,
-            }))}
-            emptyMessage="No expense data found."
-            theme={theme}
-          />
+      {/* Expenses Table */}
+      {activeTab === "expenses" && (
+        <div className="overflow-x-auto">
+          <table className="w-full border border-gray-300">
+            <thead className="bg-yellow-200">
+              <tr>
+                <th className="border px-4 py-2">Year</th>
+                <th className="border px-4 py-2">Month</th>
+                <th className="border px-4 py-2">Amount</th>
+                <th className="border px-4 py-2">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredExpenses.map((exp) => (
+                <tr key={exp.ID} className="hover:bg-yellow-50">
+                  <td className="border px-4 py-2">{exp.Year}</td>
+                  <td className="border px-4 py-2">{exp.Month}</td>
+                  <td className="border px-4 py-2 text-right">{exp.Amount}</td>
+                  <td className="border px-4 py-2">{exp.Description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
+
+      {/* Popup */}
+      <Popup
+        message={popup.message}
+        type={popup.type}
+        onClose={() => setPopup({ message: "", type: "" })}
+      />
     </div>
   );
 };
 
-// Reusable Select component
-const Select = ({ options, value, onChange, theme }) => (
-  <div>
-    <select
-      value={value}
-      onChange={onChange}
-      className="w-full rounded-md border px-4 py-2 shadow-sm
-        focus:outline-none focus:ring-2 transition"
-      style={{
-        fontFamily: theme.fonts.body,
-        borderColor: theme.colors.secondary,
-        backgroundColor: theme.colors.background,
-        color: theme.colors.neutralDark,
-        focus: { ringColor: theme.colors.secondary },
-      }}
-    >
-      {options.map((opt, i) => (
-        <option
-          key={i}
-          value={typeof opt === "string" ? opt.toLowerCase() : opt}
-        >
-          {typeof opt === "string"
-            ? opt.charAt(0).toUpperCase() + opt.slice(1)
-            : opt}
-        </option>
-      ))}
-    </select>
-  </div>
-);
-
-// Reusable SearchInput component
-const SearchInput = ({ placeholder, value, onChange, theme }) => (
-  <div>
-    <input
-      type="text"
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      className="w-full rounded-md border px-4 py-2 shadow-sm
-        focus:outline-none focus:ring-2 transition"
-      style={{
-        fontFamily: theme.fonts.body,
-        borderColor: theme.colors.secondary,
-        backgroundColor: theme.colors.background,
-        color: theme.colors.neutralDark,
-      }}
-    />
-  </div>
-);
-
-// Reusable Table component
-const Table = ({ columns, data, emptyMessage, theme }) => (
-  <div className="overflow-x-auto">
-    <table
-      className="w-full table-fixed border-collapse"
-      style={{ fontFamily: theme.fonts.body }}
-    >
-      <thead
-        className="bg-yellow-200"
-        style={{ color: theme.colors.primary, fontFamily: theme.fonts.heading }}
-      >
-        <tr>
-          {columns.map(({ header, key }) => {
-            let className =
-              "px-4 py-3 text-xs font-semibold uppercase tracking-wider text-left";
-            if (key === "roll") className += " w-[60px]";
-            else if (key === "amount") className += " w-[100px] text-right";
-            return (
-              <th
-                key={key}
-                className={className}
-                style={{ color: theme.colors.primary }}
-              >
-                {header}
-              </th>
-            );
-          })}
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-yellow-100">
-        {data.length > 0 ? (
-          data.map((row, idx) => (
-            <tr
-              key={idx}
-              className="hover:bg-yellow-50 transition-colors duration-200"
-            >
-              {columns.map(({ key }) => (
-                <td
-                  key={key}
-                  className={`px-6 w-m py-4 whitespace-nowrap text-sm text-yellow-900 ${
-                    key === "amount" ? "w-24" : ""
-                  }`}
-                >
-                  {row[key]}
-                </td>
-              ))}
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td
-              colSpan={columns.length}
-              className="px-6 py-4 text-center text-sm text-yellow-800 italic"
-            >
-              {emptyMessage}
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
+// Dashboard Summary Card
+const Card = ({ label, value }) => (
+  <div className="bg-yellow-100 p-4 rounded-lg shadow text-center">
+    <div className="text-xl font-bold text-yellow-900">{value}</div>
+    <div className="text-sm text-yellow-700">{label}</div>
   </div>
 );
 

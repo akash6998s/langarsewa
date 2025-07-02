@@ -1,95 +1,53 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Loader from "./../../components/Loader";
+import Popup from "./../../components/Popup";
 
-// ---
-// ## MessageBox Component
-// Displays a transient message (success or error) to the user.
-// Uses Tailwind CSS for styling.
-// ---
-const MessageBox = ({ message, type, onClose }) => {
-  if (!message) return null;
+const API_URL = "https://langar-backend.onrender.com";
 
-  const bgColor =
-    type === "success"
-      ? "bg-green-100 border-green-400 text-green-700"
-      : "bg-red-100 border-red-400 text-red-700";
-  const textColor = type === "success" ? "text-green-700" : "text-red-700";
-  const borderColor = type === "success" ? "border-green-400" : "border-red-400";
-
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-      <div className="fixed inset-0 bg-black opacity-30" onClick={onClose}></div>
-      <div
-        className={`relative max-w-sm w-full p-6 rounded-lg shadow-lg ${bgColor} border ${borderColor} flex flex-col items-center justify-center`}
-      >
-        <p className={`text-lg font-semibold mb-4 ${textColor} text-center`}>
-          {message}
-        </p>
-        <button
-          onClick={onClose}
-          className={`px-6 py-2 rounded-lg font-bold transition transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-opacity-75 ${
-            type === "success"
-              ? "bg-green-600 hover:bg-green-700 text-white"
-              : "bg-red-600 hover:bg-red-700 text-white"
-          }`}
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// ---
-// ## Login Component
-// Handles user authentication (Login and Signup) and fetches member data.
-// Manages UI state for forms and messages.
-// ---
 const Login = () => {
-   const navigate = useNavigate();
-  // Login form state (autofilled from localStorage)
-  const [email, setEmail] = useState(localStorage.getItem("lastEmail") || "");
+  const navigate = useNavigate();
+
+  const [loginId, setLoginId] = useState(localStorage.getItem("lastLoginId") || "");
   const [password, setPassword] = useState(localStorage.getItem("lastPassword") || "");
 
-  // Signup form state
   const [signupRollNo, setSignupRollNo] = useState("");
   const [signupName, setSignupName] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
+  const [signupLoginId, setSignupLoginId] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
-  const [members, setMembers] = useState([]); // Stores fetched member data
+  const [members, setMembers] = useState([]);
 
-  // UI state for mode switching and message display
-  const [isLoginMode, setIsLoginMode] = useState(true); // true for login, false for signup
-  const [message, setMessage] = useState(null); // Message to display in MessageBox
-  const [messageType, setMessageType] = useState("info"); // Type of message (success, error, info)
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [popup, setPopup] = useState({ message: "", type: "" });
 
-  // Effect to fetch members data on component mount
+  // ✅ Fetch Members for Signup Roll Dropdown
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const response = await fetch("https://langarsewa-db.onrender.com/members");
-        if (!response.ok) {
-          throw new Error("Failed to fetch members data.");
-        }
+        setLoading(true);
+        const response = await fetch(`${API_URL}/api/members`);
         const data = await response.json();
         setMembers(data);
       } catch (error) {
         console.error("Error fetching members:", error);
-        showMessageBox("Failed to load member data. Please try again.", "error");
+        showPopup("Failed to load member data.", "error");
+      } finally {
+        setLoading(false);
       }
     };
     fetchMembers();
   }, []);
 
-  // Effect to auto-fill signup name based on selected roll number
+  // ✅ Auto-fill Name when Roll Number is selected
   useEffect(() => {
     if (signupRollNo && members.length > 0) {
-      const selectedMember = members.find(
-        (member) => String(member.roll_no) === String(signupRollNo)
+      const selected = members.find(
+        (member) => String(member.RollNumber) === String(signupRollNo)
       );
-      if (selectedMember) {
+      if (selected) {
         setSignupName(
-          `${selectedMember.name || ""} ${selectedMember.last_name || ""}`.trim()
+          `${selected.Name || ""} ${selected.LastName || ""}`.trim()
         );
       } else {
         setSignupName("");
@@ -99,89 +57,91 @@ const Login = () => {
     }
   }, [signupRollNo, members]);
 
-  // --- Message Box Handlers ---
-  const showMessageBox = (msg, type) => {
-    setMessage(msg);
-    setMessageType(type);
+  // ✅ Popup Helper
+  const showPopup = (message, type) => {
+    setPopup({ message, type });
+    setTimeout(() => {
+      setPopup({ message: "", type: "" });
+    }, 3000);
   };
 
-  const closeMessageBox = () => {
-    setMessage(null);
-    setMessageType("info");
-  };
-
-  // --- Form Submission Handlers ---
+  // ✅ Login Handler
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const response = await fetch("https://langarsewa-db.onrender.com/signup/login", {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/user/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ loginId, password }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (response.ok) {
-        localStorage.setItem("rollNumber", data.rollNumber);
-        localStorage.setItem("isAdmin", data.isAdmin);
-        localStorage.setItem("isSuperAdmin", data.isSuperAdmin);
-        // Store credentials for autofill on next visit
-        localStorage.setItem("lastEmail", email);
-        localStorage.setItem("lastPassword", password);
-        localStorage.setItem("isLoggedIn", "true");
-        showMessageBox("Login successful!", "success");
-        navigate('/home')
+      if (res.ok) {
+        localStorage.setItem("rollNumber", data.user.rollNumber);
+        localStorage.setItem("Name", data.user.Name);
+        localStorage.setItem("LastName", data.user.LastName);
+        localStorage.setItem("isAdmin", String(data.user.isAdmin));
+        localStorage.setItem("isSuperAdmin", String(data.user.isSuperAdmin));
+
+        showPopup("Login successful!", "success");
+        setTimeout(() => {
+          navigate("/home");
+        }, 1000);
       } else {
-        showMessageBox(data.message || "Invalid email or password. Please try again.", "error");
+        showPopup(data.message || "Invalid credentials.", "error");
       }
-    } catch (error) {
-      console.error("Login Error:", error);
-      showMessageBox("Login failed due to a network error. Please try again later.", "error");
+    } catch (err) {
+      console.error("Login error:", err);
+      showPopup("Login failed due to server error.", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // ✅ Signup Handler
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
 
-    if (!signupRollNo || !signupName || !signupEmail || !signupPassword) {
-      showMessageBox("Please fill in all signup fields.", "error");
+    if (!signupRollNo || !signupLoginId || !signupPassword) {
+      showPopup("Please fill all fields.", "error");
       return;
     }
 
     try {
-      const response = await fetch("https://langarsewa-db.onrender.com/signup", {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/user/signup`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           rollNumber: signupRollNo,
-          email: signupEmail,
+          loginId: signupLoginId,
           password: signupPassword,
         }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (response.ok) {
-        showMessageBox("Account created successfully! Please wait for admin approval and then log in.", "success");
+      if (res.ok) {
+        showPopup("Account created successfully!", "success");
         setIsLoginMode(true);
         setSignupRollNo("");
         setSignupName("");
-        setSignupEmail("");
+        setSignupLoginId("");
         setSignupPassword("");
       } else {
-        showMessageBox(data.message || "Signup failed. Please try again.", "error");
+        showPopup(data.message || "Signup failed.", "error");
       }
-    } catch (error) {
-      console.error("Signup Error:", error);
-      showMessageBox("Signup failed due to a network error. Please try again later.", "error");
+    } catch (err) {
+      console.error("Signup error:", err);
+      showPopup("Signup failed due to server error.", "error");
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) return <Loader />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-yellow-100 via-yellow-50 to-yellow-100 px-4 font-inter">
@@ -191,21 +151,22 @@ const Login = () => {
         </h2>
 
         {isLoginMode ? (
+          // ✅ Login Form
           <form onSubmit={handleLoginSubmit} className="space-y-6">
             <input
-              type="email"
+              type="text"
+              placeholder="Login ID"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
               className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
-              placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
             />
             <input
               type="password"
-              className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
               required
             />
             <button
@@ -218,7 +179,7 @@ const Login = () => {
               Don't have an account?{" "}
               <button
                 type="button"
-                className="text-yellow-600 hover:text-yellow-800 font-bold underline focus:outline-none"
+                className="text-yellow-600 hover:text-yellow-800 font-bold underline"
                 onClick={() => setIsLoginMode(false)}
               >
                 Sign Up
@@ -226,56 +187,60 @@ const Login = () => {
             </p>
           </form>
         ) : (
+          // ✅ Signup Form
           <form onSubmit={handleSignupSubmit} className="space-y-6">
             <select
-              className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition appearance-none"
               value={signupRollNo}
               onChange={(e) => setSignupRollNo(e.target.value)}
+              className="w-full p-4 rounded-lg border border-yellow-300 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
               required
             >
               <option value="">Select Roll Number</option>
-              {members.map((member) => (
-                <option key={member.roll_no} value={member.roll_no}>
-                  {member.roll_no}
+              {members.map((m) => (
+                <option key={m.RollNumber} value={m.RollNumber}>
+                  {m.RollNumber}
                 </option>
               ))}
             </select>
+
             <input
               type="text"
-              className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
               placeholder="Full Name"
               value={signupName}
-              onChange={(e) => setSignupName(e.target.value)}
               readOnly
-              required
+              className="w-full p-4 rounded-lg border border-yellow-300 bg-gray-100 cursor-not-allowed"
             />
+
             <input
-              type="email"
+              type="text"
+              placeholder="Login ID"
+              value={signupLoginId}
+              onChange={(e) => setSignupLoginId(e.target.value)}
               className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
-              placeholder="Email Address"
-              value={signupEmail}
-              onChange={(e) => setSignupEmail(e.target.value)}
               required
             />
+
             <input
               type="password"
-              className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
               placeholder="Password"
               value={signupPassword}
               onChange={(e) => setSignupPassword(e.target.value)}
+              className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
               required
             />
+
             <button
               type="submit"
               className="w-full py-4 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-xl shadow-lg transition transform hover:scale-105"
             >
               Sign Up
             </button>
+
             <p className="text-center text-gray-600 text-sm">
               Already have an account?{" "}
               <button
                 type="button"
-                className="text-yellow-600 hover:text-yellow-800 font-bold underline focus:outline-none"
+                className="text-yellow-600 hover:text-yellow-800 font-bold underline"
                 onClick={() => setIsLoginMode(true)}
               >
                 Login
@@ -284,7 +249,12 @@ const Login = () => {
           </form>
         )}
       </div>
-      <MessageBox message={message} type={messageType} onClose={closeMessageBox} />
+
+      <Popup
+        message={popup.message}
+        type={popup.type}
+        onClose={() => setPopup({ message: "", type: "" })}
+      />
     </div>
   );
 };

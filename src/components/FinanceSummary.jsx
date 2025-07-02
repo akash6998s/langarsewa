@@ -11,7 +11,7 @@ const FinanceSummary = () => {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const response = await fetch("https://langarsewa-db.onrender.com/summary/financial");
+        const response = await fetch("https://langar-backend.onrender.com/api/summary");
         if (!response.ok) {
           throw new Error("Failed to fetch financial summary");
         }

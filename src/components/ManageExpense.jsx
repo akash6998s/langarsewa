@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import Loader from "./Loader";
+import Popup from "./Popup";
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -15,108 +17,114 @@ function ManageExpense() {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [expenses, setExpenses] = useState([]);
-  // New state for message popup
-  const [message, setMessage] = useState(null); // { type: 'success' | 'error', text: '...' }
+  const [loading, setLoading] = useState(false);
+  const [popup, setPopup] = useState({ message: "", type: "" });
 
-  // Fetch expenses from backend when the tab is "delete" or when year/month changes
+  const backendUrl = "https://langar-backend.onrender.com/api/expenses";
+
+  // Fetch expenses when tab changes to delete
   useEffect(() => {
     if (tab === "delete") {
       fetchExpenses();
     }
-  }, [tab, year, month]);
+  }, [tab]);
 
   const fetchExpenses = async () => {
     try {
-      const response = await fetch("https://langarsewa-db.onrender.com/expenses");
+      setLoading(true);
+      const response = await fetch(backendUrl);
       if (!response.ok) throw new Error("Failed to fetch expenses");
       const data = await response.json();
       setExpenses(data);
     } catch (error) {
-      console.error("Error fetching expenses:", error);
-      setMessage({ type: "error", text: "Error fetching expenses." });
+      showPopup("Error fetching expenses.", error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const showPopup = (message, type) => {
+    setPopup({ message, type });
+    setTimeout(() => {
+      setPopup({ message: "", type: "" });
+    }, 3000);
   };
 
   const handleAddExpense = async (e) => {
     e.preventDefault();
     if (!description.trim()) {
-      setMessage({ type: "error", text: "Please enter a description." });
+      showPopup("Please enter a description.", "error");
       return;
     }
     if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      setMessage({ type: "error", text: "Please enter a valid amount." });
+      showPopup("Please enter a valid amount.", "error");
       return;
     }
 
     const payload = {
-      year,
-      month: months.indexOf(month) + 1,
-      amount: Number(amount),
-      description,
+      Year: String(year),
+      Month: month,
+      Amount: amount,
+      Description: description,
     };
 
     try {
-      const response = await fetch("https://langarsewa-db.onrender.com/expenses/add", {
+      setLoading(true);
+      const response = await fetch(`${backendUrl}/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        const err = await response.json();
-        setMessage({ type: "error", text: "Failed to add expense: " + err.message });
-        return;
-      }
+      if (!response.ok) throw new Error("Failed to add expense.");
 
-      const data = await response.json();
-      setMessage({ type: "success", text: "Expense added successfully!" });
-      setExpenses((prev) => [...prev, data.expense]);
-
+      showPopup("Expense added successfully!", "success");
       setDescription("");
       setAmount("");
+      if (tab === "delete") fetchExpenses();
     } catch (error) {
-      console.error("Error adding expense:", error);
-      setMessage({ type: "error", text: "Error adding expense, please try again." });
+      showPopup(error.message, "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Delete expense by id from backend
   const handleDeleteById = async (id) => {
     if (!window.confirm("Are you sure you want to delete this expense?")) return;
+
     try {
-      const response = await fetch(`https://langarsewa-db.onrender.com/expenses/${id}`, {
-        method: "DELETE",
+      setLoading(true);
+      const response = await fetch(`${backendUrl}/delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
       });
-      if (!response.ok) {
-        const err = await response.json();
-        setMessage({ type: "error", text: "Failed to delete expense: " + err.message });
-        return;
-      }
-      setMessage({ type: "success", text: "Expense deleted successfully!" });
-      setExpenses((prev) => prev.filter((exp) => exp.id !== id));
+
+      if (!response.ok) throw new Error("Failed to delete expense.");
+
+      showPopup("Expense deleted successfully!", "success");
+      setExpenses((prev) => prev.filter((exp) => exp.ID !== id));
     } catch (error) {
-      console.error("Error deleting expense:", error);
-      setMessage({ type: "error", text: "Error deleting expense, please try again." });
+      showPopup(error.message, "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Function to close the message popup
-  const closeMessagePopup = () => {
-    setMessage(null);
-  };
-
-  // Filter expenses for showing in Delete tab based on year and month
   const filteredExpenses = expenses.filter(
-    (exp) => exp.year === year && exp.month === months.indexOf(month) + 1
+    (exp) => exp.Year === String(year) && exp.Month.toLowerCase() === month.toLowerCase()
   );
 
+  if (loading) return <Loader />;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fefcea] via-[#f8e1c1] to-[#fbd6c1] text-[#4e342e] font-serif">
+    <div className=" bg-gradient-to-br from-[#fefcea] via-[#f8e1c1] to-[#fbd6c1] text-[#4e342e] font-serif">
       <div className="max-w-5xl mx-auto px-4 py-10">
         <h1 className="text-5xl font-bold text-center mb-10 text-[#7b341e] tracking-wide drop-shadow-md">
           खर्च प्रबंधन
         </h1>
 
+        {/* Tabs */}
         <div className="flex justify-center mb-8">
           <button
             onClick={() => setTab("add")}
@@ -140,6 +148,7 @@ function ManageExpense() {
           </button>
         </div>
 
+        {/* Add Expense Form */}
         {tab === "add" && (
           <form
             onSubmit={handleAddExpense}
@@ -149,7 +158,7 @@ function ManageExpense() {
               <select
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="border p-3 rounded-lg bg-[#fffdf7]"
               >
                 {years.map((y) => (
                   <option key={y} value={y}>
@@ -161,7 +170,7 @@ function ManageExpense() {
               <select
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
-                className="border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="border p-3 rounded-lg bg-[#fffdf7]"
               >
                 {months.map((m) => (
                   <option key={m} value={m}>
@@ -177,7 +186,7 @@ function ManageExpense() {
                 placeholder="Enter Amount"
                 min="0"
                 step="0.01"
-                className="border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="border p-3 rounded-lg bg-[#fffdf7]"
                 required
               />
             </div>
@@ -187,7 +196,7 @@ function ManageExpense() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Description"
-              className="w-full border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full border p-3 rounded-lg bg-[#fffdf7]"
               required
             />
 
@@ -202,6 +211,7 @@ function ManageExpense() {
           </form>
         )}
 
+        {/* Delete Expense Section */}
         {tab === "delete" && (
           <div>
             <div className="bg-white/80 p-8 rounded-3xl shadow-2xl border border-yellow-100 space-y-6 backdrop-blur-md mb-6">
@@ -209,7 +219,7 @@ function ManageExpense() {
                 <select
                   value={year}
                   onChange={(e) => setYear(Number(e.target.value))}
-                  className="border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="border p-3 rounded-lg bg-[#fffdf7]"
                 >
                   {years.map((y) => (
                     <option key={y} value={y}>
@@ -221,7 +231,7 @@ function ManageExpense() {
                 <select
                   value={month}
                   onChange={(e) => setMonth(e.target.value)}
-                  className="border p-3 rounded-lg bg-[#fffdf7] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="border p-3 rounded-lg bg-[#fffdf7]"
                 >
                   {months.map((m) => (
                     <option key={m} value={m}>
@@ -234,17 +244,17 @@ function ManageExpense() {
 
             {filteredExpenses.length > 0 ? (
               <ul className="max-w-4xl mx-auto space-y-3 overflow-y-auto">
-                {filteredExpenses.map(({ id, description, amount }) => (
+                {filteredExpenses.map(({ ID, Description, Amount }) => (
                   <li
-                    key={id}
-                    className="flex items-start bg-yellow-50 rounded-lg p-3 shadow-sm border border-yellow-100" // Removed justify-between
+                    key={ID}
+                    className="flex items-start bg-yellow-50 rounded-lg p-3 shadow-sm border border-yellow-100"
                   >
-                    <div className="flex-grow mr-4"> {/* Added flex-grow and mr-4 */}
-                      <p className="font-semibold text-[#4e342e]">{description}</p>
-                      <p className="font-bold">₹ {amount}</p>
+                    <div className="flex-grow mr-4">
+                      <p className="font-semibold text-[#4e342e]">{Description}</p>
+                      <p className="font-bold">₹ {Amount}</p>
                     </div>
                     <button
-                      onClick={() => handleDeleteById(id)}
+                      onClick={() => handleDeleteById(ID)}
                       className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
                     >
                       Delete
@@ -260,30 +270,12 @@ function ManageExpense() {
           </div>
         )}
 
-        {/* Message Popup */}
-        {message && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-60">
-            <div
-              className={`max-w-sm w-full p-6 rounded-xl shadow-lg text-center ${
-                message.type === "success"
-                  ? "bg-green-100 text-green-900 border border-green-400"
-                  : "bg-red-100 text-red-900 border border-red-400"
-              }`}
-            >
-              <p className="text-lg font-semibold mb-4">{message.text}</p>
-              <button
-                onClick={closeMessagePopup}
-                className={`px-6 py-2 rounded-lg font-semibold transition ${
-                  message.type === "success"
-                    ? "bg-green-500 text-white hover:bg-green-600"
-                    : "bg-red-500 text-white hover:bg-red-600"
-                }`}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Popup */}
+        <Popup
+          message={popup.message}
+          type={popup.type}
+          onClose={() => setPopup({ message: "", type: "" })}
+        />
       </div>
     </div>
   );
