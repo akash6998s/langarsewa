@@ -36,7 +36,7 @@ const AllMember = () => {
     return (
       <div
         className="flex items-center justify-center min-h-screen"
-        style={{ backgroundColor: theme.colors.background }}
+        style={{ backgroundColor: theme.colors.neutralLight }}
       >
         <Loader />
       </div>
@@ -46,11 +46,11 @@ const AllMember = () => {
     return (
       <div
         className="flex items-center justify-center min-h-screen px-4"
-        style={{ backgroundColor: theme.colors.background }}
+        style={{ backgroundColor: theme.colors.neutralLight }}
       >
         <p
           className="text-center max-w-md text-lg font-semibold"
-          style={{ color: theme.colors.accent, fontFamily: theme.fonts.body }}
+          style={{ color: theme.colors.danger, fontFamily: theme.fonts.body }}
         >
           {error}
         </p>
@@ -61,7 +61,6 @@ const AllMember = () => {
     <div
       className="min-h-screen mt-8 pb-24 px-2"
       style={{
-        backgroundColor: theme.colors.background,
         fontFamily: theme.fonts.body,
       }}
     >
@@ -79,14 +78,17 @@ const AllMember = () => {
             className="rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border flex flex-col items-center"
             style={{
               backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.secondary + "33",
+              borderColor: theme.colors.secondaryLight,
             }}
           >
             {/* Image */}
             <div className="mt-6 mb-4">
               <div
-                className="w-32 h-32 rounded-full bg-white border shadow flex items-center justify-center overflow-hidden"
-                style={{ borderColor: theme.colors.secondary }}
+                className="w-32 h-32 rounded-full border shadow flex items-center justify-center overflow-hidden"
+                style={{
+                  backgroundColor: theme.colors.neutralLight,
+                  borderColor: theme.colors.secondary,
+                }}
               >
                 <img
                   src={`https://langar-backend.onrender.com/uploads/${member.Photo}`}
@@ -113,9 +115,7 @@ const AllMember = () => {
                     className="h-5 w-5"
                     style={{ color: theme.colors.primary }}
                   />
-                  <span className="truncate">
-                    Roll No: {member.RollNumber}
-                  </span>
+                  <span className="truncate">Roll No: {member.RollNumber}</span>
                 </p>
                 <p className="flex items-center gap-2">
                   <PhoneIcon
@@ -127,7 +127,7 @@ const AllMember = () => {
                 <p className="flex items-center gap-2">
                   <MapPinIcon
                     className="h-5 w-5"
-                    style={{ color: theme.colors.accent }}
+                    style={{ color: theme.colors.tertiary }}
                   />
                   <span className="truncate">{member.Address}</span>
                 </p>

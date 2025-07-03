@@ -75,24 +75,33 @@ function UserStatus() {
     <div
       className="min-h-screen"
       style={{
-        backgroundColor: theme.colors.background,
+        backgroundColor: theme.colors.neutralLight,
         fontFamily: theme.fonts.body,
         color: theme.colors.neutralDark,
       }}
     >
       <div className="mx-auto px-4 pt-4 max-w-4xl pb-20">
-        <h1
-          className="text-4xl font-extrabold text-center mb-10 drop-shadow-md"
-          style={{
-            color: theme.colors.primary,
-            fontFamily: theme.fonts.heading,
-          }}
-        >
-          Dashboard
-        </h1>
+        <div className="flex justify-center">
+          <h1
+            className="text-3xl md:text-5xl font-extrabold text-center mb-12 tracking-wider uppercase drop-shadow-lg relative inline-block"
+            style={{ color: theme.colors.primary }}
+          >
+            Manage Users
+            <span
+              className="absolute left-1/2 -bottom-2 w-1/2 h-1 rounded-full"
+              style={{
+                transform: "translateX(-50%)",
+                background: `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`,
+              }}
+            />
+          </h1>
+        </div>
 
         {users.length === 0 ? (
-          <p className="text-center text-xl font-medium">
+          <p
+            className="text-center text-xl font-medium"
+            style={{ color: theme.colors.primary }}
+          >
             No pending user requests.
           </p>
         ) : (
@@ -102,21 +111,49 @@ function UserStatus() {
                 key={idx}
                 className="rounded-3xl shadow-xl border p-6 flex flex-col justify-between"
                 style={{
-                  backgroundColor: theme.colors.surface,
+                  backgroundColor: theme.colors.secondaryLight,
                   borderColor: theme.colors.primaryLight,
                 }}
               >
                 {/* User Info */}
                 <div className="space-y-3 mb-6">
                   <div>
-                    <p className="text-sm text-gray-500">Roll Number</p>
-                    <p className="font-semibold text-lg">
+                    <p
+                      style={{
+                        color: theme.colors.tertiary,
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      Roll Number
+                    </p>
+                    <p
+                      style={{
+                        fontWeight: "600",
+                        fontSize: "1.125rem",
+                        color: theme.colors.primary,
+                      }}
+                    >
                       {user.RollNumber}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Login ID</p>
-                    <p className="font-semibold text-lg">{user.loginId}</p>
+                    <p
+                      style={{
+                        color: theme.colors.tertiary,
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      Login ID
+                    </p>
+                    <p
+                      style={{
+                        fontWeight: "600",
+                        fontSize: "1.125rem",
+                        color: theme.colors.primary,
+                      }}
+                    >
+                      {user.loginId}
+                    </p>
                   </div>
                 </div>
 
@@ -126,8 +163,8 @@ function UserStatus() {
                     onClick={() => handleAction(user.RollNumber, "approve")}
                     className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold shadow-md hover:brightness-110 active:scale-95"
                     style={{
-                      backgroundColor: theme.colors.secondary,
-                      color: theme.colors.background,
+                      backgroundColor: theme.colors.success,
+                      color: theme.colors.neutralLight,
                     }}
                   >
                     <Check size={18} /> Approve
@@ -136,8 +173,8 @@ function UserStatus() {
                     onClick={() => handleAction(user.RollNumber, "delete")}
                     className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold shadow-md hover:brightness-110 active:scale-95"
                     style={{
-                      backgroundColor: theme.colors.accent,
-                      color: theme.colors.background,
+                      backgroundColor: theme.colors.danger,
+                      color: theme.colors.neutralLight,
                     }}
                   >
                     <X size={18} /> Delete

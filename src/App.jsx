@@ -38,10 +38,13 @@ function App() {
 
   return (
     <div
-      className="flex flex-col h-screen"
+      className="flex flex-col min-h-full"
       style={{
         backgroundColor: theme.colors.background,
         fontFamily: theme.fonts.body,
+        scrollBehavior: "smooth",
+        WebkitOverflowScrolling: "touch",
+        height: "100vh", // keep full viewport height for flex
       }}
     >
       {shouldShowNavbar && <Navbar />}

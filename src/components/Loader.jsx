@@ -1,33 +1,40 @@
 import React from "react";
 import { theme } from "../theme";
 
+const { colors, fonts } = theme;
+
 const Loader = () => {
   return (
     <div
-      className="fixed inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50"
-      style={{ backgroundColor: theme.colors.background + "CC" }} // Slightly transparent background
+      className="fixed inset-0 flex flex-col justify-center items-center z-50"
+      style={{
+        backdropFilter: "blur(6px)",
+        backgroundColor: `${colors.neutralLight}CC`, // semi-transparent light background
+      }}
     >
       <div className="flex flex-col items-center space-y-6">
         {/* Spinner */}
         <div
-          className="w-16 h-16 rounded-full border-8 border-solid border-t-transparent animate-spin"
+          className="w-16 h-16 rounded-full border-8 border-solid animate-spin"
           style={{
-            borderColor: `${theme.colors.primary}33`,
-            borderTopColor: theme.colors.primary,
+            borderColor: `${colors.primaryLight}66`,
+            borderTopColor: colors.primary,
+            borderBottomColor: `${colors.primaryLight}33`,
+            borderLeftColor: `${colors.primaryLight}33`,
+            borderRightColor: `${colors.primaryLight}33`,
           }}
         ></div>
 
         {/* Loading Text */}
         <div
-          className="font-semibold text-2xl"
+          className="text-2xl font-semibold"
           style={{
-            color: theme.colors.primary,
-            fontFamily: theme.fonts.heading,
+            color: colors.primary,
+            fontFamily: fonts.heading,
           }}
         >
           Loading...
         </div>
-
       </div>
     </div>
   );

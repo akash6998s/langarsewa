@@ -21,19 +21,6 @@ function Navbar() {
 
   const { colors, fonts } = theme;
 
-  const baseNavStyle = {
-    fontFamily: fonts.body,
-    color: colors.neutralDark,
-    fontWeight: 500,
-    transition: "all 0.2s ease",
-    cursor: "pointer",
-  };
-
-  const activeNavStyle = {
-    color: colors.primary,
-    fontWeight: 700,
-  };
-
   return (
     <>
       {/* Top Right Profile on mobile (hide in superadmin) */}
@@ -50,15 +37,14 @@ function Navbar() {
 
       {/* Bottom Navbar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 shadow-lg z-[100] md:static md:shadow-none md:px-6 md:py-3 md:flex md:items-center md:justify-end"
+        className="fixed bottom-0 z-50 left-0 right-0 shadow-lg md:static md:shadow-none md:px-6 md:py-3 md:flex md:items-center md:justify-end"
         style={{
-          backgroundColor: colors.background,
+          backgroundColor: colors.neutralLight,
           fontFamily: fonts.body,
           borderTop: `1px solid ${colors.primaryLight}`,
         }}
       >
         <ul className="flex justify-around md:justify-end md:gap-10 p-2 md:p-0">
-          {/* Normal Nav Items */}
           {[
             { to: "/home", icon: <Home size={20} />, label: "Home" },
             { to: "/activity", icon: <Activity size={20} />, label: "Activity" },
@@ -69,10 +55,14 @@ function Navbar() {
               <NavLink to={to}>
                 {({ isActive }) => (
                   <div
-                    className="flex flex-col items-center gap-1 px-2 py-1 rounded-xl hover:bg-gray-100 md:hover:bg-transparent"
+                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all"
                     style={{
-                      ...baseNavStyle,
-                      ...(isActive ? activeNavStyle : {}),
+                      backgroundColor: isActive
+                        ? colors.secondaryLight
+                        : "transparent",
+                      color: isActive ? colors.primary : colors.neutralDark,
+                      fontWeight: isActive ? "700" : "500",
+                      fontFamily: fonts.body,
                     }}
                   >
                     {icon}
@@ -89,10 +79,14 @@ function Navbar() {
               <NavLink to="/superadmin">
                 {({ isActive }) => (
                   <div
-                    className="flex flex-col items-center gap-1 px-2 py-1 rounded-xl hover:bg-gray-100 md:hover:bg-transparent"
+                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all"
                     style={{
-                      ...baseNavStyle,
-                      ...(isActive ? activeNavStyle : {}),
+                      backgroundColor: isActive
+                        ? colors.secondaryLight
+                        : "transparent",
+                      color: isActive ? colors.primary : colors.neutralDark,
+                      fontWeight: isActive ? "700" : "500",
+                      fontFamily: fonts.body,
                     }}
                   >
                     <ShieldCheck size={20} />

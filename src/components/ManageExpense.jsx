@@ -4,8 +4,18 @@ import Popup from "./Popup";
 import { theme } from "../theme";
 
 const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function ManageExpense() {
@@ -118,29 +128,35 @@ function ManageExpense() {
   return (
     <div className="font-serif" style={{ color: theme.colors.neutralDark }}>
       <div className="mx-auto px-4 pt-4 max-w-4xl pb-20">
-        <h1
-          className="text-2xl font-extrabold text-center mb-10 tracking-wide drop-shadow-md"
-          style={{ color: theme.colors.primary }}
-        >
-          Manage Expense
-        </h1>
+        <div className="flex justify-center">
+  <h1
+    className="text-3xl md:text-5xl font-extrabold text-center mb-12 tracking-wider uppercase drop-shadow-lg relative inline-block"
+    style={{ color: theme.colors.primary }}
+  >
+    Manage Expense
+    <span
+      className="absolute left-1/2 -bottom-2 w-1/2 h-1 rounded-full"
+      style={{
+        transform: "translateX(-50%)",
+        background: `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`,
+      }}
+    />
+  </h1>
+</div>
+
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">
           <button
             onClick={() => setTab("add")}
-            className={`px-8 py-3 rounded-l-full border text-lg shadow-md ${
-              tab === "add"
-                ? "text-white font-semibold scale-105"
-                : "hover:bg-amber-100"
-            }`}
+            className="px-8 py-3 rounded-l-full border text-lg shadow-md"
             style={{
-              borderColor: theme.colors.primaryLight,
               background:
                 tab === "add"
-                  ? `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`
+                  ? `linear-gradient(to right, ${theme.colors.success}, ${theme.colors.success})`
                   : theme.colors.surface,
-              color: tab === "add" ? theme.colors.surface : theme.colors.primary,
+              color: tab === "add" ? "#ffffff" : theme.colors.primary,
+              borderColor: theme.colors.primaryLight,
             }}
           >
             Add Expense
@@ -148,18 +164,14 @@ function ManageExpense() {
 
           <button
             onClick={() => setTab("delete")}
-            className={`px-8 py-3 rounded-r-full border text-lg shadow-md ${
-              tab === "delete"
-                ? "text-white font-semibold scale-105"
-                : "hover:bg-rose-100"
-            }`}
+            className="px-8 py-3 rounded-r-full border text-lg shadow-md"
             style={{
-              borderColor: theme.colors.primaryLight,
               background:
                 tab === "delete"
-                  ? `linear-gradient(to right, ${theme.colors.accent}, #f43f5e)`
+                  ? `linear-gradient(to right, ${theme.colors.danger}, ${theme.colors.danger})`
                   : theme.colors.surface,
-              color: tab === "delete" ? theme.colors.surface : theme.colors.primary,
+              color: tab === "delete" ? "#ffffff" : theme.colors.primary,
+              borderColor: theme.colors.primaryLight,
             }}
           >
             Delete Expense
@@ -229,9 +241,9 @@ function ManageExpense() {
             <div className="text-center">
               <button
                 type="submit"
-                className="w-full py-4 rounded-2xl text-white text-xl font-semibold transition shadow-lg"
+                className="w-full py-4 rounded-2xl text-white text-xl font-semibold shadow-lg"
                 style={{
-                  backgroundColor: theme.colors.secondary,
+                  backgroundColor: theme.colors.success,
                 }}
               >
                 Add Expense
@@ -280,39 +292,42 @@ function ManageExpense() {
             </div>
 
             {filteredExpenses.length > 0 ? (
-              <ul className="max-w-4xl mx-auto pb-8 space-y-4 overflow-y-auto font-sans">
+              <ul className="max-w-4xl mx-auto pb-8 space-y-4 font-sans">
                 {filteredExpenses.map(({ ID, Description, Amount }) => (
                   <li
                     key={ID}
-                    className="rounded-xl p-5 shadow-lg border transform hover:scale-[1.01] transition-all duration-200 ease-out flex flex-col"
+                    className="rounded-xl p-5 shadow-lg border flex flex-col"
                     style={{
-                      backgroundColor: theme.colors.surface,
+                      backgroundColor: theme.colors.primary,
                       borderColor: theme.colors.neutralLight,
                     }}
                   >
-                    <div className="flex items-center justify-between w-full mb-3">
+                    <div className="flex items-center justify-between mb-3">
                       <p
                         className="font-bold text-xl"
-                        style={{ color: theme.colors.secondary }}
+                        style={{ color: theme.colors.neutralLight }}
                       >
                         ₹ {Amount}
                       </p>
                       <button
                         onClick={() => handleDeleteById(ID)}
-                        className="px-4 py-2 text-white rounded-lg font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none"
+                        className="px-4 py-2 text-white rounded-xl font-semibold text-sm"
                         style={{
-                          backgroundColor: theme.colors.accent,
+                          backgroundColor: theme.colors.danger,
                         }}
                       >
                         Delete
                       </button>
                     </div>
 
-                    <div className="w-full">
-                      <p className="font-medium text-lg leading-snug">
-                        {Description}
-                      </p>
-                    </div>
+                    <p
+                      style={{
+                        color: theme.colors.neutralLight,
+                      }}
+                      className="font-medium text-lg"
+                    >
+                      {Description}
+                    </p>
                   </li>
                 ))}
               </ul>

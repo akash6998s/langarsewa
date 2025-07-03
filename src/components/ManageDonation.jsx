@@ -4,8 +4,18 @@ import Popup from "./Popup";
 import { theme } from "../theme";
 
 const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function ManageDonation() {
@@ -14,7 +24,9 @@ function ManageDonation() {
 
   const [tab, setTab] = useState("add");
   const [year, setYear] = useState(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState(months[new Date().getMonth()]);
+  const [selectedMonth, setSelectedMonth] = useState(
+    months[new Date().getMonth()]
+  );
   const [selectedRolls, setSelectedRolls] = useState([]);
   const [amount, setAmount] = useState("");
 
@@ -45,9 +57,7 @@ function ManageDonation() {
 
   const showPopup = (message, type) => {
     setPopup({ message, type });
-    setTimeout(() => {
-      setPopup({ message: "", type: "" });
-    }, 3000);
+    setTimeout(() => setPopup({ message: "", type: "" }), 3000);
   };
 
   const toggleRoll = (roll) => {
@@ -82,7 +92,7 @@ function ManageDonation() {
           RollNumber: roll,
           Year: String(year),
           Month: selectedMonth,
-          Amount: amount
+          Amount: amount,
         };
 
         const apiUrl =
@@ -93,7 +103,7 @@ function ManageDonation() {
         const response = await fetch(apiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -122,31 +132,41 @@ function ManageDonation() {
   if (loading) return <Loader />;
 
   return (
-    <div className="font-serif" style={{ color: theme.colors.neutralDark }}>
-      <div className="mx-auto px-4 pt-4 max-w-4xl pb-20">
-        <h1
-          className="text-2xl font-extrabold text-center mb-10 tracking-wide drop-shadow-md"
-          style={{ color: theme.colors.primary }}
-        >
-          Manage Donation
-        </h1>
+    <div
+      className="font-serif pb-20"
+      style={{ color: theme.colors.neutralDark }}
+    >
+      <div className="mx-auto px-4 pt-4 max-w-4xl">
+        <div className="flex justify-center">
+          <h1
+            className="text-3xl md:text-5xl font-extrabold text-center mb-12 tracking-wider uppercase drop-shadow-lg relative inline-block"
+            style={{ color: theme.colors.primary }}
+          >
+            Manage Donation
+            <span
+              className="absolute left-1/2 -bottom-2 w-1/2 h-1 rounded-full"
+              style={{
+                transform: "translateX(-50%)",
+                background: `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`,
+              }}
+            />
+          </h1>
+        </div>
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">
           <button
             onClick={() => handleTabChange("add")}
             className={`px-8 py-3 rounded-l-full border text-lg shadow-md ${
-              tab === "add"
-                ? "text-white font-semibold scale-105"
-                : "hover:bg-amber-100"
+              tab === "add" ? "font-semibold" : ""
             }`}
             style={{
-              borderColor: theme.colors.primaryLight,
               background:
                 tab === "add"
-                  ? `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`
+                  ? `linear-gradient(to right, ${theme.colors.success}, ${theme.colors.success})`
                   : theme.colors.surface,
-              color: tab === "add" ? theme.colors.surface : theme.colors.primary,
+              color: tab === "add" ? "#ffffff" : theme.colors.primary,
+              borderColor: theme.colors.primaryLight,
             }}
           >
             Add Donation
@@ -154,17 +174,15 @@ function ManageDonation() {
           <button
             onClick={() => handleTabChange("delete")}
             className={`px-8 py-3 rounded-r-full border text-lg shadow-md ${
-              tab === "delete"
-                ? "text-white font-semibold scale-105"
-                : "hover:bg-rose-100"
+              tab === "delete" ? "font-semibold" : ""
             }`}
             style={{
-              borderColor: theme.colors.primaryLight,
               background:
                 tab === "delete"
-                  ? `linear-gradient(to right, ${theme.colors.accent}, #f43f5e)`
+                  ? `linear-gradient(to right, ${theme.colors.danger}, ${theme.colors.danger})`
                   : theme.colors.surface,
-              color: tab === "delete" ? theme.colors.surface : theme.colors.primary,
+              color: tab === "delete" ? "#ffffff" : theme.colors.primary,
+              borderColor: theme.colors.primaryLight,
             }}
           >
             Delete Donation
@@ -223,39 +241,22 @@ function ManageDonation() {
             <button
               type="button"
               onClick={() => setShowPopupRoll(true)}
-              className="text-white px-8 py-3 rounded-xl hover:scale-105 transition shadow-md"
+              className="text-white px-8 py-3 rounded-xl shadow-md"
               style={{
                 background: `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`,
               }}
             >
-              Select Roll Number
+              Select Roll Number(s)
             </button>
-
-            {selectedRolls.length > 0 && (
-              <div className="mt-5 flex flex-wrap justify-center gap-2">
-                {selectedRolls.map((roll) => (
-                  <span
-                    key={roll}
-                    className="px-4 py-1 rounded-full text-sm shadow"
-                    style={{
-                      backgroundColor: theme.colors.primaryLight,
-                      color: theme.colors.neutralDark,
-                    }}
-                  >
-                    {roll}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           <div className="text-center">
             <button
               type="submit"
-              className="w-full py-4 rounded-2xl text-white text-xl font-semibold transition-all duration-300 shadow-lg"
+              className="w-full py-4 rounded-2xl text-white text-xl font-semibold shadow-lg"
               style={{
                 backgroundColor:
-                  tab === "add" ? theme.colors.secondary : theme.colors.accent,
+                  tab === "add" ? theme.colors.success : theme.colors.danger,
               }}
             >
               {tab === "add" ? "Submit Donation" : "Delete Donation"}
@@ -266,26 +267,41 @@ function ManageDonation() {
 
       {/* Roll Number Popup */}
       {showPopupRoll && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{
+            backgroundColor: theme.colors.primaryLight,
+            opacity: 0.98,
+          }}
+        >
           <div
-            className="relative w-[95%] max-w-lg overflow-y-auto rounded-3xl border px-4 pb-12 shadow-2xl max-h-[90vh]"
+            className="w-[95%] max-w-lg overflow-y-auto rounded-3xl border px-4 pb-12 shadow-2xl max-h-[90vh]"
             style={{
-              backgroundColor: theme.colors.background,
-              borderColor: theme.colors.primaryLight,
+              backgroundColor: theme.colors.neutralLight,
+              borderColor: theme.colors.primary,
+              color: theme.colors.neutralDark,
             }}
           >
-            <button
-              onClick={() => setShowPopupRoll(false)}
-              className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-white shadow-md hover:scale-110 transition"
-              style={{
-                backgroundColor: theme.colors.accent,
-              }}
-              aria-label="Close"
-            >
-              &times;
-            </button>
+            <div className="flex justify-between items-center px-1 pt-6 pb-4">
+              <h2
+                className="text-center font-bold text-xl pt-6 pb-4"
+                style={{ color: theme.colors.primary }}
+              >
+                Select Roll Numbers
+              </h2>
+              <button
+                onClick={() => setShowPopupRoll(false)}
+                className="right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-white shadow-md"
+                style={{
+                  backgroundColor: theme.colors.danger,
+                }}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
 
-            <div className="mb-6 grid grid-cols-4 gap-4 pt-24">
+            <div className="mb-6 grid grid-cols-4 gap-4 pt-2">
               {members.length > 0 ? (
                 members.map((member) => {
                   const roll = String(member.RollNumber);
@@ -295,19 +311,17 @@ function ManageDonation() {
                     <button
                       key={roll}
                       onClick={() => toggleRoll(roll)}
-                      className={`flex items-center justify-center rounded-xl border p-3 text-lg font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 transform hover:shadow-md ${
-                        isSelected ? "scale-105 shadow-lg" : ""
-                      }`}
+                      className="flex items-center justify-center rounded-xl border p-3 text-lg font-bold shadow-sm"
                       style={{
                         background: isSelected
                           ? `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`
-                          : theme.colors.surface,
+                          : theme.colors.secondaryLight,
                         color: isSelected
-                          ? theme.colors.surface
+                          ? theme.colors.neutralLight
                           : theme.colors.primary,
                         borderColor: isSelected
                           ? theme.colors.primary
-                          : theme.colors.neutralLight,
+                          : theme.colors.secondary,
                       }}
                     >
                       {roll}

@@ -56,7 +56,7 @@ const Profile = () => {
     return (
       <div
         className="flex items-center justify-center min-h-screen"
-        style={{ backgroundColor: theme.colors.background }}
+        style={{ backgroundColor: theme.colors.neutralLight }}
       >
         <Loader />
       </div>
@@ -66,11 +66,11 @@ const Profile = () => {
     return (
       <div
         className="flex justify-center items-center min-h-screen px-4"
-        style={{ backgroundColor: theme.colors.background }}
+        style={{ backgroundColor: theme.colors.neutralLight }}
       >
         <p
           className="text-lg font-semibold text-center max-w-md"
-          style={{ color: theme.colors.accent, fontFamily: theme.fonts.body }}
+          style={{ color: theme.colors.danger, fontFamily: theme.fonts.body }}
         >
           Error: {error}
         </p>
@@ -81,7 +81,7 @@ const Profile = () => {
     return (
       <div
         className="flex justify-center items-center px-4"
-        style={{ backgroundColor: theme.colors.background }}
+        style={{ backgroundColor: theme.colors.neutralLight }}
       >
         <p
           className="text-lg font-semibold text-center"
@@ -96,27 +96,29 @@ const Profile = () => {
     <div
       className="flex pb-20 items-center justify-center px-2 mt-8"
       style={{
-        backgroundColor: theme.colors.background,
         fontFamily: theme.fonts.body,
       }}
     >
       <div
-        className="w-full max-w-3xl p-8"
+        className="w-full max-w-3xl p-8 "
         style={{
-          borderColor: theme.colors.secondary + "33",
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.secondaryLight,
           color: theme.colors.neutralDark,
         }}
       >
         {/* Header */}
         <div className="flex flex-col items-center space-y-4 mb-10">
-          <div className="w-36 h-36 rounded-full border-4 shadow-md overflow-hidden">
+          <div
+            className="w-36 h-36 rounded-full border-4 shadow-md overflow-hidden"
+            style={{ borderColor: theme.colors.primary }}
+          >
             <img
               src={
                 user.profilePic || "https://via.placeholder.com/150?text=No+Image"
               }
               alt="Profile"
               className="w-full h-full object-cover"
-              style={{ borderColor: theme.colors.primary }}
             />
           </div>
           <h1

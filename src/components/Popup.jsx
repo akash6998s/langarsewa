@@ -13,28 +13,29 @@ const Popup = ({ message, type, onClose }) => {
   const title = isSuccess ? "✅ Success:" : "❌ Error:";
 
   return (
-    <div className="fixed top-5 right-5 z-[999]">
+    <div
+      className="fixed inset-0 flex items-center justify-center z-[999] backdrop-blur-sm bg-black/30"
+    >
       <div
-        className="flex items-start gap-3 px-5 py-4 rounded-2xl shadow-xl border"
+        className="flex flex-col gap-2 p-6 rounded-2xl shadow-2xl border relative"
         style={{
           backgroundColor: bgColor,
           color: theme.colors.surface,
           borderColor: `${theme.colors.surface}33`,
           fontFamily: theme.fonts.body,
-          minWidth: "250px",
+          minWidth: "300px",
+          maxWidth: "90%",
         }}
       >
-        <div className="font-semibold">{title}</div>
-        <div className="flex-grow break-words">{message}</div>
         <button
           onClick={onClose}
-          className="ml-2 text-xl leading-none"
-          style={{
-            color: theme.colors.surface,
-          }}
+          className="absolute top-3 right-4 text-2xl font-bold hover:opacity-80"
+          style={{ color: theme.colors.surface }}
         >
           ×
         </button>
+        <div className="font-semibold text-lg">{title}</div>
+        <div className="break-words">{message}</div>
       </div>
     </div>
   );

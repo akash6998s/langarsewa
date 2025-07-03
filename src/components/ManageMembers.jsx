@@ -32,7 +32,6 @@ function ManageMember() {
       setLoading(true);
       const res = await fetch(`${API_URL}`);
       const data = await res.json();
-
       setMembers(data);
       const rolls = data.map((m) => m.RollNumber).sort((a, b) => a - b);
       setRollNumbers(rolls);
@@ -55,7 +54,6 @@ function ManageMember() {
   const handleRollNumberChange = (e) => {
     const value = e.target.value;
     setRollNumber(value);
-
     const member = members.find((m) => m.RollNumber === value);
     if (member) {
       setName(member.Name || "");
@@ -73,7 +71,6 @@ function ManageMember() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setPic(file);
-
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -98,9 +95,7 @@ function ManageMember() {
     formData.append("LastName", lastName);
     formData.append("PhoneNumber", phone);
     formData.append("Address", address);
-    if (pic) {
-      formData.append("Photo", pic);
-    }
+    if (pic) formData.append("Photo", pic);
 
     try {
       setLoading(true);
@@ -113,7 +108,6 @@ function ManageMember() {
 
       showPopup("Member added/updated successfully.", "success");
       fetchMembers();
-
       setRollNumber("");
       setName("");
       setLastName("");
@@ -158,7 +152,6 @@ function ManageMember() {
 
       showPopup("Member deleted successfully.", "success");
       fetchMembers();
-
       setDelRollNumber("");
       setDelName("");
       setDelLastName("");
@@ -172,33 +165,42 @@ function ManageMember() {
   if (loading) return <Loader />;
 
   return (
-    <div className="font-serif" style={{ color: theme.colors.neutralDark }}>
-      <div className="mx-auto px-4 pt-4 max-w-4xl pb-20">
-        <h1
-          className="text-2xl font-extrabold text-center mb-10 tracking-wide drop-shadow-md"
-          style={{ color: theme.colors.primary }}
-        >
-          Manage Member
-        </h1>
+    <div
+      className="font-serif pb-20"
+      style={{ color: theme.colors.neutralDark }}
+    >
+      <div className="mx-auto px-4 pt-4 max-w-4xl">
+        <div className="flex justify-center">
+  <h1
+    className="text-3xl md:text-5xl font-extrabold text-center mb-12 tracking-wider uppercase drop-shadow-lg relative inline-block"
+    style={{ color: theme.colors.primary }}
+  >
+    Manage Member
+    <span
+      className="absolute left-1/2 -bottom-2 w-1/2 h-1 rounded-full"
+      style={{
+        transform: "translateX(-50%)",
+        background: `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`,
+      }}
+    />
+  </h1>
+</div>
+
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">
           <button
             onClick={() => setTab("addEdit")}
             className={`px-8 py-3 rounded-l-full border text-lg shadow-md ${
-              tab === "addEdit"
-                ? "text-white font-semibold scale-105"
-                : "hover:bg-amber-100"
+              tab === "addEdit" ? "font-semibold" : ""
             }`}
             style={{
-              borderColor: theme.colors.primaryLight,
               background:
                 tab === "addEdit"
-                  ? `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`
+                  ? `linear-gradient(to right, ${theme.colors.success}, ${theme.colors.success})`
                   : theme.colors.surface,
-              color: tab === "addEdit"
-                ? theme.colors.surface
-                : theme.colors.primary,
+              color: tab === "addEdit" ? "#ffffff" : theme.colors.primary,
+              borderColor: theme.colors.primaryLight,
             }}
           >
             Add / Edit Member
@@ -207,19 +209,15 @@ function ManageMember() {
           <button
             onClick={() => setTab("delete")}
             className={`px-8 py-3 rounded-r-full border text-lg shadow-md ${
-              tab === "delete"
-                ? "text-white font-semibold scale-105"
-                : "hover:bg-rose-100"
+              tab === "delete" ? "font-semibold" : ""
             }`}
             style={{
-              borderColor: theme.colors.primaryLight,
               background:
                 tab === "delete"
-                  ? `linear-gradient(to right, ${theme.colors.accent}, #f43f5e)`
+                  ? `linear-gradient(to right, ${theme.colors.danger}, ${theme.colors.danger})`
                   : theme.colors.surface,
-              color: tab === "delete"
-                ? theme.colors.surface
-                : theme.colors.primary,
+              color: tab === "delete" ? "#ffffff" : theme.colors.primary,
+              borderColor: theme.colors.primaryLight,
             }}
           >
             Delete Member
@@ -292,20 +290,33 @@ function ManageMember() {
                 style={{ backgroundColor: theme.colors.surface }}
               />
 
+              {/* Upload Image */}
               <div className="col-span-full">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full border p-3 rounded-xl shadow-md"
-                  style={{ backgroundColor: theme.colors.surface }}
-                />
+                <label
+                  className="w-full flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer shadow-md"
+                  style={{
+                    borderColor: theme.colors.primaryLight,
+                    backgroundColor: theme.colors.surface,
+                    color: theme.colors.primary,
+                  }}
+                >
+                  <span className="text-lg font-semibold mb-2">
+                    Click to Upload Image
+                  </span>
+                  <span className="text-sm opacity-70">PNG, JPG up to 2MB</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </label>
                 {picPreview && (
-                  <div className="mt-2">
+                  <div className="mt-4 text-center">
                     <img
                       src={picPreview}
                       alt="Preview"
-                      className="w-28 h-28 object-cover rounded-full border shadow"
+                      className="w-28 h-28 object-cover rounded-full border shadow inline-block"
                     />
                   </div>
                 )}
@@ -315,8 +326,8 @@ function ManageMember() {
             <div className="text-center">
               <button
                 type="submit"
-                className="w-full py-4 rounded-2xl text-white text-xl font-semibold transition shadow-lg"
-                style={{ backgroundColor: theme.colors.secondary }}
+                className="w-full py-4 rounded-2xl text-white text-xl font-semibold shadow-lg"
+                style={{ backgroundColor: theme.colors.success }}
               >
                 Add / Edit Member
               </button>
@@ -370,8 +381,8 @@ function ManageMember() {
             <div className="text-center">
               <button
                 type="submit"
-                className="w-full py-4 rounded-2xl text-white text-xl font-semibold transition shadow-lg"
-                style={{ backgroundColor: theme.colors.accent }}
+                className="w-full py-4 rounded-2xl text-white text-xl font-semibold shadow-lg"
+                style={{ backgroundColor: theme.colors.danger }}
               >
                 Delete Member
               </button>

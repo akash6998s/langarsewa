@@ -10,7 +10,6 @@ function UserProfileDropdown() {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // Close dropdown on outside click or ESC key
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -41,19 +40,17 @@ function UserProfileDropdown() {
       style={{ fontFamily: fonts.body }}
     >
       <div className="relative" ref={dropdownRef}>
-        {/* User Icon Button */}
+        {/* Toggle Button */}
         <button
           onClick={() => setIsOpen((prev) => !prev)}
-          className="flex items-center gap-1 px-3 py-2 rounded-xl hover:bg-gray-100 transition"
-          aria-haspopup="true"
-          aria-expanded={isOpen}
+          className="flex items-center gap-2 px-4 py-2 rounded-full shadow-sm"
           style={{
+            backgroundColor: colors.neutralLight,
             color: colors.neutralDark,
-            border: `1px solid ${colors.secondary}33`,
-            backgroundColor: colors.surface,
+            border: `1px solid ${colors.primaryLight}`,
           }}
         >
-          <User size={22} />
+          <User size={20} />
           <ChevronDown
             size={18}
             className={`transition-transform ${
@@ -65,10 +62,10 @@ function UserProfileDropdown() {
         {/* Dropdown Menu */}
         {isOpen && (
           <div
-            className="absolute right-0 mt-2 w-52 rounded-2xl shadow-xl border z-50"
+            className="absolute right-0 mt-2 w-56 rounded-3xl shadow-2xl border z-50 overflow-hidden"
             style={{
-              backgroundColor: colors.surface,
-              borderColor: `${colors.secondary}33`,
+              backgroundColor: colors.neutralLight,
+              borderColor: colors.primaryLight,
               fontFamily: fonts.body,
             }}
           >
@@ -76,24 +73,29 @@ function UserProfileDropdown() {
               to="/profile"
               onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-5 py-3 text-sm rounded-2xl transition ${
+                `flex items-center gap-3 px-5 py-3 text-sm transition-all ${
                   isActive
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "hover:bg-yellow-50 text-neutral-700"
+                    ? "font-semibold"
+                    : "hover:bg-[rgba(0,0,0,0.03)]"
                 }`
               }
-              style={{ fontFamily: fonts.body }}
+              style={{
+                color: colors.primary,
+              }}
             >
-              <User size={18} color={colors.primary} />
+              <User size={18} />
               <span>My Profile</span>
             </NavLink>
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 w-full px-5 py-3 text-sm rounded-2xl hover:bg-red-50 text-red-700 transition"
-              style={{ fontFamily: fonts.body }}
+              className="flex items-center gap-3 w-full px-5 py-3 text-sm transition-all hover:brightness-105"
+              style={{
+                color: colors.danger,
+                backgroundColor: "transparent",
+              }}
             >
-              <LogOut size={18} color={colors.accent} />
+              <LogOut size={18} />
               <span>Logout</span>
             </button>
           </div>

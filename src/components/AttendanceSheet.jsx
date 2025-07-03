@@ -20,6 +20,21 @@ const months = [
 
 const years = [2025, 2026, 2027];
 
+const stickyCellStyle = (left, z = 0) => ({
+  position: "sticky",
+  left,
+  zIndex: z,
+  border: `1px solid ${theme.colors.secondaryLight}`,
+  width: left === 0 ? "60px" : "150px",
+  minWidth: left === 0 ? "60px" : "150px",
+  maxWidth: left === 0 ? "60px" : "150px",
+  padding: "8px 12px",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  backgroundColor: theme.colors.neutralLight,
+});
+
 const AttendanceSheet = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(2025);
@@ -32,16 +47,6 @@ const AttendanceSheet = () => {
   const getDaysInMonth = (month, year) =>
     new Date(year, month + 1, 0).getDate();
   const days = getDaysInMonth(selectedMonth, selectedYear);
-
-  const stickyCellStyle = (left, bg) => ({
-    position: "sticky",
-    left,
-    backgroundColor: bg,
-    zIndex: 10,
-    border: "1px solid #d1d5db",
-    width: left === 0 ? "50px" : "150px",
-    padding: "8px 12px",
-  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,7 +129,7 @@ const AttendanceSheet = () => {
       <div
         className="font-semibold text-center"
         style={{
-          color: theme.colors.accent,
+          color: theme.colors.danger,
           fontFamily: theme.fonts.body,
         }}
       >
@@ -148,7 +153,8 @@ const AttendanceSheet = () => {
             className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
             style={{
               borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.surface,
+              backgroundColor: theme.colors.neutralLight,
+              color: theme.colors.neutralDark,
             }}
           >
             {months.map((month) => (
@@ -164,7 +170,8 @@ const AttendanceSheet = () => {
             className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
             style={{
               borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.surface,
+              backgroundColor: theme.colors.neutralLight,
+              color: theme.colors.neutralDark,
             }}
           >
             {years.map((year) => (
@@ -183,7 +190,8 @@ const AttendanceSheet = () => {
           className="border rounded px-4 py-2 w-full sm:w-72 text-sm shadow-sm"
           style={{
             borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.surface,
+            backgroundColor: theme.colors.neutralLight,
+            color: theme.colors.neutralDark,
           }}
         />
       </div>
@@ -193,37 +201,31 @@ const AttendanceSheet = () => {
         <div
           className="overflow-x-auto rounded-md border shadow-md"
           style={{
-            backgroundColor: theme.colors.surface,
-            borderColor: "#e5e7eb",
+            backgroundColor: theme.colors.neutralLight,
+            borderColor: theme.colors.secondaryLight,
           }}
         >
-          <div
-            style={{
-              maxHeight: "620px",
-              overflowY: "auto",
-            }}
-          >
+          <div style={{ maxHeight: "620px", overflowY: "auto" }}>
             <table
-              className="min-w-[900px] w-full border-collapse border border-neutral-300"
+              className="min-w-[900px] w-full border-collapse border"
               style={{
                 tableLayout: "fixed",
-                borderColor: "#e5e7eb",
+                borderColor: theme.colors.secondaryLight,
               }}
             >
               <thead
                 style={{
                   backgroundColor: theme.colors.primary,
-                  color: theme.colors.surface,
+                  color: theme.colors.neutralLight,
                 }}
               >
                 <tr>
-                  <th style={stickyCellStyle(0, theme.colors.primary)}>
+                  <th style={{ ...stickyCellStyle(0, 30), backgroundColor: theme.colors.primary }}>
                     Roll
                   </th>
-                  <th style={stickyCellStyle(50, theme.colors.primary)}>
+                  <th style={{ ...stickyCellStyle(60, 20), backgroundColor: theme.colors.primary }}>
                     Name
                   </th>
-
                   {[...Array(days)].map((_, i) => {
                     const date = new Date(selectedYear, selectedMonth, i + 1);
                     const dayName = date.toLocaleDateString("en-US", {
@@ -232,11 +234,12 @@ const AttendanceSheet = () => {
                     return (
                       <th
                         key={i}
-                        className="py-2 px-2 text-center text-xs border border-neutral-300"
+                        className="py-2 px-2 text-center text-xs border"
                         title={dayName}
                         style={{
                           width: "36px",
-                          color: theme.colors.surface,
+                          color: theme.colors.neutralLight,
+                          borderColor: theme.colors.secondaryLight,
                         }}
                       >
                         {i + 1}
@@ -246,45 +249,37 @@ const AttendanceSheet = () => {
                   })}
                 </tr>
               </thead>
-
               <tbody>
                 {filteredMembers.map((member, rowIndex) => {
                   const monthName = months[selectedMonth].name.toLowerCase();
                   const daysPresent =
                     member.attendance?.[selectedYear]?.[monthName] || [];
 
+                  const rowBg = rowIndex % 2 === 0 ? "#f0f0f0" : "#ffffff";
+
                   return (
-                    <tr
-                      key={member.roll}
-                      className="hover:bg-[rgba(217,119,6,0.1)]"
-                      style={{
-                        backgroundColor:
-                          rowIndex % 2 === 0
-                            ? theme.colors.neutralLight
-                            : theme.colors.surface,
-                      }}
-                    >
-                      <td style={stickyCellStyle(0, theme.colors.surface)}>
+                    <tr key={member.roll} style={{ backgroundColor: rowBg }}>
+                      <td style={{ ...stickyCellStyle(0, 2), backgroundColor: rowBg }}>
                         {member.roll}
                       </td>
-                      <td style={stickyCellStyle(50, theme.colors.surface)}>
+                      <td style={{ ...stickyCellStyle(60, 2), backgroundColor: rowBg }}>
                         {member.name} {member.last_name}
                       </td>
-
                       {[...Array(days)].map((_, i) => (
                         <td
                           key={i}
-                          className="text-center border border-neutral-300"
+                          className="text-center border"
                           style={{
                             width: "36px",
                             color: theme.colors.success,
                             padding: "6px 4px",
+                            borderColor: theme.colors.secondaryLight,
                           }}
                         >
                           {daysPresent.includes(i + 1) && (
                             <Check
                               className="w-4 h-4 mx-auto"
-                              style={{ color: theme.colors.secondary }}
+                              style={{ color: theme.colors.success }}
                             />
                           )}
                         </td>
@@ -300,7 +295,7 @@ const AttendanceSheet = () => {
         <div
           className="w-full text-center py-10 text-lg font-medium"
           style={{
-            backgroundColor: theme.colors.surface,
+            backgroundColor: theme.colors.neutralLight,
             color: theme.colors.tertiary,
           }}
         >

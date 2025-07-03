@@ -118,11 +118,11 @@ const Activity = () => {
     return (
       <div
         className="flex justify-center items-center min-h-screen px-4"
-        style={{ backgroundColor: theme.colors.background }}
+        style={{ backgroundColor: theme.colors.neutralLight }}
       >
         <p
           className="text-lg font-semibold"
-          style={{ color: theme.colors.accent, fontFamily: theme.fonts.body }}
+          style={{ color: theme.colors.danger, fontFamily: theme.fonts.body }}
         >
           Error: {error}
         </p>
@@ -138,7 +138,6 @@ const Activity = () => {
       className="max-w-7xl mx-auto px-2 mt-8 pb-20 rounded-xl shadow-xl min-h-[calc(100vh-120px)]"
       style={{ fontFamily: theme.fonts.body, color: theme.colors.neutralDark }}
     >
-      {/* Header Toggle */}
       <header className="mb-10 text-center select-none">
         <div
           onClick={() => setShowSummary((prev) => !prev)}
@@ -154,9 +153,7 @@ const Activity = () => {
             {showSummary ? "Hide Summary" : "Show Summary"}
           </h2>
           <svg
-            className={`w-8 h-8 transform transition-transform duration-300 ${
-              showSummary ? "rotate-90" : "rotate-0"
-            }`}
+            className={`w-8 h-8 transform ${showSummary ? "rotate-90" : "rotate-0"}`}
             fill="none"
             stroke={theme.colors.primary}
             strokeWidth="2"
@@ -167,48 +164,43 @@ const Activity = () => {
         </div>
       </header>
 
-      {/* Summary Cards */}
       {showSummary && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div
-            className="rounded-2xl shadow-lg p-6 border-l-8 bg-white text-center"
-            style={{ borderColor: theme.colors.accent }}
+            className="rounded-2xl shadow-lg p-6 border-l-8 text-center"
+            style={{
+              borderColor: theme.colors.primary,
+              backgroundColor: theme.colors.neutralLight,
+            }}
           >
-            <h3
-              className="text-xl font-semibold mb-2"
-              style={{ color: theme.colors.accent }}
-            >
+            <h3 className="text-xl font-semibold mb-2" style={{ color: theme.colors.primary }}>
               Attendance Summary
             </h3>
             <p className="text-5xl font-bold">{selectedMonthStats.percent}%</p>
             <p className="mt-2">
-              Present: {selectedMonthStats.presentDays} /{" "}
-              {selectedMonthStats.totalDays} days in{" "}
-              {months[selectedMonth].charAt(0).toUpperCase() +
-                months[selectedMonth].slice(1)}{" "}
-              {selectedYear}
+              Present: {selectedMonthStats.presentDays} / {selectedMonthStats.totalDays} days in{" "}
+              {months[selectedMonth].charAt(0).toUpperCase() + months[selectedMonth].slice(1)} {selectedYear}
             </p>
           </div>
 
           <div
-            className="rounded-2xl shadow-lg p-6 border-l-8 bg-white text-center"
-            style={{ borderColor: theme.colors.primary }}
+            className="rounded-2xl shadow-lg p-6 border-l-8 text-center"
+            style={{
+              borderColor: theme.colors.primary,
+              backgroundColor: theme.colors.neutralLight,
+            }}
           >
-            <h3
-              className="text-2xl font-semibold mb-2"
-              style={{ color: theme.colors.primary }}
-            >
+            <h3 className="text-2xl font-semibold mb-2" style={{ color: theme.colors.primary }}>
               Total Donation
             </h3>
-            <p className="text-6xl font-bold text-gray-900">
-              ₹{yearlyDonation.toLocaleString()}
+            <p className="text-6xl font-bold">₹{yearlyDonation.toLocaleString()}</p>
+            <p className="mt-2" style={{ color: theme.colors.tertiary }}>
+              For the year {selectedYear}
             </p>
-            <p className="mt-2 text-gray-500">For the year {selectedYear}</p>
           </div>
         </div>
       )}
 
-      {/* Dropdown Filters */}
       <div className="flex gap-4 w-full sm:w-auto mb-6">
         <select
           value={selectedYear}
@@ -216,7 +208,7 @@ const Activity = () => {
           className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
           style={{
             borderColor: theme.colors.primary,
-            backgroundColor: theme.colors.surface,
+            backgroundColor: theme.colors.neutralLight,
           }}
         >
           {Object.keys(attendanceData?.attendance || {}).map((year) => (
@@ -232,7 +224,7 @@ const Activity = () => {
           className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
           style={{
             borderColor: theme.colors.primary,
-            backgroundColor: theme.colors.surface,
+            backgroundColor: theme.colors.neutralLight,
           }}
         >
           {months.map((month, index) => (
@@ -243,7 +235,6 @@ const Activity = () => {
         </select>
       </div>
 
-      {/* Tabs */}
       <div
         className="flex justify-center mb-6 rounded-lg shadow border max-w-md mx-auto"
         style={{
@@ -253,53 +244,46 @@ const Activity = () => {
       >
         <button
           onClick={() => setActiveTab("attendance")}
-          className={`w-1/2 py-3 font-semibold rounded-lg transition ${
-            activeTab === "attendance"
-              ? "bg-white text-black"
-              : "text-white"
-          }`}
+          className="w-1/2 py-3 font-semibold rounded-lg"
+          style={{
+            backgroundColor:
+              activeTab === "attendance" ? theme.colors.neutralLight : "transparent",
+            color:
+              activeTab === "attendance" ? theme.colors.neutralDark : theme.colors.neutralLight,
+          }}
         >
           Attendance
         </button>
         <button
           onClick={() => setActiveTab("donations")}
-          className={`w-1/2 py-3 font-semibold rounded-lg transition ${
-            activeTab === "donations"
-              ? "bg-white text-black"
-              : "text-white"
-          }`}
+          className="w-1/2 py-3 font-semibold rounded-lg"
+          style={{
+            backgroundColor:
+              activeTab === "donations" ? theme.colors.neutralLight : "transparent",
+            color:
+              activeTab === "donations" ? theme.colors.neutralDark : theme.colors.neutralLight,
+          }}
         >
           Donations
         </button>
       </div>
 
-      {/* Attendance Table */}
       {activeTab === "attendance" && (
-        <div
-          className="overflow-x-auto rounded-xl shadow-lg border bg-white"
+        <div className="overflow-x-auto rounded-xl shadow-lg border"
           style={{ borderColor: theme.colors.tertiary }}
         >
           <table className="min-w-[900px] w-full border-collapse text-sm">
-            <thead
-              style={{
-                backgroundColor: theme.colors.primary,
-                color: theme.colors.surface,
-              }}
-            >
+            <thead style={{ backgroundColor: theme.colors.primary, color: theme.colors.neutralLight }}>
               <tr>
-                <th className="py-2 px-4 text-left sticky left-0 z-20">
-                  Month
-                </th>
+                <th className="py-2 px-4 text-left sticky top-0 left-0 z-30"
+                  style={{ backgroundColor: theme.colors.primary, borderColor: theme.colors.tertiary }}
+                >Month</th>
                 {[...Array(31)].map((_, i) => {
                   const date = new Date(parseInt(selectedYear), 0, i + 1);
-                  const dayName = date.toLocaleDateString("en-US", {
-                    weekday: "short",
-                  });
+                  const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
                   return (
-                    <th
-                      key={i}
-                      className="py-2 px-2 text-center text-xs border"
-                      style={{ borderColor: theme.colors.tertiary }}
+                    <th key={i} className="py-2 px-2 text-center text-xs border sticky top-0 z-20"
+                      style={{ backgroundColor: theme.colors.primary, borderColor: theme.colors.tertiary }}
                       title={dayName}
                     >
                       {i + 1}
@@ -314,21 +298,13 @@ const Activity = () => {
                 const yearData = attendanceData.attendance[selectedYear] || {};
                 const daysPresent = yearData[monthName] || [];
                 const totalDays = daysInMonth(parseInt(selectedYear), monthIndex);
+
+                const rowBg = monthIndex % 2 === 0 ? "#f0f0f0" : "#ffffff";
+
                 return (
-                  <tr
-                    key={monthName}
-                    className={
-                      monthIndex % 2 === 0
-                        ? "bg-[rgba(6,95,70,0.05)]"
-                        : "bg-white"
-                    }
-                  >
-                    <td
-                      className="py-2 px-4 font-medium capitalize sticky left-0 z-10 border"
-                      style={{
-                        backgroundColor: theme.colors.surface,
-                        borderColor: theme.colors.tertiary,
-                      }}
+                  <tr key={monthName} style={{ backgroundColor: rowBg }}>
+                    <td className="py-2 px-4 font-medium capitalize sticky left-0 z-20 border"
+                      style={{ backgroundColor: rowBg, borderColor: theme.colors.tertiary }}
                     >
                       {monthName}
                     </td>
@@ -337,25 +313,17 @@ const Activity = () => {
                       const isPresent = daysPresent.includes(day);
                       const isInvalid = day > totalDays;
                       return (
-                        <td
-                          key={dayIndex}
-                          className="text-center border"
+                        <td key={dayIndex} className="text-center border"
                           style={{
                             color: isInvalid
                               ? theme.colors.tertiary
                               : isPresent
-                              ? theme.colors.success
-                              : theme.colors.tertiary,
+                                ? theme.colors.success
+                                : theme.colors.tertiary,
                             borderColor: theme.colors.tertiary,
                           }}
                         >
-                          {isInvalid ? (
-                            <span className="text-xl">•</span>
-                          ) : isPresent ? (
-                            <Check className="w-4 h-4 mx-auto" />
-                          ) : (
-                            ""
-                          )}
+                          {isInvalid ? <span className="text-xl">•</span> : isPresent ? <Check className="w-4 h-4 mx-auto" /> : ""}
                         </td>
                       );
                     })}
@@ -367,51 +335,30 @@ const Activity = () => {
         </div>
       )}
 
-      {/* Donations Table */}
       {activeTab === "donations" && (
-        <div
-          className="overflow-x-auto rounded-xl shadow-lg border bg-white"
+        <div className="overflow-x-auto rounded-xl shadow-lg border"
           style={{ borderColor: theme.colors.tertiary }}
         >
           <table className="w-full border-collapse text-base">
-            <thead
-              style={{
-                backgroundColor: theme.colors.primary,
-                color: theme.colors.surface,
-              }}
-            >
+            <thead style={{ backgroundColor: theme.colors.primary, color: theme.colors.neutralLight }}>
               <tr>
-                <th className="py-2 px-4 text-left border"
-                  style={{ borderColor: theme.colors.tertiary }}>
-                  Month
-                </th>
-                <th className="py-2 px-4 text-left border"
-                  style={{ borderColor: theme.colors.tertiary }}>
-                  Amount
-                </th>
+                <th className="py-2 px-4 text-left border" style={{ borderColor: theme.colors.tertiary }}>Month</th>
+                <th className="py-2 px-4 text-left border" style={{ borderColor: theme.colors.tertiary }}>Amount</th>
               </tr>
             </thead>
             <tbody>
               {months.map((monthName, idx) => {
-                const donation =
-                  donationData.donations_summary[selectedYear] || {};
+                const donation = donationData.donations_summary[selectedYear] || {};
                 const amount = donation[monthName] || 0;
+
+                const rowBg = idx % 2 === 0 ? "#f0f0f0" : "#ffffff";
+
                 return (
-                  <tr
-                    key={monthName}
-                    className={
-                      idx % 2 === 0 ? "bg-[rgba(6,95,70,0.05)]" : "bg-white"
-                    }
-                  >
-                    <td className="py-2 px-4 font-medium capitalize border"
-                      style={{ borderColor: theme.colors.tertiary }}>
-                      {monthName}
-                    </td>
+                  <tr key={monthName} style={{ backgroundColor: rowBg }}>
+                    <td className="py-2 px-4 font-medium capitalize" style={{ borderColor: theme.colors.tertiary }}>{monthName}</td>
                     <td className="py-2 px-4 font-semibold"
-                      style={{
-                        color: theme.colors.primary,
-                        borderColor: theme.colors.tertiary,
-                      }}>
+                      style={{ color: theme.colors.success, borderColor: theme.colors.tertiary }}
+                    >
                       ₹{amount.toLocaleString()}
                     </td>
                   </tr>
