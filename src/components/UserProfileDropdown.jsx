@@ -46,7 +46,7 @@ function UserProfileDropdown() {
           className="flex items-center gap-2 px-4 py-2 rounded-full shadow-sm"
           style={{
             backgroundColor: colors.neutralLight,
-            color: colors.neutralDark,
+            color: colors.primary,
             border: `1px solid ${colors.primaryLight}`,
           }}
         >

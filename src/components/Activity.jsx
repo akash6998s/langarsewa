@@ -135,7 +135,7 @@ const Activity = () => {
 
   return (
     <div
-      className="max-w-7xl mx-auto px-2 mt-8 pb-20 rounded-xl shadow-xl min-h-[calc(100vh-120px)]"
+      className="max-w-7xl mx-auto px-2 mt-4 pb-20 rounded-xl shadow-xl min-h-[calc(100vh-120px)]"
       style={{ fontFamily: theme.fonts.body, color: theme.colors.neutralDark }}
     >
       <header className="mb-10 text-center select-none">
@@ -147,7 +147,7 @@ const Activity = () => {
             className="text-4xl font-extrabold tracking-wide mr-3"
             style={{
               color: theme.colors.primary,
-              fontFamily: theme.fonts.heading,
+              fontFamily: theme.fonts.body,
             }}
           >
             {showSummary ? "Hide Summary" : "Show Summary"}

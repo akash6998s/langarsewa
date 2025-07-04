@@ -12,10 +12,10 @@ const Home = () => {
       }}
     >
       <h1
-        className="text-2xl  font-bold text-center my-4"
+        className="text-3xl font-extrabold text-center my-6 tracking-wider uppercase drop-shadow-lg relative inline-block"
         style={{
           color: theme.colors.primary,
-          fontFamily: theme.fonts.heading,
+          fontFamily: theme.fonts.body,
         }}
       >
         सुदर्शन सेना - भोजन वितरण

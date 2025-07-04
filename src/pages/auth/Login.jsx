@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "./../../components/Loader";
-import Popup from "./../../components/Popup";
+import { theme } from "../../theme";
 
 const API_URL = "https://langar-backend.onrender.com";
 
@@ -21,7 +21,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [popup, setPopup] = useState({ message: "", type: "" });
 
-  // ✅ Fetch Members for Signup Roll Dropdown
   useEffect(() => {
     const fetchMembers = async () => {
       try {
@@ -39,7 +38,6 @@ const Login = () => {
     fetchMembers();
   }, []);
 
-  // ✅ Auto-fill Name when Roll Number is selected
   useEffect(() => {
     if (signupRollNo && members.length > 0) {
       const selected = members.find(
@@ -57,7 +55,6 @@ const Login = () => {
     }
   }, [signupRollNo, members]);
 
-  // ✅ Popup Helper
   const showPopup = (message, type) => {
     setPopup({ message, type });
     setTimeout(() => {
@@ -65,7 +62,6 @@ const Login = () => {
     }, 3000);
   };
 
-  // ✅ Login Handler
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -100,7 +96,6 @@ const Login = () => {
     }
   };
 
-  // ✅ Signup Handler
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
 
@@ -144,21 +139,38 @@ const Login = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-yellow-100 via-yellow-50 to-yellow-100 px-4 font-inter">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-10 sm:p-12 border border-yellow-300">
-        <h2 className="text-3xl font-extrabold text-yellow-700 mb-8 text-center tracking-wide">
+    <div
+      className="min-h-screen flex items-center justify-center px-4 font-inter"
+      style={{ background: theme.colors.secondaryLight }}
+    >
+      <div
+        className="max-w-md w-full rounded-3xl shadow-xl p-10 sm:p-12 border"
+        style={{
+          backgroundColor: theme.colors.neutralLight,
+          borderColor: theme.colors.secondaryLight,
+        }}
+      >
+        <h2
+          className="text-3xl font-extrabold mb-8 text-center tracking-wide"
+          style={{ color: theme.colors.primary }}
+        >
           {isLoginMode ? "Welcome Back" : "Create Your Account"}
         </h2>
 
         {isLoginMode ? (
-          // ✅ Login Form
           <form onSubmit={handleLoginSubmit} className="space-y-6">
             <input
               type="text"
               placeholder="Login ID"
               value={loginId}
               onChange={(e) => setLoginId(e.target.value)}
-              className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
+              className="w-full p-4 rounded-lg border placeholder-opacity-60 focus:outline-none focus:ring-4 transition"
+              style={{
+                borderColor: theme.colors.secondaryLight,
+                color: theme.colors.primary,
+                backgroundColor: "#fff",
+                boxShadow: `0 0 0 0.25rem ${theme.colors.secondaryLight}40`,
+              }}
               required
             />
             <input
@@ -166,20 +178,27 @@ const Login = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
+              className="w-full p-4 rounded-lg border placeholder-opacity-60 focus:outline-none focus:ring-4 transition"
+              style={{
+                borderColor: theme.colors.secondaryLight,
+                color: theme.colors.primary,
+                backgroundColor: "#fff",
+              }}
               required
             />
             <button
               type="submit"
-              className="w-full py-4 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-xl shadow-lg transition transform hover:scale-105"
+              className="w-full py-4 text-white font-bold rounded-xl shadow-lg transition transform hover:scale-105"
+              style={{ backgroundColor: theme.colors.primary }}
             >
               Login
             </button>
-            <p className="text-center text-gray-600 text-sm">
-              Don't have an account?{" "}
+            <p className="text-center text-sm" style={{ color: theme.colors.secondary }}>
+              Don’t have an account?{" "}
               <button
                 type="button"
-                className="text-yellow-600 hover:text-yellow-800 font-bold underline"
+                className="font-bold underline"
+                style={{ color: theme.colors.primaryLight }}
                 onClick={() => setIsLoginMode(false)}
               >
                 Sign Up
@@ -187,12 +206,12 @@ const Login = () => {
             </p>
           </form>
         ) : (
-          // ✅ Signup Form
           <form onSubmit={handleSignupSubmit} className="space-y-6">
             <select
               value={signupRollNo}
               onChange={(e) => setSignupRollNo(e.target.value)}
-              className="w-full p-4 rounded-lg border border-yellow-300 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
+              className="w-full p-4 rounded-lg border focus:outline-none focus:ring-4 transition"
+              style={{ borderColor: theme.colors.secondaryLight }}
               required
             >
               <option value="">Select Roll Number</option>
@@ -208,7 +227,11 @@ const Login = () => {
               placeholder="Full Name"
               value={signupName}
               readOnly
-              className="w-full p-4 rounded-lg border border-yellow-300 bg-gray-100 cursor-not-allowed"
+              className="w-full p-4 rounded-lg border bg-gray-100 cursor-not-allowed"
+              style={{
+                borderColor: theme.colors.secondaryLight,
+                color: theme.colors.secondary,
+              }}
             />
 
             <input
@@ -216,7 +239,8 @@ const Login = () => {
               placeholder="Login ID"
               value={signupLoginId}
               onChange={(e) => setSignupLoginId(e.target.value)}
-              className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
+              className="w-full p-4 rounded-lg border placeholder-opacity-60 focus:outline-none focus:ring-4 transition"
+              style={{ borderColor: theme.colors.secondaryLight }}
               required
             />
 
@@ -225,22 +249,25 @@ const Login = () => {
               placeholder="Password"
               value={signupPassword}
               onChange={(e) => setSignupPassword(e.target.value)}
-              className="w-full p-4 rounded-lg border border-yellow-300 placeholder-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition"
+              className="w-full p-4 rounded-lg border placeholder-opacity-60 focus:outline-none focus:ring-4 transition"
+              style={{ borderColor: theme.colors.secondaryLight }}
               required
             />
 
             <button
               type="submit"
-              className="w-full py-4 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-xl shadow-lg transition transform hover:scale-105"
+              className="w-full py-4 text-white font-bold rounded-xl shadow-lg transition transform hover:scale-105"
+              style={{ backgroundColor: theme.colors.primary }}
             >
               Sign Up
             </button>
 
-            <p className="text-center text-gray-600 text-sm">
+            <p className="text-center text-sm" style={{ color: theme.colors.secondary }}>
               Already have an account?{" "}
               <button
                 type="button"
-                className="text-yellow-600 hover:text-yellow-800 font-bold underline"
+                className="font-bold underline"
+                style={{ color: theme.colors.primaryLight }}
                 onClick={() => setIsLoginMode(true)}
               >
                 Login
@@ -250,7 +277,7 @@ const Login = () => {
         )}
       </div>
 
-      <Popup
+      <InlinePopup
         message={popup.message}
         type={popup.type}
         onClose={() => setPopup({ message: "", type: "" })}
@@ -258,5 +285,32 @@ const Login = () => {
     </div>
   );
 };
+
+// ✅ Inline Popup Component
+const InlinePopup = ({ message, type, onClose }) => {
+  if (!message) return null;
+
+  const isSuccess = type === "success";
+  const bgColor = isSuccess ? theme.colors.success : theme.colors.danger;
+
+  return (
+    <div className="fixed top-4 right-4 z-50">
+      <div
+        className={`flex items-center justify-between gap-4 px-6 py-4 rounded-lg shadow-lg transition-all duration-300 text-white`}
+        style={{ backgroundColor: bgColor, minWidth: "280px" }}
+      >
+        <span className="font-medium">{message}</span>
+        <button
+          onClick={onClose}
+          className="text-sm font-bold text-white bg-transparent px-3 py-1 rounded-md hover:bg-white hover:text-black transition"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
 
 export default Login;

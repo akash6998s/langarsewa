@@ -8,10 +8,11 @@ export const theme = {
     neutralLight: "#F5F5F4", // Stone-100 / Very Light Warm Gray
     neutralDark: "#292524", // Stone-900 / Very Dark Brown-Gray
 
-    success: "#22C55E", // Green-500 / Success Green
+    success: "#3DAF76",         // Forest Green – A robust, natural green.
     successLight: "#BBF7D0", // Green-200 / Light Success Green
-    danger: "#EF4444", // Red-500 / Danger Red
     dangerLight: "#FECACA", // Red-200 / Light Danger Red
+    danger: "#D64F4F",          // Fiery Red – A clear, direct error color.
+
   },
   fonts: {
     heading: "'Lora', serif", // Graceful, elegant, sophisticated

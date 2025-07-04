@@ -94,7 +94,7 @@ const Profile = () => {
 
   return (
     <div
-      className="flex pb-20 items-center justify-center px-2 mt-8"
+      className="flex items-center justify-center px-2"
       style={{
         fontFamily: theme.fonts.body,
       }}
@@ -125,7 +125,7 @@ const Profile = () => {
             className="text-4xl font-bold"
             style={{
               color: theme.colors.primary,
-              fontFamily: theme.fonts.heading,
+              fontFamily: theme.fonts.body,
             }}
           >
             {user.firstName} {user.lastName}
@@ -139,7 +139,7 @@ const Profile = () => {
             style={{
               color: theme.colors.primary,
               borderColor: theme.colors.primary,
-              fontFamily: theme.fonts.heading,
+              fontFamily: theme.fonts.body,
             }}
           >
             Profile Details

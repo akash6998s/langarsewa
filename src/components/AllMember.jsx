@@ -66,7 +66,7 @@ const AllMember = () => {
     >
       <h1
         className="text-4xl font-bold mb-10 text-center drop-shadow-sm"
-        style={{ color: theme.colors.primary, fontFamily: theme.fonts.heading }}
+        style={{ color: theme.colors.primary, fontFamily: theme.fonts.body }}
       >
         Our Members
       </h1>
@@ -120,14 +120,14 @@ const AllMember = () => {
                 <p className="flex items-center gap-2">
                   <PhoneIcon
                     className="h-5 w-5"
-                    style={{ color: theme.colors.secondary }}
+                    style={{ color: theme.colors.primary }}
                   />
                   <span className="truncate">{member.PhoneNumber}</span>
                 </p>
                 <p className="flex items-center gap-2">
                   <MapPinIcon
                     className="h-5 w-5"
-                    style={{ color: theme.colors.tertiary }}
+                    style={{ color: theme.colors.primary }}
                   />
                   <span className="truncate">{member.Address}</span>
                 </p>

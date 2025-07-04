@@ -30,7 +30,7 @@ const Loader = () => {
           className="text-2xl font-semibold"
           style={{
             color: colors.primary,
-            fontFamily: fonts.heading,
+            fontFamily: fonts.body,
           }}
         >
           Loading...
