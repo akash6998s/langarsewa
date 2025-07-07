@@ -21,6 +21,10 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [popup, setPopup] = useState({ message: "", type: "" });
 
+  // 🔁 State for toggling password visibility
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+
   useEffect(() => {
     const fetchMembers = async () => {
       try {
@@ -44,9 +48,7 @@ const Login = () => {
         (member) => String(member.RollNumber) === String(signupRollNo)
       );
       if (selected) {
-        setSignupName(
-          `${selected.Name || ""} ${selected.LastName || ""}`.trim()
-        );
+        setSignupName(`${selected.Name || ""} ${selected.LastName || ""}`.trim());
       } else {
         setSignupName("");
       }
@@ -81,10 +83,10 @@ const Login = () => {
         localStorage.setItem("isAdmin", String(data.user.isAdmin));
         localStorage.setItem("isSuperAdmin", String(data.user.isSuperAdmin));
 
-        showPopup("Login successful!", "success");
-        setTimeout(() => {
-          navigate("/home");
-        }, 1000);
+        localStorage.setItem("lastLoginId", loginId);
+        localStorage.setItem("lastPassword", password);
+
+        navigate("/home");
       } else {
         showPopup(data.message || "Invalid credentials.", "error");
       }
@@ -173,19 +175,28 @@ const Login = () => {
               }}
               required
             />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-4 rounded-lg border placeholder-opacity-60 focus:outline-none focus:ring-4 transition"
-              style={{
-                borderColor: theme.colors.secondaryLight,
-                color: theme.colors.primary,
-                backgroundColor: "#fff",
-              }}
-              required
-            />
+            <div className="relative">
+              <input
+                type={showLoginPassword ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-4 pr-12 rounded-lg border placeholder-opacity-60 focus:outline-none focus:ring-4 transition"
+                style={{
+                  borderColor: theme.colors.secondaryLight,
+                  color: theme.colors.primary,
+                  backgroundColor: "#fff",
+                }}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowLoginPassword(!showLoginPassword)}
+                className="absolute top-1/2 right-4 transform -translate-y-1/2 text-sm"
+              >
+                {showLoginPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
             <button
               type="submit"
               className="w-full py-4 text-white font-bold rounded-xl shadow-lg transition transform hover:scale-105"
@@ -230,7 +241,6 @@ const Login = () => {
               className="w-full p-4 rounded-lg border bg-gray-100 cursor-not-allowed"
               style={{
                 borderColor: theme.colors.secondaryLight,
-                color: theme.colors.secondary,
               }}
             />
 
@@ -244,15 +254,24 @@ const Login = () => {
               required
             />
 
-            <input
-              type="password"
-              placeholder="Password"
-              value={signupPassword}
-              onChange={(e) => setSignupPassword(e.target.value)}
-              className="w-full p-4 rounded-lg border placeholder-opacity-60 focus:outline-none focus:ring-4 transition"
-              style={{ borderColor: theme.colors.secondaryLight }}
-              required
-            />
+            <div className="relative">
+              <input
+                type={showSignupPassword ? "text" : "password"}
+                placeholder="Password"
+                value={signupPassword}
+                onChange={(e) => setSignupPassword(e.target.value)}
+                className="w-full p-4 pr-12 rounded-lg border placeholder-opacity-60 focus:outline-none focus:ring-4 transition"
+                style={{ borderColor: theme.colors.secondaryLight }}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowSignupPassword(!showSignupPassword)}
+                className="absolute top-1/2 right-4 transform -translate-y-1/2 text-sm"
+              >
+                {showSignupPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
 
             <button
               type="submit"
@@ -286,7 +305,6 @@ const Login = () => {
   );
 };
 
-// ✅ Inline Popup Component
 const InlinePopup = ({ message, type, onClose }) => {
   if (!message) return null;
 
@@ -310,7 +328,5 @@ const InlinePopup = ({ message, type, onClose }) => {
     </div>
   );
 };
-
-
 
 export default Login;
