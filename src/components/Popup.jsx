@@ -20,8 +20,8 @@ const Popup = ({ message, type, onClose }) => {
         className="flex flex-col gap-2 p-6 rounded-2xl shadow-2xl border relative"
         style={{
           backgroundColor: bgColor,
-          color: theme.colors.surface,
-          borderColor: `${theme.colors.surface}33`,
+          color: theme.colors.neutralLight,
+          borderColor: `${theme.colors.neutralLight}33`,
           fontFamily: theme.fonts.body,
           minWidth: "300px",
           maxWidth: "90%",
@@ -30,7 +30,7 @@ const Popup = ({ message, type, onClose }) => {
         <button
           onClick={onClose}
           className="absolute top-3 right-4 text-2xl font-bold hover:opacity-80"
-          style={{ color: theme.colors.surface }}
+          style={{ color: theme.colors.neutralLight }}
         >
           ×
         </button>

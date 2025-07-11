@@ -19,11 +19,14 @@ const months = [
 ];
 
 function ManageDonation() {
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
+  // --- MODIFIED YEAR LOGIC ---
+  const startYear = 2025;
+  const endYear = 2035;
+  const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
+  // --- END MODIFIED YEAR LOGIC ---
 
   const [tab, setTab] = useState("add");
-  const [year, setYear] = useState(currentYear);
+  const [year, setYear] = useState(new Date().getFullYear()); // Set initial year to current year or 2025 if current year is earlier
   const [selectedMonth, setSelectedMonth] = useState(
     months[new Date().getMonth()]
   );
@@ -53,6 +56,10 @@ function ManageDonation() {
 
   useEffect(() => {
     fetchMembers();
+    // Ensure the initial selected year is within the new range if it's outside
+    if (year < startYear || year > endYear) {
+      setYear(startYear); // Default to the first year in the new range
+    }
   }, []);
 
   const showPopup = (message, type) => {
@@ -61,9 +68,12 @@ function ManageDonation() {
   };
 
   const toggleRoll = (roll) => {
-    setSelectedRolls((prev) =>
-      prev.includes(roll) ? prev.filter((r) => r !== roll) : [...prev, roll]
-    );
+    setSelectedRolls((prev) => {
+      if (prev.length === 1 && prev[0] === roll) {
+        return [];
+      }
+      return [roll];
+    });
   };
 
   const handleTabChange = (newTab) => {
@@ -87,35 +97,35 @@ function ManageDonation() {
     try {
       setLoading(true);
 
-      for (const roll of selectedRolls) {
-        const payload = {
-          RollNumber: roll,
-          Year: String(year),
-          Month: selectedMonth,
-          Amount: amount,
-        };
+      const roll = selectedRolls[0];
 
-        const apiUrl =
-          tab === "add"
-            ? `${API_URL}/donations/add`
-            : `${API_URL}/donations/delete`;
+      const payload = {
+        RollNumber: roll,
+        Year: String(year),
+        Month: selectedMonth,
+        Amount: amount,
+      };
 
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+      const apiUrl =
+        tab === "add"
+          ? `${API_URL}/donations/add`
+          : `${API_URL}/donations/delete`;
 
-        if (!response.ok) {
-          const errorData = await response.text();
-          throw new Error(errorData || "Something went wrong");
-        }
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || "Something went wrong");
       }
 
       showPopup(
         tab === "add"
-          ? "Donations added successfully!"
-          : "Donations deleted successfully!",
+          ? "Donation added successfully!"
+          : "Donation deleted successfully!",
         "success"
       );
 
@@ -157,14 +167,14 @@ function ManageDonation() {
         <div className="flex justify-center mb-8">
           <button
             onClick={() => handleTabChange("add")}
-            className={`px-8 py-3 rounded-l-full border text-lg shadow-md ${
+            className={`px-8 py-3 rounded-l-full text-lg shadow-md ${
               tab === "add" ? "font-semibold" : ""
             }`}
             style={{
               background:
                 tab === "add"
                   ? `linear-gradient(to right, ${theme.colors.success}, ${theme.colors.success})`
-                  : theme.colors.surface,
+                  : theme.colors.neutralLight,
               color: tab === "add" ? "#ffffff" : theme.colors.primary,
               borderColor: theme.colors.primaryLight,
             }}
@@ -173,14 +183,14 @@ function ManageDonation() {
           </button>
           <button
             onClick={() => handleTabChange("delete")}
-            className={`px-8 py-3 rounded-r-full border text-lg shadow-md ${
+            className={`px-8 py-3 rounded-r-full text-lg shadow-md ${
               tab === "delete" ? "font-semibold" : ""
             }`}
             style={{
               background:
                 tab === "delete"
                   ? `linear-gradient(to right, ${theme.colors.danger}, ${theme.colors.danger})`
-                  : theme.colors.surface,
+                  : theme.colors.neutralLight,
               color: tab === "delete" ? "#ffffff" : theme.colors.primary,
               borderColor: theme.colors.primaryLight,
             }}
@@ -192,10 +202,9 @@ function ManageDonation() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="rounded-3xl shadow-xl p-8 space-y-6 border"
+          className="rounded-3xl shadow-xl p-8 space-y-6"
           style={{
-            backgroundColor: theme.colors.background,
-            borderColor: theme.colors.primaryLight,
+            backgroundColor: theme.colors.neutralLight
           }}
         >
           <div className="grid sm:grid-cols-3 gap-4">
@@ -203,7 +212,7 @@ function ManageDonation() {
               value={year}
               onChange={(e) => setYear(e.target.value)}
               className="border p-3 rounded-xl shadow-md"
-              style={{ backgroundColor: theme.colors.surface }}
+              style={{ backgroundColor: theme.colors.neutralLight }}
             >
               {years.map((y) => (
                 <option key={y} value={y}>
@@ -216,7 +225,7 @@ function ManageDonation() {
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="border p-3 rounded-xl shadow-md"
-              style={{ backgroundColor: theme.colors.surface }}
+              style={{ backgroundColor: theme.colors.neutralLight }}
             >
               {months.map((m) => (
                 <option key={m} value={m}>
@@ -232,7 +241,7 @@ function ManageDonation() {
               placeholder="Enter Donation Amount"
               required={tab === "add"}
               className="border p-3 rounded-xl shadow-md"
-              style={{ backgroundColor: theme.colors.surface }}
+              style={{ backgroundColor: theme.colors.neutralLight }}
               min="0"
             />
           </div>
@@ -246,7 +255,7 @@ function ManageDonation() {
                 background: `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`,
               }}
             >
-              Select Roll Number(s)
+              Select Roll Number
             </button>
           </div>
 
@@ -287,7 +296,7 @@ function ManageDonation() {
                 className="text-center font-bold text-xl pt-6 pb-4"
                 style={{ color: theme.colors.primary }}
               >
-                Select Roll Numbers
+                Select Roll Number
               </h2>
               <button
                 onClick={() => setShowPopupRoll(false)}
@@ -305,7 +314,7 @@ function ManageDonation() {
               {members.length > 0 ? (
                 members.map((member) => {
                   const roll = String(member.RollNumber);
-                  const isSelected = selectedRolls.includes(roll);
+                  const isSelected = selectedRolls.length === 1 && selectedRolls[0] === roll;
 
                   return (
                     <button

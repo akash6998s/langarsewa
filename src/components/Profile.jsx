@@ -102,7 +102,6 @@ const Profile = () => {
       <div
         className="w-full max-w-3xl p-8 "
         style={{
-          backgroundColor: theme.colors.surface,
           borderColor: theme.colors.secondaryLight,
           color: theme.colors.neutralDark,
         }}

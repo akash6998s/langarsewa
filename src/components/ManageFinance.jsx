@@ -2,8 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import Loader from "./Loader";
 import Popup from "./Popup";
 import { theme } from "../theme";
-import { Filter } from "lucide-react";
-
+import { Filter, Copy } from "lucide-react";
 
 const ManageFinance = () => {
   const [members, setMembers] = useState([]);
@@ -20,7 +19,7 @@ const ManageFinance = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [popup, setPopup] = useState({ message: "", type: "" });
-  const [donationFilter, setDonationFilter] = useState("all"); // new filter state
+  const [donationFilter, setDonationFilter] = useState("all");
 
   const months = [
     "January",
@@ -50,6 +49,48 @@ const ManageFinance = () => {
       prev === "all" ? "paid" : prev === "paid" ? "unpaid" : "all"
     );
   };
+
+  // --- MODIFIED copyFilteredMemberNames FUNCTION ---
+  const copyFilteredMemberNames = async () => {
+    const names = filteredMembers.map((member) =>
+      `${member.Name} ${member.LastName}`.trim()
+    );
+    const textToCopy = names.join("\n");
+
+    try {
+      // Try the modern Clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(textToCopy);
+        showPopup("Names copied to clipboard!", "success");
+      } else {
+        // Fallback for older browsers or environments without full Clipboard API support
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "fixed"; // Prevents scrolling to bottom of page
+        textArea.style.opacity = 0; // Make it invisible
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          const successful = document.execCommand("copy");
+          if (successful) {
+            showPopup("Names copied to clipboard! (Fallback)", "success");
+          } else {
+            throw new Error("Failed to copy using execCommand.");
+          }
+        } catch (err) {
+          console.error("Fallback copy failed:", err);
+          showPopup("Failed to copy names. Please copy manually.", "error");
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
+    } catch (err) {
+      console.error("Clipboard API copy failed:", err);
+      showPopup("Failed to copy names. Please copy manually.", "error");
+    }
+  };
+  // --- END MODIFIED FUNCTION ---
 
   useEffect(() => {
     const fetchData = async () => {
@@ -159,7 +200,7 @@ const ManageFinance = () => {
         color: theme.colors.neutralDark,
       }}
     >
-      <div className="mx-auto px-4 pt-4 max-w-4xl pb-20">
+      <div className="mx-auto pt-4 pb-20">
         <div className="flex justify-center">
           <h1
             className="text-3xl md:text-5xl font-extrabold text-center mb-12 tracking-wider uppercase drop-shadow-lg relative inline-block"
@@ -192,7 +233,7 @@ const ManageFinance = () => {
               ? isDonation
                 ? theme.colors.success
                 : theme.colors.danger
-              : theme.colors.surface;
+              : theme.colors.neutralLight;
             const textColor = isActive ? "#ffffff" : theme.colors.primary;
 
             return (
@@ -204,7 +245,7 @@ const ManageFinance = () => {
                 }}
                 className={`px-10 py-4 ${
                   isDonation ? "rounded-l-full" : "rounded-r-full"
-                } border text-lg font-semibold shadow-md`}
+                } text-lg font-semibold shadow-md`}
                 style={{
                   borderColor: theme.colors.primaryLight,
                   background: bgColor,
@@ -226,7 +267,7 @@ const ManageFinance = () => {
               className="border rounded px-4 py-2 text-sm shadow-sm w-1/2"
               style={{
                 borderColor: theme.colors.primaryLight,
-                backgroundColor: theme.colors.surface,
+                backgroundColor: theme.colors.neutralLight,
               }}
             >
               {years.map((year) => (
@@ -242,7 +283,7 @@ const ManageFinance = () => {
               className="border rounded px-4 py-2 text-sm shadow-sm w-1/2"
               style={{
                 borderColor: theme.colors.primaryLight,
-                backgroundColor: theme.colors.surface,
+                backgroundColor: theme.colors.neutralLight,
               }}
             >
               {months.map((month) => (
@@ -265,7 +306,7 @@ const ManageFinance = () => {
             className="border px-4 py-2 rounded text-sm shadow-sm w-full"
             style={{
               borderColor: theme.colors.primaryLight,
-              backgroundColor: theme.colors.surface,
+              backgroundColor: theme.colors.neutralLight,
             }}
           />
         </div>
@@ -275,14 +316,14 @@ const ManageFinance = () => {
           <div
             className="rounded-2xl shadow-xl border overflow-hidden"
             style={{
-              background: theme.colors.surface,
+              background: theme.colors.neutralLight,
               borderColor: theme.colors.primaryLight,
             }}
           >
             <div
               className="px-3 py-3 rounded-t-2xl border-b flex justify-between items-center"
               style={{
-                background: theme.colors.surfaceLight,
+                background: theme.colors.neutralLightLight,
                 borderColor: theme.colors.primaryLight,
                 color: theme.colors.primary,
               }}
@@ -355,6 +396,20 @@ const ManageFinance = () => {
                 )}
               </tbody>
             </table>
+            {/* COPY BUTTON IS NOW HERE, at the bottom of the table */}
+            <div
+              className="p-3 flex justify-center border-t"
+              style={{ borderColor: theme.colors.primaryLight }}
+            >
+              <button
+                onClick={copyFilteredMemberNames}
+                className="flex items-center gap-2 text-sm px-4 py-2 rounded bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 shadow-sm transition"
+                title="Copy filtered member names"
+              >
+                <Copy size={16} />
+                Copy Filtered Names
+              </button>
+            </div>
           </div>
         )}
 
@@ -363,14 +418,14 @@ const ManageFinance = () => {
           <div
             className="rounded-2xl shadow-xl border overflow-hidden"
             style={{
-              background: theme.colors.surface,
+              background: theme.colors.neutralLight,
               borderColor: theme.colors.primaryLight,
             }}
           >
             <div
               className="px-3 py-3 rounded-t-2xl border-b flex justify-between items-center"
               style={{
-                background: theme.colors.surfaceLight,
+                background: theme.colors.neutralLightLight,
                 borderColor: theme.colors.primaryLight,
                 color: theme.colors.primary,
               }}
@@ -476,10 +531,7 @@ const Card = ({ label, value }) => {
       <div className="flex items-center gap-3">
         <div
           className="h-10 w-10 rounded-full flex items-center justify-center text-lg shadow-sm"
-          style={{
-            backgroundColor: textColor,
-            color: "#fff",
-          }}
+          style={{ backgroundColor: textColor, color: "#fff" }}
         >
           {icon}
         </div>

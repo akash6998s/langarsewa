@@ -7,7 +7,7 @@ import {
   CircleUser,
   ShieldCheck,
 } from "lucide-react";
-import UserProfileDropdown from "./UserProfileDropdown";
+// import UserProfileDropdown from "./UserProfileDropdown";
 import { theme } from "../theme";
 
 function Navbar() {
@@ -21,6 +21,13 @@ function Navbar() {
 
   const { colors, fonts } = theme;
 
+  // We define the color for inactive links (white) and the active link (using a contrasting color)
+  const inactiveLinkColor = colors.neutralLight; 
+  // We'll use primaryLight for the active text color for a better visual contrast
+  const activeLinkColor = colors.primaryLight; 
+  // We'll use a slightly darker primary color for the active background highlight
+  const activeBackgroundColor = ""; 
+
   return (
     <>
       {/* Top Right Profile on mobile (hide in superadmin) */}
@@ -29,9 +36,9 @@ function Navbar() {
           className="w-full z-[101] md:hidden"
           style={{ fontFamily: fonts.body }}
         >
-          <div className="flex items-center justify-end px-4 py-2">
+          {/* <div className="flex items-center justify-end px-4 py-2">
             <UserProfileDropdown />
-          </div>
+          </div> */}
         </div>
       )}
 
@@ -39,7 +46,7 @@ function Navbar() {
       <nav
         className="fixed bottom-0 z-50 left-0 right-0 shadow-lg md:static md:shadow-none md:px-6 md:py-3 md:flex md:items-center md:justify-end"
         style={{
-          backgroundColor: colors.neutralLight,
+          backgroundColor: colors.primary, // Deep Navy Blue
           fontFamily: fonts.body,
           borderTop: `1px solid ${colors.primaryLight}`,
         }}
@@ -55,14 +62,16 @@ function Navbar() {
               <NavLink to={to}>
                 {({ isActive }) => (
                   <div
-                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all"
+                    className="flex flex-col items-center gap-1 px-2 py-2 rounded-xl transition-all"
                     style={{
-                      backgroundColor: isActive
-                        ? colors.secondaryLight
-                        : "transparent",
-                      color: isActive ? colors.primary : colors.neutralDark,
+                      // Apply a subtle background color only when active
+                      backgroundColor: isActive ? activeBackgroundColor : "transparent",
+                      // Apply active or inactive link color
+                      color: isActive ? activeLinkColor : inactiveLinkColor,
                       fontWeight: isActive ? "700" : "500",
                       fontFamily: fonts.body,
+                      // Ensure a smooth transition for the background color
+                      transition: "background-color 0.3s, color 0.3s",
                     }}
                   >
                     {icon}
@@ -81,12 +90,14 @@ function Navbar() {
                   <div
                     className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all"
                     style={{
-                      backgroundColor: isActive
-                        ? colors.secondaryLight
-                        : "transparent",
-                      color: isActive ? colors.primary : colors.neutralDark,
+                      // Apply a subtle background color only when active
+                      backgroundColor: isActive ? activeBackgroundColor : "transparent",
+                      // Apply active or inactive link color
+                      color: isActive ? activeLinkColor : inactiveLinkColor,
                       fontWeight: isActive ? "700" : "500",
                       fontFamily: fonts.body,
+                      // Ensure a smooth transition for the background color
+                      transition: "background-color 0.3s, color 0.3s",
                     }}
                   >
                     <ShieldCheck size={20} />

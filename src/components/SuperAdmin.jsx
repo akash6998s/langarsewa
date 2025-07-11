@@ -7,7 +7,7 @@ import ManageExpense from "./ManageExpense";
 import ManageFinance from "./ManageFinance";
 import ManageMembers from "./ManageMembers";
 import MembersActivity from "./MembersActivity";
-import UserProfileDropdown from "./UserProfileDropdown";
+// import UserProfileDropdown from "./UserProfileDropdown";
 import UserStatus from "./UserStatus";
 
 const SuperAdmin = () => {
@@ -77,7 +77,7 @@ const SuperAdmin = () => {
     <div
       className="flex min-h-screen"
       style={{
-        backgroundColor: theme.colors.neutralLight,
+        background: theme.colors.background,
         color: theme.colors.neutralDark,
         fontFamily: theme.fonts.body,
       }}
@@ -174,9 +174,9 @@ const SuperAdmin = () => {
               style={{ color: theme.colors.primary }}
             />
           )}
-          <div className="ml-auto">
+          {/* <div className="ml-auto">
             <UserProfileDropdown />
-          </div>
+          </div> */}
         </div>
 
         {/* Page Content */}

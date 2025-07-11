@@ -2,11 +2,11 @@ import splashImg from './assets/splash.png';
 
 function Splash() {
   return (
-    <div className="flex items-center justify-center w-screen h-screen bg-white">
+    <div className="w-screen h-screen overflow-hidden bg-white">
       <img
         src={splashImg}
         alt="Splash"
-        className="w-full h-full object-contain"
+        className="w-full h-full object-cover"
       />
     </div>
   );

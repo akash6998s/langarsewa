@@ -2,14 +2,19 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "./../../components/Loader";
 import { theme } from "../../theme";
+import logo from "/favicon.png";
 
 const API_URL = "https://langar-backend.onrender.com";
 
 const Login = () => {
   const navigate = useNavigate();
 
-  const [loginId, setLoginId] = useState(localStorage.getItem("lastLoginId") || "");
-  const [password, setPassword] = useState(localStorage.getItem("lastPassword") || "");
+  const [loginId, setLoginId] = useState(
+    localStorage.getItem("lastLoginId") || ""
+  );
+  const [password, setPassword] = useState(
+    localStorage.getItem("lastPassword") || ""
+  );
 
   const [signupRollNo, setSignupRollNo] = useState("");
   const [signupName, setSignupName] = useState("");
@@ -48,7 +53,9 @@ const Login = () => {
         (member) => String(member.RollNumber) === String(signupRollNo)
       );
       if (selected) {
-        setSignupName(`${selected.Name || ""} ${selected.LastName || ""}`.trim());
+        setSignupName(
+          `${selected.Name || ""} ${selected.LastName || ""}`.trim()
+        );
       } else {
         setSignupName("");
       }
@@ -142,21 +149,40 @@ const Login = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 font-inter"
-      style={{ background: theme.colors.secondaryLight }}
+      className="flex items-center flex-col justify-center px-4 py-10 font-inter"
+      style={{
+        background: theme.colors.background, // Uses background color from theme
+      }}
     >
+      {/* Logo Section */}
+      <div className="flex w-full justify-center mb-10">
+        <img
+          src={logo}
+          alt="Langar Sewa"
+          className="w-32 h-32 object-contain shadow-2xl rounded-full p-2"
+          style={{
+            backgroundColor: theme.colors.neutralLight,
+            border: `1px solid ${theme.colors.primary}`,
+          }}
+        />
+      </div>
+
+      {/* Login/Signup Card Container */}
       <div
-        className="max-w-md w-full rounded-3xl shadow-xl p-10 sm:p-12 border"
+        className="max-w-md w-full rounded-3xl shadow-2xl p-10 sm:p-12 border transition-all duration-500 ease-in-out transform hover:scale-[1.01]"
         style={{
           backgroundColor: theme.colors.neutralLight,
           borderColor: theme.colors.secondaryLight,
+          backdropFilter: "blur(5px)", // Subtle blur effect for a modern feel
+          border: "1px solid rgba(255, 255, 255, 0.4)",
         }}
       >
+        {/* Title */}
         <h2
-          className="text-3xl font-extrabold mb-8 text-center tracking-wide"
+          className="text-4xl font-extrabold mb-10 text-center tracking-wide drop-shadow-md"
           style={{ color: theme.colors.primary }}
         >
-          {isLoginMode ? "Welcome Back" : "Create Your Account"}
+          {isLoginMode ? "Welcome Back" : "Create Account"}
         </h2>
 
         {isLoginMode ? (
@@ -171,7 +197,6 @@ const Login = () => {
                 borderColor: theme.colors.secondaryLight,
                 color: theme.colors.primary,
                 backgroundColor: "#fff",
-                boxShadow: `0 0 0 0.25rem ${theme.colors.secondaryLight}40`,
               }}
               required
             />
@@ -204,7 +229,10 @@ const Login = () => {
             >
               Login
             </button>
-            <p className="text-center text-sm" style={{ color: theme.colors.secondary }}>
+            <p
+              className="text-center text-sm"
+              style={{ color: theme.colors.secondary }}
+            >
               Don’t have an account?{" "}
               <button
                 type="button"
@@ -281,7 +309,10 @@ const Login = () => {
               Sign Up
             </button>
 
-            <p className="text-center text-sm" style={{ color: theme.colors.secondary }}>
+            <p
+              className="text-center text-sm"
+              style={{ color: theme.colors.secondary }}
+            >
               Already have an account?{" "}
               <button
                 type="button"

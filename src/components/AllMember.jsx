@@ -77,7 +77,7 @@ const AllMember = () => {
             key={member.RollNumber}
             className="rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border flex flex-col items-center"
             style={{
-              backgroundColor: theme.colors.surface,
+              backgroundColor: theme.colors.neutralLight,
               borderColor: theme.colors.secondaryLight,
             }}
           >

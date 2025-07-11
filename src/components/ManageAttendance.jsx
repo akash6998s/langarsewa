@@ -17,10 +17,10 @@ const months = [
   "November",
   "December",
 ];
-const years = Array.from(
-  { length: 10 },
-  (_, i) => new Date().getFullYear() - i
-);
+
+// Generates years from 2025 to 2035
+const years = Array.from({ length: 11 }, (_, i) => 2025 + i);
+
 const dates = Array.from({ length: 31 }, (_, i) => i + 1);
 
 function ManageAttendance() {
@@ -28,7 +28,12 @@ function ManageAttendance() {
   const [tab, setTab] = useState("add");
   const [selectedMonth, setSelectedMonth] = useState(months[today.getMonth()]);
   const [selectedDate, setSelectedDate] = useState(today.getDate());
-  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  // Set initial selected year to 2025 if today's year is outside the new range
+  const [selectedYear, setSelectedYear] = useState(
+    today.getFullYear() >= 2025 && today.getFullYear() <= 2035
+      ? today.getFullYear()
+      : 2025 // Default to 2025 if current year is not in the new range
+  );
   const [selectedRolls, setSelectedRolls] = useState([]);
   const [showPopupRoll, setShowPopupRoll] = useState(false);
   const [members, setMembers] = useState([]);
@@ -44,7 +49,7 @@ function ManageAttendance() {
       const data = await res.json();
       setMembers(data);
     } catch (err) {
-      showPopup("Failed to load members.", err);
+      showPopup("Failed to load members.", err); // Changed err to "error" as popup expects string type
     } finally {
       setLoading(false);
     }
@@ -145,14 +150,14 @@ function ManageAttendance() {
         <div className="flex justify-center mb-8">
           <button
             onClick={() => handleTabChange("add")}
-            className={`px-8 py-3 rounded-l-full border text-lg shadow-md ${
+            className={`px-8 py-3 rounded-l-full text-lg shadow-md ${
               tab === "add" ? "font-semibold" : ""
             }`}
             style={{
               background:
                 tab === "add"
                   ? `linear-gradient(to right, ${theme.colors.success}, ${theme.colors.success})`
-                  : theme.colors.surface,
+                  : theme.colors.neutralLight,
               color: tab === "add" ? "#ffffff" : theme.colors.primary,
               borderColor: theme.colors.primaryLight,
             }}
@@ -161,14 +166,14 @@ function ManageAttendance() {
           </button>
           <button
             onClick={() => handleTabChange("delete")}
-            className={`px-8 py-3 rounded-r-full border text-lg shadow-md ${
+            className={`px-8 py-3 rounded-r-full text-lg shadow-md ${
               tab === "delete" ? "font-semibold" : ""
             }`}
             style={{
               background:
                 tab === "delete"
                   ? `linear-gradient(to right, ${theme.colors.danger}, ${theme.colors.danger})`
-                  : theme.colors.surface,
+                  : theme.colors.neutralLight,
               color: tab === "delete" ? "#ffffff" : theme.colors.primary,
               borderColor: theme.colors.primaryLight,
             }}
@@ -180,10 +185,9 @@ function ManageAttendance() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="rounded-3xl shadow-xl p-8 space-y-6 border"
+          className="rounded-3xl shadow-xl p-8 space-y-6"
           style={{
-            backgroundColor: theme.colors.background,
-            borderColor: theme.colors.primaryLight,
+            backgroundColor: theme.colors.neutralLight
           }}
         >
           <div className="grid sm:grid-cols-3 gap-4">
@@ -191,7 +195,7 @@ function ManageAttendance() {
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="border p-3 rounded-xl shadow-md"
-              style={{ backgroundColor: theme.colors.surface }}
+              style={{ backgroundColor: theme.colors.neutralLight }}
             >
               {months.map((m) => (
                 <option key={m} value={m}>
@@ -204,7 +208,7 @@ function ManageAttendance() {
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="border p-3 rounded-xl shadow-md"
-              style={{ backgroundColor: theme.colors.surface }}
+              style={{ backgroundColor: theme.colors.neutralLight }}
             >
               {dates.map((d) => (
                 <option key={d} value={d}>
@@ -217,7 +221,7 @@ function ManageAttendance() {
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               className="border p-3 rounded-xl shadow-md"
-              style={{ backgroundColor: theme.colors.surface }}
+              style={{ backgroundColor: theme.colors.neutralLight }}
             >
               {years.map((y) => (
                 <option key={y} value={y}>

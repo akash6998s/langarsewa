@@ -16,8 +16,18 @@ const Activity = () => {
   const [showSummary, setShowSummary] = useState(false);
 
   const months = [
-    "january", "february", "march", "april", "may", "june",
-    "july", "august", "september", "october", "november", "december",
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
   ];
 
   const daysInMonth = (year, monthIndex) =>
@@ -40,7 +50,9 @@ const Activity = () => {
         Object.keys(attendanceRaw).forEach((year) => {
           formattedAttendance[year] = {};
           Object.keys(attendanceRaw[year]).forEach((month) => {
-            formattedAttendance[year][month.toLowerCase()] = attendanceRaw[year][month]
+            formattedAttendance[year][month.toLowerCase()] = attendanceRaw[
+              year
+            ][month]
               .split(",")
               .map((day) => parseInt(day.trim()))
               .filter((num) => !isNaN(num));
@@ -135,7 +147,7 @@ const Activity = () => {
 
   return (
     <div
-      className="max-w-7xl mx-auto px-2 mt-4 pb-20 rounded-xl shadow-xl min-h-[calc(100vh-120px)]"
+      className="max-w-7xl mx-auto px-2 mt-4 pb-20"
       style={{ fontFamily: theme.fonts.body, color: theme.colors.neutralDark }}
     >
       <header className="mb-10 text-center select-none">
@@ -153,13 +165,19 @@ const Activity = () => {
             {showSummary ? "Hide Summary" : "Show Summary"}
           </h2>
           <svg
-            className={`w-8 h-8 transform ${showSummary ? "rotate-90" : "rotate-0"}`}
+            className={`w-8 h-8 transform ${
+              showSummary ? "rotate-90" : "rotate-0"
+            }`}
             fill="none"
             stroke={theme.colors.primary}
             strokeWidth="2"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </div>
       </header>
@@ -173,13 +191,24 @@ const Activity = () => {
               backgroundColor: theme.colors.neutralLight,
             }}
           >
-            <h3 className="text-xl font-semibold mb-2" style={{ color: theme.colors.primary }}>
+            <h3
+              className="text-xl font-semibold mb-2"
+              style={{ color: theme.colors.secondary }}
+            >
               Attendance Summary
             </h3>
-            <p className="text-5xl font-bold">{selectedMonthStats.percent}%</p>
-            <p className="mt-2">
-              Present: {selectedMonthStats.presentDays} / {selectedMonthStats.totalDays} days in{" "}
-              {months[selectedMonth].charAt(0).toUpperCase() + months[selectedMonth].slice(1)} {selectedYear}
+            <p
+              style={{ color: theme.colors.primary }}
+              className="text-5xl font-bold"
+            >
+              {selectedMonthStats.percent}%
+            </p>
+            <p style={{ color: theme.colors.secondary }} className="mt-2">
+              Present: {selectedMonthStats.presentDays} /{" "}
+              {selectedMonthStats.totalDays} days in{" "}
+              {months[selectedMonth].charAt(0).toUpperCase() +
+                months[selectedMonth].slice(1)}{" "}
+              {selectedYear}
             </p>
           </div>
 
@@ -190,11 +219,19 @@ const Activity = () => {
               backgroundColor: theme.colors.neutralLight,
             }}
           >
-            <h3 className="text-2xl font-semibold mb-2" style={{ color: theme.colors.primary }}>
+            <h3
+              className="text-2xl font-semibold mb-2"
+              style={{ color: theme.colors.secondary }}
+            >
               Total Donation
             </h3>
-            <p className="text-6xl font-bold">₹{yearlyDonation.toLocaleString()}</p>
-            <p className="mt-2" style={{ color: theme.colors.tertiary }}>
+            <p
+              style={{ color: theme.colors.primary }}
+              className="text-6xl font-bold"
+            >
+              ₹{yearlyDonation.toLocaleString()}
+            </p>
+            <p className="mt-2" style={{ color: theme.colors.secondary }}>
               For the year {selectedYear}
             </p>
           </div>
@@ -247,9 +284,8 @@ const Activity = () => {
           className="w-1/2 py-3 font-semibold rounded-lg"
           style={{
             backgroundColor:
-              activeTab === "attendance" ? theme.colors.neutralLight : "transparent",
-            color:
-              activeTab === "attendance" ? theme.colors.neutralDark : theme.colors.neutralLight,
+              activeTab === "attendance" ? theme.colors.neutralLight : theme.colors.primary,
+            color: activeTab === "attendance" ? theme.colors.primary : theme.colors.neutralLight,
           }}
         >
           Attendance
@@ -259,9 +295,8 @@ const Activity = () => {
           className="w-1/2 py-3 font-semibold rounded-lg"
           style={{
             backgroundColor:
-              activeTab === "donations" ? theme.colors.neutralLight : "transparent",
-            color:
-              activeTab === "donations" ? theme.colors.neutralDark : theme.colors.neutralLight,
+              activeTab === "donations" ? theme.colors.neutralLight : theme.colors.primary,
+            color: activeTab === "donations" ? theme.colors.primary : theme.colors.neutralLight,
           }}
         >
           Donations
@@ -269,21 +304,40 @@ const Activity = () => {
       </div>
 
       {activeTab === "attendance" && (
-        <div className="overflow-x-auto rounded-xl shadow-lg border"
-          style={{ borderColor: theme.colors.tertiary }}
+        <div
+          className="overflow-x-auto rounded-xl shadow-lg border-collapse border"
         >
           <table className="min-w-[900px] w-full border-collapse text-sm">
-            <thead style={{ backgroundColor: theme.colors.primary, color: theme.colors.neutralLight }}>
+            <thead
+              style={{
+                backgroundColor: theme.colors.secondaryLight,
+              }}
+            >
               <tr>
-                <th className="py-2 px-4 text-left sticky top-0 left-0 z-30"
-                  style={{ backgroundColor: theme.colors.primary, borderColor: theme.colors.tertiary }}
-                >Month</th>
+                <th
+                  className="py-2 px-4 text-left sticky top-0 left-0 z-30"
+                  style={{
+                    backgroundColor: theme.colors.primary,
+                    color: theme.colors.neutralLight,
+                    borderColor: theme.colors.secondaryLight,
+                  }}
+                >
+                  Month
+                </th>
                 {[...Array(31)].map((_, i) => {
                   const date = new Date(parseInt(selectedYear), 0, i + 1);
-                  const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
+                  const dayName = date.toLocaleDateString("en-US", {
+                    weekday: "short",
+                  });
                   return (
-                    <th key={i} className="py-2 px-2 text-center text-xs border sticky top-0 z-20"
-                      style={{ backgroundColor: theme.colors.primary, borderColor: theme.colors.tertiary }}
+                    <th
+                      key={i}
+                      className="py-2 px-2 text-center text-xs border sticky top-0 z-20"
+                      style={{
+                        backgroundColor: theme.colors.primary,
+                        borderColor: theme.colors.secondaryLight,
+                        color: theme.colors.neutralLight
+                      }}
                       title={dayName}
                     >
                       {i + 1}
@@ -297,14 +351,21 @@ const Activity = () => {
               {months.map((monthName, monthIndex) => {
                 const yearData = attendanceData.attendance[selectedYear] || {};
                 const daysPresent = yearData[monthName] || [];
-                const totalDays = daysInMonth(parseInt(selectedYear), monthIndex);
+                const totalDays = daysInMonth(
+                  parseInt(selectedYear),
+                  monthIndex
+                );
 
                 const rowBg = monthIndex % 2 === 0 ? "#f0f0f0" : "#ffffff";
 
                 return (
                   <tr key={monthName} style={{ backgroundColor: rowBg }}>
-                    <td className="py-2 px-4 font-medium capitalize sticky left-0 z-20 border"
-                      style={{ backgroundColor: rowBg, borderColor: theme.colors.tertiary }}
+                    <td
+                      className="py-2 px-4 font-medium capitalize sticky left-0 z-20 border"
+                      style={{
+                        backgroundColor: rowBg,
+                        borderColor: theme.colors.secondaryLight,
+                      }}
                     >
                       {monthName}
                     </td>
@@ -313,17 +374,25 @@ const Activity = () => {
                       const isPresent = daysPresent.includes(day);
                       const isInvalid = day > totalDays;
                       return (
-                        <td key={dayIndex} className="text-center border"
+                        <td
+                          key={dayIndex}
+                          className="text-center border"
                           style={{
                             color: isInvalid
                               ? theme.colors.tertiary
                               : isPresent
-                                ? theme.colors.success
-                                : theme.colors.tertiary,
-                            borderColor: theme.colors.tertiary,
+                              ? theme.colors.success
+                              : theme.colors.tertiary,
+                            borderColor: theme.colors.secondaryLight,
                           }}
                         >
-                          {isInvalid ? <span className="text-xl">•</span> : isPresent ? <Check className="w-4 h-4 mx-auto" /> : ""}
+                          {isInvalid ? (
+                            <span className="text-xl">•</span>
+                          ) : isPresent ? (
+                            <Check className="w-4 h-4 mx-auto" />
+                          ) : (
+                            ""
+                          )}
                         </td>
                       );
                     })}
@@ -336,28 +405,53 @@ const Activity = () => {
       )}
 
       {activeTab === "donations" && (
-        <div className="overflow-x-auto rounded-xl shadow-lg border"
+        <div
+          className="overflow-x-auto rounded-xl shadow-lg border"
           style={{ borderColor: theme.colors.tertiary }}
         >
           <table className="w-full border-collapse text-base">
-            <thead style={{ backgroundColor: theme.colors.primary, color: theme.colors.neutralLight }}>
+            <thead
+              style={{
+                backgroundColor: theme.colors.secondaryLight,
+              }}
+            >
               <tr>
-                <th className="py-2 px-4 text-left border" style={{ borderColor: theme.colors.tertiary }}>Month</th>
-                <th className="py-2 px-4 text-left border" style={{ borderColor: theme.colors.tertiary }}>Amount</th>
+                <th
+                  className="py-2 px-4 text-left border"
+                  style={{ borderColor: theme.colors.tertiary }}
+                >
+                  Month
+                </th>
+                <th
+                  className="py-2 px-4 text-left border"
+                  style={{ borderColor: theme.colors.tertiary }}
+                >
+                  Amount
+                </th>
               </tr>
             </thead>
             <tbody>
               {months.map((monthName, idx) => {
-                const donation = donationData.donations_summary[selectedYear] || {};
+                const donation =
+                  donationData.donations_summary[selectedYear] || {};
                 const amount = donation[monthName] || 0;
 
                 const rowBg = idx % 2 === 0 ? "#f0f0f0" : "#ffffff";
 
                 return (
                   <tr key={monthName} style={{ backgroundColor: rowBg }}>
-                    <td className="py-2 px-4 font-medium capitalize" style={{ borderColor: theme.colors.tertiary }}>{monthName}</td>
-                    <td className="py-2 px-4 font-semibold"
-                      style={{ color: theme.colors.success, borderColor: theme.colors.tertiary }}
+                    <td
+                      className="py-2 px-4 font-medium capitalize"
+                      style={{ borderColor: theme.colors.tertiary }}
+                    >
+                      {monthName}
+                    </td>
+                    <td
+                      className="py-2 px-4 font-semibold"
+                      style={{
+                        color: theme.colors.success,
+                        borderColor: theme.colors.tertiary,
+                      }}
                     >
                       ₹{amount.toLocaleString()}
                     </td>

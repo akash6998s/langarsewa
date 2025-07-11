@@ -1,22 +1,34 @@
 export const theme = {
   colors: {
-    primary: "#475569", // Slate-700 / Darker Blue-Gray
-    primaryLight: "#64748B", // Slate-500 / Medium Blue-Gray
-    secondary: "#A8A29E", // Stone-400 / Warm Gray
-    secondaryLight: "#D6D3CD", // Stone-300 / Lighter Warm Gray
-    tertiary: "#94A3B8", // Slate-400 / Light Blue-Gray
-    neutralLight: "#F5F5F4", // Stone-100 / Very Light Warm Gray
-    neutralDark: "#292524", // Stone-900 / Very Dark Brown-Gray
+    // Background – calm and spiritual
+    background: "linear-gradient(180deg, #F5F6F4, #ECEBE4)",
 
-    success: "#3DAF76",         // Forest Green – A robust, natural green.
-    successLight: "#BBF7D0", // Green-200 / Light Success Green
-    dangerLight: "#FECACA", // Red-200 / Light Danger Red
-    danger: "#D64F4F",          // Fiery Red – A clear, direct error color.
+    // Primary – Devotional Indigo Blue
+    primary: "#354A66",           // Muted Indigo
+    primaryLight: "#A3B3CC",      // Soft Blue Gray
 
+    // Secondary – Olive Sage (peaceful, grounded)
+    secondary: "#5A6752",         // Deep olive green
+    secondaryLight: "#C9D2C0",    // Light sage wash
+
+    // Tertiary – Sand / Clay (temple earth tone)
+    tertiary: "#BFA98C",          // Muted clay beige
+    tertiaryLight: "#EFE8DC",     // Dusty white/beige
+
+    // Neutrals – Clean and calm
+    neutralLight: "#FDFCFB",      // Softest white
+    neutralDark: "#2C2C2C",       // Sacred dark text
+
+    // Alerts – Warm but subdued
+    success: "#447A4C",           // Tulsi leaf green
+    successLight: "#D6EFD9",
+
+    danger: "#8B3C3C",            // Muted earthy red
+    dangerLight: "#F4DCDC",
   },
+
   fonts: {
-    heading: "'Lora', serif", // Graceful, elegant, sophisticated
-    body: "'Source Sans Pro', sans-serif", // Highly readable, professional
+    heading: "'EB Garamond', serif",     // Elegant, scriptural
+    body: "'Inter', sans-serif",         // Clean, readable for UI
   },
 };
-  

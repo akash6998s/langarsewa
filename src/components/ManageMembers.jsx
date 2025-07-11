@@ -191,14 +191,14 @@ function ManageMember() {
         <div className="flex justify-center mb-8">
           <button
             onClick={() => setTab("addEdit")}
-            className={`px-8 py-3 rounded-l-full border text-lg shadow-md ${
+            className={`px-8 py-3 rounded-l-full text-lg shadow-md ${
               tab === "addEdit" ? "font-semibold" : ""
             }`}
             style={{
               background:
                 tab === "addEdit"
                   ? `linear-gradient(to right, ${theme.colors.success}, ${theme.colors.success})`
-                  : theme.colors.surface,
+                  : theme.colors.neutralLight,
               color: tab === "addEdit" ? "#ffffff" : theme.colors.primary,
               borderColor: theme.colors.primaryLight,
             }}
@@ -208,14 +208,14 @@ function ManageMember() {
 
           <button
             onClick={() => setTab("delete")}
-            className={`px-8 py-3 rounded-r-full border text-lg shadow-md ${
+            className={`px-8 py-3 rounded-r-full text-lg shadow-md ${
               tab === "delete" ? "font-semibold" : ""
             }`}
             style={{
               background:
                 tab === "delete"
                   ? `linear-gradient(to right, ${theme.colors.danger}, ${theme.colors.danger})`
-                  : theme.colors.surface,
+                  : theme.colors.neutralLight,
               color: tab === "delete" ? "#ffffff" : theme.colors.primary,
               borderColor: theme.colors.primaryLight,
             }}
@@ -228,11 +228,10 @@ function ManageMember() {
         {tab === "addEdit" && (
           <form
             onSubmit={handleAddEdit}
-            className="rounded-3xl shadow-xl p-8 space-y-6 border"
+            className="rounded-3xl shadow-xl p-8 space-y-6"
             style={{
-              backgroundColor: theme.colors.background,
-              borderColor: theme.colors.primaryLight,
-            }}
+                        backgroundColor: theme.colors.neutralLight
+                      }}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="col-span-full">
@@ -240,7 +239,7 @@ function ManageMember() {
                   value={rollNumber}
                   onChange={handleRollNumberChange}
                   className="w-full border p-3 rounded-xl shadow-md"
-                  style={{ backgroundColor: theme.colors.surface }}
+                  style={{ backgroundColor: theme.colors.neutralLight }}
                 >
                   <option value="">Select Roll Number</option>
                   {rollNumbers.map((roll) => (
@@ -262,7 +261,7 @@ function ManageMember() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full border p-3 rounded-xl shadow-md"
-                style={{ backgroundColor: theme.colors.surface }}
+                style={{ backgroundColor: theme.colors.neutralLight }}
                 required
               />
               <input
@@ -271,7 +270,7 @@ function ManageMember() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 className="w-full border p-3 rounded-xl shadow-md"
-                style={{ backgroundColor: theme.colors.surface }}
+                style={{ backgroundColor: theme.colors.neutralLight }}
               />
               <input
                 type="text"
@@ -279,7 +278,7 @@ function ManageMember() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full border p-3 rounded-xl shadow-md"
-                style={{ backgroundColor: theme.colors.surface }}
+                style={{ backgroundColor: theme.colors.neutralLight }}
               />
               <input
                 type="text"
@@ -287,7 +286,7 @@ function ManageMember() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 className="w-full border p-3 rounded-xl shadow-md"
-                style={{ backgroundColor: theme.colors.surface }}
+                style={{ backgroundColor: theme.colors.neutralLight }}
               />
 
               {/* Upload Image */}
@@ -296,7 +295,7 @@ function ManageMember() {
                   className="w-full flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer shadow-md"
                   style={{
                     borderColor: theme.colors.primaryLight,
-                    backgroundColor: theme.colors.surface,
+                    backgroundColor: theme.colors.neutralLight,
                     color: theme.colors.primary,
                   }}
                 >
@@ -349,7 +348,7 @@ function ManageMember() {
               value={delRollNumber}
               onChange={(e) => setDelRollNumber(e.target.value)}
               className="w-full border p-3 rounded-xl shadow-md"
-              style={{ backgroundColor: theme.colors.surface }}
+              style={{ backgroundColor: theme.colors.neutralLight }}
             >
               <option value="">Select Roll Number</option>
               {rollNumbers.map((roll) => (
@@ -366,7 +365,7 @@ function ManageMember() {
                 value={delName}
                 readOnly
                 className="w-full border p-3 rounded-xl shadow-md"
-                style={{ backgroundColor: theme.colors.surface }}
+                style={{ backgroundColor: theme.colors.neutralLight }}
               />
               <input
                 type="text"
@@ -374,7 +373,7 @@ function ManageMember() {
                 value={delLastName}
                 readOnly
                 className="w-full border p-3 rounded-xl shadow-md"
-                style={{ backgroundColor: theme.colors.surface }}
+                style={{ backgroundColor: theme.colors.neutralLight }}
               />
             </div>
 

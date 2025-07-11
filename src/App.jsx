@@ -40,7 +40,7 @@ function App() {
     <div
       className="flex flex-col min-h-full"
       style={{
-        backgroundColor: theme.colors.background,
+        background: theme.colors.background,
         fontFamily: theme.fonts.body,
         scrollBehavior: "smooth",
         WebkitOverflowScrolling: "touch",

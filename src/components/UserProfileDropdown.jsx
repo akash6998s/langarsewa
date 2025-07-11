@@ -45,8 +45,8 @@ function UserProfileDropdown() {
           onClick={() => setIsOpen((prev) => !prev)}
           className="flex items-center gap-2 px-4 py-2 rounded-full shadow-sm"
           style={{
-            backgroundColor: colors.neutralLight,
-            color: colors.primary,
+            backgroundColor: colors.primary,
+            color: "#ffffff",
             border: `1px solid ${colors.primaryLight}`,
           }}
         >
@@ -64,7 +64,7 @@ function UserProfileDropdown() {
           <div
             className="absolute right-0 mt-2 w-56 rounded-3xl shadow-2xl border z-50 overflow-hidden"
             style={{
-              backgroundColor: colors.neutralLight,
+              backgroundColor: colors.primary,
               borderColor: colors.primaryLight,
               fontFamily: fonts.body,
             }}
@@ -74,13 +74,11 @@ function UserProfileDropdown() {
               onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-5 py-3 text-sm transition-all ${
-                  isActive
-                    ? "font-semibold"
-                    : "hover:bg-[rgba(0,0,0,0.03)]"
+                  isActive ? "font-semibold text-[color:var(--secondary)]" : "hover:text-[color:var(--secondary)]"
                 }`
               }
               style={{
-                color: colors.primary,
+                color: "#ffffff",
               }}
             >
               <User size={18} />

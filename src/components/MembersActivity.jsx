@@ -139,7 +139,7 @@ const MembersActivity = () => {
 
   return (
     <div
-      className="max-w-7xl mx-auto px-2 mt-4 pb-20 rounded-xl shadow-xl min-h-[calc(100vh-120px)]"
+      className="max-w-7xl mx-auto mt-4 pb-20 rounded-xl shadow-xl min-h-[calc(100vh-120px)]"
       style={{ fontFamily: theme.fonts.body, color: theme.colors.neutralDark }}
     >
       <h2
@@ -197,13 +197,13 @@ const MembersActivity = () => {
                 backgroundColor: theme.colors.neutralLight,
               }}
             >
-              <h3 className="text-xl font-semibold mb-2" style={{ color: theme.colors.primary }}>
+              <h3 className="text-xl font-semibold mb-2" style={{ color: theme.colors.secondary }}>
                 Attendance Summary
               </h3>
-              <p className="text-5xl font-bold">
+              <p style={{ color: theme.colors.primary }} className="text-5xl font-bold">
                 {getSelectedMonthAttendanceStats().percent}%
               </p>
-              <p className="mt-2">
+              <p style={{ color: theme.colors.secondary }} className="mt-2">
                 Present: {getSelectedMonthAttendanceStats().presentDays} / {getSelectedMonthAttendanceStats().totalDays} days in{" "}
                 {months[selectedMonth].charAt(0).toUpperCase() + months[selectedMonth].slice(1)} {selectedYear}
               </p>
@@ -216,11 +216,11 @@ const MembersActivity = () => {
                 backgroundColor: theme.colors.neutralLight,
               }}
             >
-              <h3 className="text-2xl font-semibold mb-2" style={{ color: theme.colors.primary }}>
+              <h3 className="text-2xl font-semibold mb-2" style={{ color: theme.colors.secondary }}>
                 Total Donation
               </h3>
-              <p className="text-6xl font-bold">₹{calculateYearlyDonationTotal().toLocaleString()}</p>
-              <p className="mt-2" style={{ color: theme.colors.tertiary }}>
+              <p style={{ color: theme.colors.primary }} className="text-6xl font-bold">₹{calculateYearlyDonationTotal().toLocaleString()}</p>
+              <p className="mt-2" style={{ color: theme.colors.secondary }}>
                 For the year {selectedYear}
               </p>
             </div>
@@ -295,20 +295,20 @@ const MembersActivity = () => {
 
           {activeTab === "attendance" && (
             <div className="overflow-x-auto rounded-xl shadow-lg border"
-              style={{ borderColor: theme.colors.tertiary }}
+              style={{ borderColor: theme.colors.secondaryLight }}
             >
               <table className="min-w-[900px] w-full border-collapse text-sm">
                 <thead style={{ backgroundColor: theme.colors.primary, color: theme.colors.neutralLight }}>
                   <tr>
                     <th className="py-2 px-4 text-left sticky top-0 left-0 z-30"
-                      style={{ backgroundColor: theme.colors.primary, borderColor: theme.colors.tertiary }}
+                      style={{ backgroundColor: theme.colors.primary, borderColor: theme.colors.secondaryLight }}
                     >Month</th>
                     {[...Array(31)].map((_, i) => {
                       const date = new Date(parseInt(selectedYear), 0, i + 1);
                       const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
                       return (
                         <th key={i} className="py-2 px-2 text-center text-xs border sticky top-0 z-20"
-                          style={{ backgroundColor: theme.colors.primary, borderColor: theme.colors.tertiary }}
+                          style={{ backgroundColor: theme.colors.primary, borderColor: theme.colors.secondaryLight }}
                           title={dayName}
                         >
                           {i + 1}
@@ -328,7 +328,7 @@ const MembersActivity = () => {
                     return (
                       <tr key={monthName} style={{ backgroundColor: rowBg }}>
                         <td className="py-2 px-4 font-medium capitalize sticky left-0 z-20 border"
-                          style={{ backgroundColor: rowBg, borderColor: theme.colors.tertiary }}
+                          style={{ backgroundColor: rowBg, borderColor: theme.colors.secondaryLight }}
                         >
                           {monthName}
                         </td>
@@ -344,7 +344,7 @@ const MembersActivity = () => {
                                   : isPresent
                                     ? theme.colors.success
                                     : theme.colors.tertiary,
-                                borderColor: theme.colors.tertiary,
+                                borderColor: theme.colors.secondaryLight,
                               }}
                             >
                               {isInvalid ? <span className="text-xl">•</span> : isPresent ? <Check className="w-4 h-4 mx-auto" /> : ""}

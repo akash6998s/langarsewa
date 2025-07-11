@@ -75,7 +75,6 @@ function UserStatus() {
     <div
       className="min-h-screen"
       style={{
-        backgroundColor: theme.colors.neutralLight,
         fontFamily: theme.fonts.body,
         color: theme.colors.neutralDark,
       }}
@@ -111,7 +110,7 @@ function UserStatus() {
                 key={idx}
                 className="rounded-3xl shadow-xl border p-6 flex flex-col justify-between"
                 style={{
-                  backgroundColor: theme.colors.secondaryLight,
+                  backgroundColor: theme.colors.neutralLight,
                   borderColor: theme.colors.primaryLight,
                 }}
               >
