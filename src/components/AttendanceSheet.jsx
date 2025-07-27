@@ -1,390 +1,225 @@
-import React, { useState, useEffect } from "react";
-import Loader from "./Loader";
-import { Check } from "lucide-react";
-import { theme } from "../theme"; // Assuming `theme.js` is in the parent directory
+import { useState, useEffect, useCallback } from "react";
+import { collection, query, getDocs, where } from "firebase/firestore";
+import { db } from "../firebase";
 
-const months = [
-  { name: "January", number: 0 },
-  { name: "February", number: 1 },
-  { name: "March", number: 2 },
-  { name: "April", number: 3 },
-  { name: "May", number: 4 },
-  { name: "June", number: 5 },
-  { name: "July", number: 6 },
-  { name: "August", number: 7 },
-  { name: "September", number: 8 },
-  { name: "October", number: 9 },
-  { name: "November", number: 10 },
-  { name: "December", number: 11 },
-];
-
-// Generate years 2025 to 2035
-const years = Array.from({ length: 11 }, (_, i) => 2025 + i);
-
-// Helper function for sticky cell styles
-const stickyCellStyle = (left, z = 0) => {
-  let width = "150px"; // Default width for non-sticky or other columns (though not used directly for non-sticky here)
-  let textAlign = "left"; // Default alignment
-
-  if (left === 0) {
-    width = "120px"; // DECREASED WIDTH for the combined sticky column
-    textAlign = "left"; // Keep text left-aligned for name
-  }
-
-  return {
-    position: "sticky",
-    left,
-    zIndex: z,
-    border: `1px solid ${theme.colors.secondaryLight}`,
-    width,
-    minWidth: width,
-    maxWidth: width,
-    padding: "8px 10px",
-    whiteSpace: "normal",
-    wordWrap: "break-word",
-    backgroundColor: theme.colors.neutralLight,
-    textAlign,
-  };
-};
-
-const AttendanceSheet = () => {
-  // State for selected month and year
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  // Set selectedYear to current year if it's within the range, otherwise default to 2025
-  const [selectedYear, setSelectedYear] = useState(
-    new Date().getFullYear() < 2025 || new Date().getFullYear() > 2035
-      ? 2025
-      : new Date().getFullYear()
-  );
-  const [searchTerm, setSearchTerm] = useState("");
+const Attendance = () => {
+  const [year, setYear] = useState("2025");
+  const [month, setMonth] = useState("July");
   const [members, setMembers] = useState([]);
-  const [filteredMembers, setFilteredMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [daysInMonth, setDaysInMonth] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Calculate days in the selected month and year
-  const getDaysInMonth = (month, year) =>
-    new Date(year, month + 1, 0).getDate();
-  const days = getDaysInMonth(selectedMonth, selectedYear);
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
 
-  // Effect to fetch attendance and member data
+  const years = Array.from({ length: 11 }, (_, i) => String(2025 + i));
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    const monthIndex = months.findIndex(
+      (m) => m.toLowerCase() === month.toLowerCase()
+    );
+    const days = new Date(Number(year), monthIndex + 1, 0).getDate();
+    setDaysInMonth(Array.from({ length: days }, (_, i) => i + 1));
+  }, [year, month]);
 
-        const attendanceRes = await fetch(
-          "https://langar-backend.onrender.com/api/attendance"
-        );
-        const membersRes = await fetch(
-          "https://langar-backend.onrender.com/api/members"
-        );
+  const fetchMembers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const membersCollectionRef = collection(db, "members");
+      const memberSnapshot = await getDocs(membersCollectionRef);
+      const fetchedMembers = memberSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        roll_no: doc.data().roll_no,
+        name: doc.data().name || "Unnamed",
+        last_name: doc.data().last_name || "",
+        attendance: [],
+      }));
 
-        if (!attendanceRes.ok) throw new Error("Failed to fetch attendance");
-        if (!membersRes.ok) throw new Error("Failed to fetch members");
+      const membersWithAttendance = await Promise.all(
+        fetchedMembers.map(async (member) => {
+          const memberDocRef = collection(db, "members");
+          const q = query(memberDocRef, where("roll_no", "==", member.roll_no));
+          const memberDataSnapshot = await getDocs(q);
 
-        const attendanceData = await attendanceRes.json();
-        const membersData = await membersRes.json();
-
-        // Format attendance data for easier lookup
-        const attendanceFormatted = attendanceData.map((item) => {
-          const attendance = {};
-          for (const year in item) {
-            if (year === "RollNumber") continue; // Skip RollNumber which is a direct property
-            attendance[year] = {};
-            for (const month in item[year]) {
-              attendance[year][month.toLowerCase()] = item[year][month]
-                .split(",")
-                .map((day) => parseInt(day.trim()))
-                .filter(Boolean); // Filter out any empty strings or NaN from parsing
-            }
+          let currentMonthAttendance = [];
+          if (!memberDataSnapshot.empty) {
+            const memberDoc = memberDataSnapshot.docs[0].data();
+            currentMonthAttendance =
+              memberDoc.attendance?.[year]?.[month] || [];
           }
+
           return {
-            roll: item.RollNumber,
-            attendance,
+            ...member,
+            attendance: currentMonthAttendance,
           };
-        });
+        })
+      );
+      setMembers(membersWithAttendance);
+    } catch (error) {
+      console.error("Error fetching members or attendance: ", error);
+      setError("Failed to load attendance data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [year, month]);
 
-        // Merge member data with their attendance records
-        const merged = membersData.map((member) => {
-          const attendance = attendanceFormatted.find(
-            (a) => a.roll === member.RollNumber
-          );
-          return {
-            roll: member.RollNumber,
-            name: member.Name,
-            last_name: member.LastName,
-            phone: member.PhoneNumber,
-            email: member.Email,
-            address: member.Address,
-            photo: member.Photo,
-            attendance: attendance ? attendance.attendance : {}, // Assign attendance or an empty object
-          };
-        });
-
-        setMembers(merged);
-        setFilteredMembers(merged); // Initialize filtered members with all members
-        setLoading(false);
-      } catch (err) {
-        setError(err.message || "Something went wrong");
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []); // Empty dependency array means this effect runs once on mount
-
-  // Effect to filter members based on search term
   useEffect(() => {
-    const term = searchTerm.toLowerCase();
-    const results = members.filter(
-      (m) =>
-        m.name.toLowerCase().includes(term) || m.roll.toString().includes(term)
-    );
-    setFilteredMembers(results);
-  }, [searchTerm, members]); // Re-run when searchTerm or members change
-
-  // Loading and Error states
-  if (loading) return <Loader />;
-  if (error)
-    return (
-      <div
-        className="font-semibold text-center"
-        style={{
-          color: theme.colors.danger,
-          fontFamily: theme.fonts.body,
-        }}
-      >
-        {error}
-      </div>
-    );
+    fetchMembers();
+  }, [fetchMembers]);
 
   return (
-    <div
-      style={{
-        fontFamily: theme.fonts.body,
-        color: theme.colors.neutralDark,
-      }}
-    >
-      {/* Filters Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex gap-4 w-full sm:w-auto">
-          {/* Month Selector */}
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
-            style={{
-              borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.neutralLight,
-              color: theme.colors.neutralDark,
-            }}
-          >
-            {months.map((month) => (
-              <option key={month.number} value={month.number}>
-                {month.name}
-              </option>
-            ))}
-          </select>
+    <div className="p-6 md:p-10 bg-gray-50 min-h-screen">
+      <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">
+        Attendance Sheet
+      </h2>
 
-          {/* Year Selector */}
+      {/* Year & Month Dropdowns */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-center">
+        <div className="relative">
           <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="border rounded px-4 py-2 text-sm shadow-sm w-full sm:w-auto"
-            style={{
-              borderColor: theme.colors.primary,
-              backgroundColor: theme.colors.neutralLight,
-              color: theme.colors.neutralDark,
-            }}
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            disabled={loading}
           >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
               </option>
             ))}
           </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg
+              className="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+          </div>
         </div>
 
-        {/* Search Input */}
-        <input
-          type="text"
-          placeholder="Search by name or roll number"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="border rounded px-4 py-2 w-full sm:w-72 text-sm shadow-sm"
-          style={{
-            borderColor: theme.colors.primary,
-            backgroundColor: theme.colors.neutralLight,
-            color: theme.colors.neutralDark,
-          }}
-        />
+        <div className="relative">
+          <select
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            disabled={loading}
+          >
+            {months.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg
+              className="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+          </div>
+        </div>
       </div>
 
-      {/* Attendance Table Section */}
-      {filteredMembers.length > 0 ? (
-        <div
-          className="overflow-x-auto rounded-md border shadow-md"
-          style={{
-            backgroundColor: theme.colors.neutralLight,
-            borderColor: theme.colors.secondaryLight,
-          }}
-        >
-          {/* Inner div for vertical scrolling of table body */}
-          <div style={{ maxHeight: "620px", overflowY: "auto" }}>
-            <table
-              className="min-w-[900px] w-full border-collapse border"
-              style={{
-                tableLayout: "fixed",
-                borderColor: theme.colors.secondaryLight,
-              }}
-            >
-              {/* Table Header */}
-              <thead
-                style={{
-                  position: "sticky", // Make header sticky
-                  top: 0, // Stick to the top
-                  zIndex: 40, // Ensure it's above other scrolling content
-                  backgroundColor: theme.colors.primary,
-                  color: theme.colors.neutralLight,
-                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
-                }}
-              >
+      {/* Loading and Error States */}
+      {loading && (
+        <div className="text-center text-blue-600 text-lg font-medium mb-4 p-4 bg-blue-100 rounded-lg shadow-sm">
+          Loading attendance data...
+        </div>
+      )}
+      {error && (
+        <div className="text-center text-red-600 text-lg font-medium mb-4 p-4 bg-red-100 rounded-lg shadow-sm">
+          Error: {error}
+        </div>
+      )}
+
+      {/* Attendance Table */}
+      {!loading && !error && (
+        <div className="bg-white rounded-lg shadow-xl overflow-hidden"> {/* Changed this container for proper fixed header */}
+          <div className="overflow-x-auto"> {/* This div handles horizontal scrolling for the entire table */}
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-100">
                 <tr>
-                  {/* Combined Roll No. / Name sticky header */}
-                  <th
-                    style={{
-                      ...stickyCellStyle(0, 30), // Apply sticky style at left: 0
-                      backgroundColor: theme.colors.primary, // Match header background
-                      textAlign: "left", // Ensure header text is left-aligned
-                      padding: "10px", // Slightly more padding for aesthetics
-                      fontSize: "1rem", // Slightly larger font for header
-                    }}
-                  >
-                    Roll No. / Name
+                  {/* The sticky left-0 and z-index are crucial for the first column's header */}
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sticky left-0 bg-gray-100 z-40 w-28 sm:w-36">
+                    Roll No & Name
                   </th>
-                  {/* Daily headers (1 to 31) */}
-                  {[...Array(days)].map((_, i) => {
-                    const date = new Date(selectedYear, selectedMonth, i + 1);
-                    const dayName = date.toLocaleDateString("en-US", {
-                      weekday: "short", // e.g., "Mon", "Tue"
-                    });
-                    return (
-                      <th
-                        key={i}
-                        className="py-2 px-2 text-center text-xs border"
-                        title={dayName} // Full day name on hover
-                        style={{
-                          width: "36px", // Fixed width for daily columns
-                          color: theme.colors.neutralLight,
-                          borderColor: theme.colors.secondaryLight,
-                        }}
-                      >
-                        {i + 1} {/* Day number */}
-                        <div style={{ fontSize: "10px" }}>{dayName}</div>{" "}
-                        {/* Short day name */}
-                      </th>
-                    );
-                  })}
+                  {daysInMonth.map((day) => (
+                    <th
+                      key={day}
+                      className="px-3 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                    >
+                      {day}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              {/* Table Body */}
-              <tbody>
-                {filteredMembers.map((member, rowIndex) => {
-                  const monthName = months[selectedMonth].name.toLowerCase();
-                  // Get days present for the current member, year, and month
-                  const daysPresent =
-                    member.attendance?.[selectedYear]?.[monthName] || [];
+            </table>
+          </div>
 
-                  // Alternate row background colors for better readability
-                  const rowBg = rowIndex % 2 === 0 ? "#f0f0f0" : "#ffffff";
-
-                  return (
-                    <tr
-                      key={member.roll}
-                      style={{
-                        backgroundColor: rowBg,
-                        transition: "background-color 0.3s ease", // Smooth transition for hover
-                      }}
-                      // Subtle hover effect for the entire row
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          rowIndex % 2 === 0 ? "#e0e0e0" : "#f8f8f8"; // Slightly darker on hover
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = rowBg; // Restore original
-                      }}
+          {/* This div handles vertical scrolling for the table body */}
+          <div className="overflow-y-auto max-h-[calc(100vh-280px)]"> {/* Fixed height and vertical scroll */}
+            <table className="min-w-full divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-200">
+                {members.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={daysInMonth.length + 1}
+                      className="text-center py-8 text-gray-500 text-base"
                     >
-                      {/* Combined Roll No. and Name data cell */}
-                      <td
-                        style={{
-                          ...stickyCellStyle(0, 2), // Apply sticky style at left: 0
-                          backgroundColor: rowBg, // Match row background (will be overridden by onMouseEnter)
-                          textAlign: "left", // Ensure cell text is left-aligned
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontWeight: "bold",
-                            fontSize: "0.95rem", // Slightly larger for roll number
-                            color: theme.colors.primary, // Using primary color for roll to make it stand out
-                            marginBottom: "2px", // Small space between roll and name
-                          }}
-                        >
-                          {member.roll}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "0.85rem", // Slightly smaller for name
-                            color: theme.colors.neutralDark, // Standard dark text color for name
-                          }}
-                        >
-                          {member.name} {member.last_name}
+                      No members found or attendance data for the selected period.
+                    </td>
+                  </tr>
+                ) : (
+                  members.map((member) => (
+                    <tr key={member.roll_no} className="hover:bg-gray-50 transition-colors duration-150 ease-in-out">
+                      <td className="px-4 py-3 align-top sticky left-0 bg-white z-10 shadow-sm w-28 sm:w-36">
+                        <div className="text-sm font-medium text-gray-900 break-words">
+                          <div className="font-bold text-base">{member.roll_no}</div>
+                          <div className="text-gray-600 text-sm break-words">
+                            {member.name} {member.last_name}
+                          </div>
                         </div>
                       </td>
-                      {/* Daily attendance cells */}
-                      {[...Array(days)].map((_, i) => (
+                      {daysInMonth.map((day) => (
                         <td
-                          key={i}
-                          className="text-center border"
-                          style={{
-                            width: "36px",
-                            color: theme.colors.success, // Color for the checkmark
-                            padding: "6px 4px",
-                            borderColor: theme.colors.secondaryLight,
-                          }}
+                          key={day}
+                          className={`px-3 py-3 whitespace-nowrap text-center text-sm font-medium ${
+                            member.attendance.includes(day)
+                              ? "text-green-600"
+                              : "text-gray-300"
+                          }`}
                         >
-                          {/* Render Check icon if member was present on this day */}
-                          {daysPresent.includes(i + 1) && (
-                            <Check
-                              className="w-4 h-4 mx-auto"
-                              style={{ color: theme.colors.success }}
-                            />
-                          )}
+                          {member.attendance.includes(day) ? "✔" : ""}
                         </td>
                       ))}
                     </tr>
-                  );
-                })}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-        </div>
-      ) : (
-        // Message when no members are found (e.g., after filtering)
-        <div
-          className="w-full text-center py-10 text-lg font-medium"
-          style={{
-            backgroundColor: theme.colors.neutralLight,
-            color: theme.colors.tertiary,
-          }}
-        >
-          No members found.
         </div>
       )}
     </div>
   );
 };
 
-export default AttendanceSheet;
+export default Attendance;

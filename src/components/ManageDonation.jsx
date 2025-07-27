@@ -1,360 +1,315 @@
 import { useEffect, useState } from "react";
-import Loader from "./Loader";
-import Popup from "./Popup";
-import { theme } from "../theme";
-
-const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+import { db } from "../firebase";
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
+import Popup from "reactjs-popup";
+import "reactjs-popup/dist/index.css";
+import LoadData from "./LoadData";
 
 function ManageDonation() {
-  // --- MODIFIED YEAR LOGIC ---
-  const startYear = 2025;
-  const endYear = 2035;
-  const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
-  // --- END MODIFIED YEAR LOGIC ---
-
-  const [tab, setTab] = useState("add");
-  const [year, setYear] = useState(new Date().getFullYear()); // Set initial year to current year or 2025 if current year is earlier
-  const [selectedMonth, setSelectedMonth] = useState(
-    months[new Date().getMonth()]
-  );
-  const [selectedRolls, setSelectedRolls] = useState([]);
+  const [activeTab, setActiveTab] = useState("add");
+  const [year, setYear] = useState(String(new Date().getFullYear()));
+  const [month, setMonth] = useState("July");
   const [amount, setAmount] = useState("");
-
-  const [showPopupRoll, setShowPopupRoll] = useState(false);
-  const [popup, setPopup] = useState({ message: "", type: "" });
-
-  const [members, setMembers] = useState([]);
+  const [rollNumbers, setRollNumbers] = useState([]);
+  const [selectedRoll, setSelectedRoll] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const API_URL = "https://langar-backend.onrender.com/api";
-
-  const fetchMembers = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/members`);
-      const data = await res.json();
-      setMembers(data);
-    } catch (err) {
-      showPopup("Failed to load members.", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const years = Array.from({ length: 2 }, (_, i) => String(new Date().getFullYear() + i));
 
   useEffect(() => {
-    fetchMembers();
-    // Ensure the initial selected year is within the new range if it's outside
-    if (year < startYear || year > endYear) {
-      setYear(startYear); // Default to the first year in the new range
-    }
+    const fetchRolls = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const querySnapshot = await getDocs(collection(db, "members"));
+        const rolls = [];
+        querySnapshot.forEach((doc) => {
+          rolls.push(doc.id);
+        });
+        setRollNumbers(rolls);
+      } catch (err) {
+        console.error("Error fetching rolls:", err);
+        setError("Failed to load roll numbers. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRolls();
   }, []);
 
-  const showPopup = (message, type) => {
-    setPopup({ message, type });
-    setTimeout(() => setPopup({ message: "", type: "" }), 3000);
-  };
-
-  const toggleRoll = (roll) => {
-    setSelectedRolls((prev) => {
-      if (prev.length === 1 && prev[0] === roll) {
-        return [];
-      }
-      return [roll];
-    });
-  };
-
-  const handleTabChange = (newTab) => {
-    setTab(newTab);
-    setSelectedRolls([]);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (tab === "add" && (!amount || isNaN(amount) || Number(amount) <= 0)) {
-      showPopup("Please enter a valid donation amount.", "error");
+  const handleDonation = async () => {
+    if (!selectedRoll || !year || !month || amount === "" || isNaN(parseInt(amount))) {
+      alert("Please fill all fields with a valid amount.");
       return;
     }
 
-    if (selectedRolls.length === 0) {
-      showPopup("Please select a roll number.", "error");
-      return;
-    }
-
+    const memberRef = doc(db, "members", selectedRoll);
     try {
-      setLoading(true);
+      const memberSnap = await getDoc(memberRef);
 
-      const roll = selectedRolls[0];
+      if (!memberSnap.exists()) {
+        alert("Member not found.");
+        return;
+      }
 
-      const payload = {
-        RollNumber: roll,
-        Year: String(year),
-        Month: selectedMonth,
-        Amount: amount,
-      };
+      const data = memberSnap.data();
+      const existingDonation = data.donation || {};
+      const updatedDonation = { ...existingDonation };
+      const donationAmount = parseInt(amount);
 
-      const apiUrl =
-        tab === "add"
-          ? `${API_URL}/donations/add`
-          : `${API_URL}/donations/delete`;
+      if (!updatedDonation[year]) {
+        updatedDonation[year] = {};
+      }
 
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      const currentMonthAmount = updatedDonation[year][month] || 0;
+      updatedDonation[year][month] = currentMonthAmount + donationAmount;
+
+      await updateDoc(memberRef, {
+        donation: updatedDonation,
       });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || "Something went wrong");
-      }
-
-      showPopup(
-        tab === "add"
-          ? "Donation added successfully!"
-          : "Donation deleted successfully!",
-        "success"
-      );
-
-      setSelectedRolls([]);
+      alert("Donation added successfully.");
       setAmount("");
-      setShowPopupRoll(false);
-    } catch (error) {
-      showPopup(error.message || "Something went wrong.", "error");
-    } finally {
-      setLoading(false);
+      setSelectedRoll(null);
+    } catch (e) {
+      console.error("Error adding donation:", e);
+      alert("Failed to add donation. Please try again.");
     }
   };
 
-  if (loading) return <Loader />;
+  const handleDeleteDonation = async () => {
+    if (!selectedRoll || !year || !month || amount === "" || isNaN(parseInt(amount))) {
+      alert("Please fill all fields with a valid amount to delete.");
+      return;
+    }
+
+    const memberRef = doc(db, "members", selectedRoll);
+    try {
+      const memberSnap = await getDoc(memberRef);
+
+      if (!memberSnap.exists()) {
+        alert("Member not found.");
+        return;
+      }
+
+      const data = memberSnap.data();
+      const existingDonation = data.donation || {};
+      const updatedDonation = { ...existingDonation };
+      const amountToDelete = parseInt(amount);
+
+      if (
+        updatedDonation[year] &&
+        updatedDonation[year][month] !== undefined
+      ) {
+        const currentMonthAmount = updatedDonation[year][month];
+        updatedDonation[year][month] = Math.max(0, currentMonthAmount - amountToDelete);
+
+        if (updatedDonation[year][month] === 0) {
+          delete updatedDonation[year][month];
+          if (Object.keys(updatedDonation[year]).length === 0) {
+            delete updatedDonation[year];
+          }
+        }
+
+        await updateDoc(memberRef, {
+          donation: updatedDonation,
+        });
+
+        alert("Donation updated successfully.");
+        setSelectedRoll(null);
+        setAmount("");
+      } else {
+        alert("No donation found for the selected date to subtract from.");
+      }
+    } catch (e) {
+      console.error("Error deleting donation:", e);
+      alert("Failed to delete donation. Please try again.");
+    }
+  };
 
   return (
-    <div
-      className="font-serif pb-20"
-      style={{ color: theme.colors.neutralDark }}
-    >
-      <div className="mx-auto px-4 pt-4 max-w-4xl">
-        <div className="flex justify-center">
-          <h1
-            className="text-3xl md:text-5xl font-extrabold text-center mb-12 tracking-wider uppercase drop-shadow-lg relative inline-block"
-            style={{ color: theme.colors.primary }}
+    <div className="min-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-lg p-6 sm:p-8 font-sans flex flex-col items-center">
+      <LoadData />
+
+      <h2 className="text-3xl font-extrabold text-gray-800 mb-8 text-center">Manage Member Donations</h2>
+
+      <div className="flex bg-gray-100 rounded-xl p-1 mb-8 shadow-sm">
+        <button
+          onClick={() => setActiveTab("add")}
+          className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
+            ${activeTab === "add" ? "bg-blue-600 text-white shadow-md" : "text-gray-700 hover:bg-gray-200"}
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+          `}
+        >
+          Add Donation
+        </button>
+        <button
+          onClick={() => setActiveTab("delete")}
+          className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
+            ${activeTab === "delete" ? "bg-red-600 text-white shadow-md" : "text-gray-700 hover:bg-gray-200"}
+            focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50
+          `}
+        >
+          Delete Donation
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-lg mb-8">
+        <div className="relative">
+          <label htmlFor="year-select" className="block text-sm font-medium text-gray-700 mb-1">Select Year</label>
+          <select
+            id="year-select"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
           >
-            Manage Donation
-            <span
-              className="absolute left-1/2 -bottom-2 w-1/2 h-1 rounded-full"
-              style={{
-                transform: "translateX(-50%)",
-                background: `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`,
-              }}
-            />
-          </h1>
+            {years.map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 mt-6">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex justify-center mb-8">
+        <div className="relative">
+          <label htmlFor="month-select" className="block text-sm font-medium text-gray-700 mb-1">Select Month</label>
+          <select
+            id="month-select"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+          >
+            {months.map((m) => <option key={m}>{m}</option>)}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 mt-6">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+          </div>
+        </div>
+
+        <div className="md:col-span-2">
+          <label htmlFor="amount-input" className="block text-sm font-medium text-gray-700 mb-1">Enter Amount</label>
+          <input
+            id="amount-input"
+            type="number"
+            placeholder="e.g., 500"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="block w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+          />
+        </div>
+      </div>
+
+      {loading && (
+        <div className="text-center text-blue-600 font-medium mb-4">Loading roll numbers...</div>
+      )}
+      {error && (
+        <div className="text-center text-red-600 font-medium mb-4">{error}</div>
+      )}
+
+      <div className="w-full max-w-lg mb-6">
+        <Popup
+          trigger={
+            <button
+              className="w-full py-3 bg-gray-800 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-75"
+            >
+              Select Roll Number: {selectedRoll || "None Selected"}
+            </button>
+          }
+          modal
+          nested
+          contentStyle={{
+            background: 'white',
+            borderRadius: '0.75rem', /* rounded-xl */
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', /* shadow-2xl */
+            width: '90%', // Still responsive, takes 90% of parent width
+            maxWidth: '672px', // **Changed from 400px (md) to 672px (2xl)**
+            padding: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '90vh',
+            margin: 'auto'
+          }}
+          overlayStyle={{
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          }}
+        >
+          {(close) => (
+            <div className="bg-white rounded-xl shadow-2xl p-0 md:p-0 max-h-[90vh] w-full max-w-2xl overflow-hidden flex flex-col relative"> {/* **Changed max-w-md to max-w-2xl** */}
+              <div className="flex items-start justify-between p-6 pb-3 bg-white border-b border-gray-200 sticky top-0 z-10">
+                <h3 className="text-2xl font-bold text-gray-800 flex-grow pr-4">
+                  Select Roll Number
+                </h3>
+                
+                <button
+                  onClick={() => close()}
+                  className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-full p-1 transition-colors duration-200"
+                  aria-label="Close popup"
+                >
+                  <span className="material-icons text-3xl">close</span>
+                </button>
+              </div>
+
+              {rollNumbers.length === 0 && !loading ? (
+                  <p className="text-gray-500 text-center py-8 px-6">No roll numbers available.</p>
+              ) : (
+                  <div className="grid grid-cols-5 gap-2 p-6 overflow-y-auto flex-grow">
+                  {rollNumbers.map((roll) => (
+                      <button
+                          key={roll}
+                          onClick={() => {
+                            setSelectedRoll(roll);
+                            close();
+                          }}
+                          className={`
+                            flex items-center justify-center p-3 rounded-lg border-2
+                            text-lg font-bold transition-all duration-200 ease-in-out
+                            ${selectedRoll === roll
+                              ? "bg-blue-600 text-white border-blue-600 shadow-md transform scale-105"
+                              : "bg-gray-100 text-gray-800 border-gray-300 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-700"
+                            }
+                            focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
+                          `}
+                      >
+                        {roll}
+                      </button>
+                  ))}
+                  </div>
+              )}
+            </div>
+          )}
+        </Popup>
+      </div>
+
+      <div className="w-full max-w-lg">
+        {activeTab === "add" && (
           <button
-            onClick={() => handleTabChange("add")}
-            className={`px-8 py-3 rounded-l-full text-lg shadow-md ${
-              tab === "add" ? "font-semibold" : ""
-            }`}
-            style={{
-              background:
-                tab === "add"
-                  ? `linear-gradient(to right, ${theme.colors.success}, ${theme.colors.success})`
-                  : theme.colors.neutralLight,
-              color: tab === "add" ? "#ffffff" : theme.colors.primary,
-              borderColor: theme.colors.primaryLight,
-            }}
+            onClick={handleDonation}
+            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
           >
             Add Donation
           </button>
+        )}
+
+        {activeTab === "delete" && (
           <button
-            onClick={() => handleTabChange("delete")}
-            className={`px-8 py-3 rounded-r-full text-lg shadow-md ${
-              tab === "delete" ? "font-semibold" : ""
-            }`}
-            style={{
-              background:
-                tab === "delete"
-                  ? `linear-gradient(to right, ${theme.colors.danger}, ${theme.colors.danger})`
-                  : theme.colors.neutralLight,
-              color: tab === "delete" ? "#ffffff" : theme.colors.primary,
-              borderColor: theme.colors.primaryLight,
-            }}
+            onClick={handleDeleteDonation}
+            className="w-full py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75"
           >
             Delete Donation
           </button>
-        </div>
-
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-3xl shadow-xl p-8 space-y-6"
-          style={{
-            backgroundColor: theme.colors.neutralLight
-          }}
-        >
-          <div className="grid sm:grid-cols-3 gap-4">
-            <select
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              className="border p-3 rounded-xl shadow-md"
-              style={{ backgroundColor: theme.colors.neutralLight }}
-            >
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="border p-3 rounded-xl shadow-md"
-              style={{ backgroundColor: theme.colors.neutralLight }}
-            >
-              {months.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter Donation Amount"
-              required={tab === "add"}
-              className="border p-3 rounded-xl shadow-md"
-              style={{ backgroundColor: theme.colors.neutralLight }}
-              min="0"
-            />
-          </div>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => setShowPopupRoll(true)}
-              className="text-white px-8 py-3 rounded-xl shadow-md"
-              style={{
-                background: `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`,
-              }}
-            >
-              Select Roll Number
-            </button>
-          </div>
-
-          <div className="text-center">
-            <button
-              type="submit"
-              className="w-full py-4 rounded-2xl text-white text-xl font-semibold shadow-lg"
-              style={{
-                backgroundColor:
-                  tab === "add" ? theme.colors.success : theme.colors.danger,
-              }}
-            >
-              {tab === "add" ? "Submit Donation" : "Delete Donation"}
-            </button>
-          </div>
-        </form>
+        )}
       </div>
-
-      {/* Roll Number Popup */}
-      {showPopupRoll && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{
-            backgroundColor: theme.colors.primaryLight,
-            opacity: 0.98,
-          }}
-        >
-          <div
-            className="w-[95%] max-w-lg overflow-y-auto rounded-3xl border px-4 pb-12 shadow-2xl max-h-[90vh]"
-            style={{
-              backgroundColor: theme.colors.neutralLight,
-              borderColor: theme.colors.primary,
-              color: theme.colors.neutralDark,
-            }}
-          >
-            <div className="flex justify-between items-center px-1 pt-6 pb-4">
-              <h2
-                className="text-center font-bold text-xl pt-6 pb-4"
-                style={{ color: theme.colors.primary }}
-              >
-                Select Roll Number
-              </h2>
-              <button
-                onClick={() => setShowPopupRoll(false)}
-                className="right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-white shadow-md"
-                style={{
-                  backgroundColor: theme.colors.danger,
-                }}
-                aria-label="Close"
-              >
-                &times;
-              </button>
-            </div>
-
-            <div className="mb-6 grid grid-cols-4 gap-4 pt-2">
-              {members.length > 0 ? (
-                members.map((member) => {
-                  const roll = String(member.RollNumber);
-                  const isSelected = selectedRolls.length === 1 && selectedRolls[0] === roll;
-
-                  return (
-                    <button
-                      key={roll}
-                      onClick={() => toggleRoll(roll)}
-                      className="flex items-center justify-center rounded-xl border p-3 text-lg font-bold shadow-sm"
-                      style={{
-                        background: isSelected
-                          ? `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`
-                          : theme.colors.secondaryLight,
-                        color: isSelected
-                          ? theme.colors.neutralLight
-                          : theme.colors.primary,
-                        borderColor: isSelected
-                          ? theme.colors.primary
-                          : theme.colors.secondary,
-                      }}
-                    >
-                      {roll}
-                    </button>
-                  );
-                })
-              ) : (
-                <p
-                  className="col-span-full text-center text-lg"
-                  style={{ color: theme.colors.tertiary }}
-                >
-                  No members found.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <Popup
-        message={popup.message}
-        type={popup.type}
-        onClose={() => setPopup({ message: "", type: "" })}
-      />
     </div>
   );
 }

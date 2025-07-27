@@ -1,547 +1,189 @@
-import React, { useEffect, useState, useMemo } from "react";
-import Loader from "./Loader";
-import Popup from "./Popup";
-import { theme } from "../theme";
-import { Filter, Copy } from "lucide-react";
+import { useEffect, useState } from "react";
+import Summary from "./Summary";
+import LoadData from "./LoadData";
 
-const ManageFinance = () => {
-  const [members, setMembers] = useState([]);
+// Note: It's good practice to derive current year dynamically for 'years' array as well
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+// Dynamically generate years for consistency with other components
+const years = Array.from({ length: 2 }, (_, i) => String(new Date().getFullYear() + i));
+
+export default function ManageFinance() {
+  const [activeTab, setActiveTab] = useState("donation");
+
+  const [selectedYear, setSelectedYear] = useState(String(new Date().getFullYear())); // Default to current year
+  const [selectedMonth, setSelectedMonth] = useState("July"); // Default to current month for example
+
   const [donations, setDonations] = useState([]);
   const [expenses, setExpenses] = useState([]);
-  const [summary, setSummary] = useState({});
-  const [activeTab, setActiveTab] = useState("donations");
-  const [selectedYear, setSelectedYear] = useState(
-    new Date().getFullYear().toString()
-  );
-  const [selectedMonth, setSelectedMonth] = useState(
-    new Date().toLocaleString("default", { month: "long" })
-  );
-  const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [popup, setPopup] = useState({ message: "", type: "" });
-  const [donationFilter, setDonationFilter] = useState("all");
-
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const years = Array.from({ length: 5 }, (_, i) =>
-    (new Date().getFullYear() - i).toString()
-  );
-
-  const showPopup = (message, type) => {
-    setPopup({ message, type });
-    setTimeout(() => setPopup({ message: "", type: "" }), 3000);
-  };
-
-  const toggleDonationFilter = () => {
-    setDonationFilter((prev) =>
-      prev === "all" ? "paid" : prev === "paid" ? "unpaid" : "all"
-    );
-  };
-
-  // --- MODIFIED copyFilteredMemberNames FUNCTION ---
-  const copyFilteredMemberNames = async () => {
-    const names = filteredMembers.map((member) =>
-      `${member.Name} ${member.LastName}`.trim()
-    );
-    const textToCopy = names.join("\n");
-
-    try {
-      // Try the modern Clipboard API first
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(textToCopy);
-        showPopup("Names copied to clipboard!", "success");
-      } else {
-        // Fallback for older browsers or environments without full Clipboard API support
-        const textArea = document.createElement("textarea");
-        textArea.value = textToCopy;
-        textArea.style.position = "fixed"; // Prevents scrolling to bottom of page
-        textArea.style.opacity = 0; // Make it invisible
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-          const successful = document.execCommand("copy");
-          if (successful) {
-            showPopup("Names copied to clipboard! (Fallback)", "success");
-          } else {
-            throw new Error("Failed to copy using execCommand.");
-          }
-        } catch (err) {
-          console.error("Fallback copy failed:", err);
-          showPopup("Failed to copy names. Please copy manually.", "error");
-        } finally {
-          document.body.removeChild(textArea);
-        }
-      }
-    } catch (err) {
-      console.error("Clipboard API copy failed:", err);
-      showPopup("Failed to copy names. Please copy manually.", "error");
-    }
-  };
-  // --- END MODIFIED FUNCTION ---
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [membersRes, donationsRes, expensesRes, summaryRes] =
-          await Promise.all([
-            fetch("https://langar-backend.onrender.com/api/members"),
-            fetch("https://langar-backend.onrender.com/api/donations"),
-            fetch("https://langar-backend.onrender.com/api/expenses"),
-            fetch("https://langar-backend.onrender.com/api/summary"),
-          ]);
+    // This is still using localStorage.getItem.
+    // In a real application, you would ideally fetch this data from Firebase
+    // just like you do for members in ManageAttendance/ManageDonation.
+    const allMembers = JSON.parse(localStorage.getItem("allMembers")) || [];
 
-        if (
-          !membersRes.ok ||
-          !donationsRes.ok ||
-          !expensesRes.ok ||
-          !summaryRes.ok
-        )
-          throw new Error("Failed to fetch one or more APIs");
+    const donationList = allMembers.map((member) => {
+      // Ensure that selectedYear and selectedMonth are correctly used to access donation data
+      const donationData = member?.donation?.[selectedYear]?.[selectedMonth];
+      let amount = 0;
 
-        setMembers(await membersRes.json());
-        setDonations(await donationsRes.json());
-        setExpenses(await expensesRes.json());
-        setSummary(await summaryRes.json());
-      } catch (err) {
-        showPopup("Error fetching data", "error");
-        console.error(err);
-      } finally {
-        setLoading(false);
+      if (typeof donationData === "number") {
+        amount = donationData;
+      } else if (Array.isArray(donationData)) {
+        amount = donationData.reduce((sum, val) => sum + Number(val || 0), 0);
       }
-    };
 
-    fetchData();
-  }, []);
+      return {
+        // Prioritize 'id' if 'roll_no' is not consistently used
+        roll: member.roll_no || member.id || "-",
+        name: member.name || "Unknown",
+        amount: amount
+      };
+    }).filter(d => d.amount > 0); // Filter out members with 0 donation for cleaner display
 
-  const getDonationAmount = (rollNumber) => {
-    const entry = donations.find(
-      (d) => (d?.RollNumber || "").toString() === (rollNumber || "").toString()
-    );
-    return entry?.[selectedYear]?.[selectedMonth] ?? 0;
-  };
+    setDonations(donationList);
+  }, [selectedYear, selectedMonth]);
 
-  const filteredExpenses = expenses.filter(
-    (exp) =>
-      exp.Year?.toString() === selectedYear &&
-      exp.Month?.toLowerCase() === selectedMonth.toLowerCase() &&
-      exp.Description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    // This is still using localStorage.getItem.
+    // Consider fetching expenses from Firebase if they are stored there.
+    const expenseData = JSON.parse(localStorage.getItem("expenses")) || {};
+    const expensesList = expenseData?.[selectedYear]?.[selectedMonth] || [];
+    setExpenses(expensesList);
+  }, [selectedYear, selectedMonth]);
 
-  const filteredMembers = members.filter((member) => {
-    const nameMatch = member.Name.toLowerCase().includes(
-      searchTerm.toLowerCase()
-    );
-    const rollMatch = member.RollNumber.toString().includes(searchTerm);
-    const matchesSearch = nameMatch || rollMatch;
-
-    const amount = getDonationAmount(member.RollNumber);
-
-    if (donationFilter === "paid") {
-      return matchesSearch && parseFloat(amount) > 0;
-    } else if (donationFilter === "unpaid") {
-      return matchesSearch && (!amount || parseFloat(amount) === 0);
-    }
-
-    return matchesSearch;
-  });
-
-  const totalDonationsOfMonth = useMemo(() => {
-    return members.reduce((sum, member) => {
-      const amount = getDonationAmount(member.RollNumber);
-      return sum + (parseFloat(amount) || 0);
-    }, 0);
-  }, [members, donations, selectedYear, selectedMonth]);
-
-  const totalExpensesOfMonth = filteredExpenses.reduce((sum, exp) => {
-    return sum + (parseFloat(exp.Amount) || 0);
-  }, 0);
-
-  const totalDonationsOverall = members.reduce((sum, member) => {
-    const donationEntry = donations.find(
-      (d) => d.RollNumber.toString() === member.RollNumber.toString()
-    );
-    if (!donationEntry) return sum;
-
-    const yearlyDonations = Object.values(donationEntry).filter(
-      (v) => typeof v === "object"
-    );
-    const total = yearlyDonations.reduce((yearSum, yearObj) => {
-      const monthsTotal = Object.values(yearObj).reduce(
-        (monthSum, val) => monthSum + (parseFloat(val) || 0),
-        0
-      );
-      return yearSum + monthsTotal;
-    }, 0);
-
-    return sum + total;
-  }, 0);
-
-  if (loading) return <Loader />;
 
   return (
-    <div
-      className="min-h-screen font-sans"
-      style={{
-        background: theme.colors.background,
-        color: theme.colors.neutralDark,
-      }}
-    >
-      <div className="mx-auto pt-4 pb-20">
-        <div className="flex justify-center">
-          <h1
-            className="text-3xl md:text-5xl font-extrabold text-center mb-12 tracking-wider uppercase drop-shadow-lg relative inline-block"
-            style={{ color: theme.colors.primary }}
-          >
-            Manage Finance
-            <span
-              className="absolute left-1/2 -bottom-2 w-1/2 h-1 rounded-full"
-              style={{
-                transform: "translateX(-50%)",
-                background: `linear-gradient(to right, ${theme.colors.primaryLight}, ${theme.colors.primary})`,
-              }}
-            />
-          </h1>
-        </div>
+    <div className="min-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-lg p-6 sm:p-8 font-sans flex flex-col items-center">
+      <LoadData />
+      <Summary /> {/* Summary component is placed here */}
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
-          <Card label="Total Donations" value={totalDonationsOverall} />
-          <Card label="Total Expenses" value={summary.totalExpenses || 0} />
-          <Card label="Balance" value={summary.balance || 0} />
-        </div>
 
-        {/* Tabs */}
-        <div className="flex justify-center mb-10">
-          {["donations", "expenses"].map((tab) => {
-            const isActive = activeTab === tab;
-            const isDonation = tab === "donations";
-            const bgColor = isActive
-              ? isDonation
-                ? theme.colors.success
-                : theme.colors.danger
-              : theme.colors.neutralLight;
-            const textColor = isActive ? "#ffffff" : theme.colors.primary;
-
-            return (
-              <button
-                key={tab}
-                onClick={() => {
-                  setActiveTab(tab);
-                  setSearchTerm("");
-                }}
-                className={`px-10 py-4 ${
-                  isDonation ? "rounded-l-full" : "rounded-r-full"
-                } text-lg font-semibold shadow-md`}
-                style={{
-                  borderColor: theme.colors.primaryLight,
-                  background: bgColor,
-                  color: textColor,
-                }}
-              >
-                {isDonation ? "Donations" : "Expenses"}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-col gap-4 mb-8">
-          <div className="flex gap-4 w-full">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="border rounded px-4 py-2 text-sm shadow-sm w-1/2"
-              style={{
-                borderColor: theme.colors.primaryLight,
-                backgroundColor: theme.colors.neutralLight,
-              }}
-            >
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="border rounded px-4 py-2 text-sm shadow-sm w-1/2"
-              style={{
-                borderColor: theme.colors.primaryLight,
-                backgroundColor: theme.colors.neutralLight,
-              }}
-            >
-              {months.map((month) => (
-                <option key={month} value={month}>
-                  {month}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <input
-            type="text"
-            placeholder={
-              activeTab === "donations"
-                ? "Search by Name or Roll No."
-                : "Search by Description"
-            }
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="border px-4 py-2 rounded text-sm shadow-sm w-full"
-            style={{
-              borderColor: theme.colors.primaryLight,
-              backgroundColor: theme.colors.neutralLight,
-            }}
-          />
-        </div>
-
-        {/* Donations Table */}
-        {activeTab === "donations" && (
-          <div
-            className="rounded-2xl shadow-xl border overflow-hidden"
-            style={{
-              background: theme.colors.neutralLight,
-              borderColor: theme.colors.primaryLight,
-            }}
-          >
-            <div
-              className="px-3 py-3 rounded-t-2xl border-b flex justify-between items-center"
-              style={{
-                background: theme.colors.neutralLightLight,
-                borderColor: theme.colors.primaryLight,
-                color: theme.colors.primary,
-              }}
-            >
-              <p className="text-base font-semibold">
-                Total Donations in {selectedMonth}
-              </p>
-              <h2 className="font-bold">₹ {totalDonationsOfMonth}</h2>
-            </div>
-
-            <table className="w-full table-fixed text-left">
-              <thead
-                className="uppercase text-sm"
-                style={{ background: theme.colors.primary, color: "#fff" }}
-              >
-                <tr>
-                  <th className="w-[60px] px-3 py-3 border-b-2 font-bold tracking-wider">
-                    Roll
-                  </th>
-                  <th className="px-3 py-3 border-b-2 font-bold tracking-wider">
-                    Name
-                  </th>
-                  <th className="w-[120px] px-3 py-3 border-b-2 font-bold tracking-wider text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <span>Amount</span>
-                      <button
-                        onClick={toggleDonationFilter}
-                        title={`Filter: ${donationFilter}`}
-                        className="p-1 rounded hover:bg-opacity-70"
-                        style={{
-                          backgroundColor: theme.colors.neutralLight,
-                          border: `1px solid ${theme.colors.primaryLight}`,
-                          color: theme.colors.primary,
-                        }}
-                      >
-                        <Filter size={16} />
-                      </button>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredMembers.length > 0 ? (
-                  filteredMembers.map((member, index) => (
-                    <tr
-                      key={member.RollNumber}
-                      style={{
-                        backgroundColor:
-                          index % 2 === 0 ? "#f0f0f0" : "#ffffff",
-                      }}
-                    >
-                      <td className="px-3 py-4">{member.RollNumber}</td>
-                      <td className="px-3 py-4">
-                        {member.Name} {member.LastName}
-                      </td>
-                      <td
-                        style={{ color: theme.colors.success }}
-                        className="px-3 py-4 text-right font-medium"
-                      >
-                        ₹ {getDonationAmount(member.RollNumber)}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="3" className="text-center py-8 text-gray-500">
-                      No donations found for this period or filter.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-            {/* COPY BUTTON IS NOW HERE, at the bottom of the table */}
-            <div
-              className="p-3 flex justify-center border-t"
-              style={{ borderColor: theme.colors.primaryLight }}
-            >
-              <button
-                onClick={copyFilteredMemberNames}
-                className="flex items-center gap-2 text-sm px-4 py-2 rounded bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 shadow-sm transition"
-                title="Copy filtered member names"
-              >
-                <Copy size={16} />
-                Copy Filtered Names
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Expenses Table */}
-        {activeTab === "expenses" && (
-          <div
-            className="rounded-2xl shadow-xl border overflow-hidden"
-            style={{
-              background: theme.colors.neutralLight,
-              borderColor: theme.colors.primaryLight,
-            }}
-          >
-            <div
-              className="px-3 py-3 rounded-t-2xl border-b flex justify-between items-center"
-              style={{
-                background: theme.colors.neutralLightLight,
-                borderColor: theme.colors.primaryLight,
-                color: theme.colors.primary,
-              }}
-            >
-              <p className="text-base font-semibold">
-                Total Expenses in {selectedMonth}
-              </p>
-              <h2 className="font-bold">₹ {totalExpensesOfMonth}</h2>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto text-left min-w-[600px]">
-                <thead
-                  className="uppercase text-sm"
-                  style={{ background: theme.colors.primary, color: "#fff" }}
-                >
-                  <tr>
-                    <th className="px-6 py-3 border-b-2 font-bold tracking-wider">
-                      Year
-                    </th>
-                    <th className="px-6 py-3 border-b-2 font-bold tracking-wider">
-                      Month
-                    </th>
-                    <th className="px-6 py-3 border-b-2 font-bold tracking-wider text-right">
-                      Amount
-                    </th>
-                    <th className="px-6 py-3 border-b-2 font-bold tracking-wider">
-                      Description
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredExpenses.length > 0 ? (
-                    filteredExpenses.map((exp, index) => (
-                      <tr
-                        key={exp.ID}
-                        style={{
-                          backgroundColor:
-                            index % 2 === 0 ? "#f0f0f0" : "#ffffff",
-                        }}
-                      >
-                        <td className="px-6 py-4">{exp.Year}</td>
-                        <td className="px-6 py-4">{exp.Month}</td>
-                        <td className="px-6 py-4 text-right font-medium text-red-700">
-                          ₹ {exp.Amount}
-                        </td>
-                        <td className="px-6 py-4">{exp.Description}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan="4"
-                        className="text-center py-8 text-gray-500"
-                      >
-                        No expenses found for this period or search.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        <Popup
-          message={popup.message}
-          type={popup.type}
-          onClose={() => setPopup({ message: "", type: "" })}
-        />
-      </div>
-    </div>
-  );
-};
-
-const Card = ({ label, value }) => {
-  let icon = "";
-  let textColor = theme.colors.primary;
-  let bgColor = "#ffffff";
-  let borderColor = theme.colors.primaryLight;
-
-  if (label === "Total Donations") {
-    icon = "💰";
-    textColor = theme.colors.success;
-  } else if (label === "Total Expenses") {
-    icon = "📉";
-    textColor = theme.colors.danger;
-  } else if (label === "Balance") {
-    icon = "📊";
-    textColor = theme.colors.primary;
-  }
-
-  return (
-    <div
-      className="flex items-center justify-between px-6 py-4 rounded-xl shadow-sm border"
-      style={{
-        backgroundColor: bgColor,
-        borderColor,
-        color: textColor,
-        fontFamily: theme.fonts.body,
-      }}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className="h-10 w-10 rounded-full flex items-center justify-center text-lg shadow-sm"
-          style={{ backgroundColor: textColor, color: "#fff" }}
+      {/* Tabs - Styled like ManageAttendance/Donation */}
+      <div className="flex bg-gray-100 rounded-xl p-1 mb-8 shadow-sm">
+        <button
+          onClick={() => setActiveTab("donation")}
+          className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
+            ${activeTab === "donation" ? "bg-blue-600 text-white shadow-md" : "text-gray-700 hover:bg-gray-200"}
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+          `}
         >
-          {icon}
+          Donations
+        </button>
+        <button
+          onClick={() => setActiveTab("expense")}
+          className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
+            ${activeTab === "expense" ? "bg-red-600 text-white shadow-md" : "text-gray-700 hover:bg-gray-200"}
+            focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50
+          `}
+        >
+          Expenses
+        </button>
+      </div>
+
+      {/* Dropdowns - Styled like ManageAttendance/Donation inputs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-lg mb-8">
+        {/* Year Select */}
+        <div className="relative">
+          <label htmlFor="finance-year-select" className="block text-sm font-medium text-gray-700 mb-1">Select Year</label>
+          <select
+            id="finance-year-select" // Unique ID for this component
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+          >
+            {years.map((year) => (
+              <option key={year}>{year}</option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 mt-6">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+          </div>
         </div>
-        <div className="text-sm font-semibold tracking-wide opacity-80">
-          {label}
+        {/* Month Select */}
+        <div className="relative">
+          <label htmlFor="finance-month-select" className="block text-sm font-medium text-gray-700 mb-1">Select Month</label>
+          <select
+            id="finance-month-select" // Unique ID for this component
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+          >
+            {months.map((month) => (
+              <option key={month}>{month}</option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 mt-6">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+          </div>
         </div>
       </div>
-      <div className="text-xl font-bold tracking-tight">₹ {value}</div>
+
+      {/* Donation Tab Content */}
+      {activeTab === "donation" && (
+        <div className="w-full max-w-2xl bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+          <table className="min-w-full text-sm divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Roll Number</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount (₹)</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {donations.length > 0 ? (
+                donations.map((d, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-800 font-medium">{d.roll}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-700">{d.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-green-600 font-bold">{d.amount}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-gray-500 italic" colSpan="3">
+                    No donation data available for selected period.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Expense Tab Content */}
+      {activeTab === "expense" && (
+        <div className="w-full max-w-2xl bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+          <table className="min-w-full text-sm divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount (₹)</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {expenses.length > 0 ? (
+                expenses.map((e, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-700 font-medium">{e.description}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-red-600 font-bold">{e.amount}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-gray-500 italic" colSpan="2">
+                    No expense data available for selected period.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
-};
-
-export default ManageFinance;
+}

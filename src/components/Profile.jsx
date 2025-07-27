@@ -1,192 +1,101 @@
-import React, { useState, useEffect } from "react";
-import { Mail, Phone, MapPin, IdCard } from "lucide-react";
-import Loader from "./Loader";
-import { theme } from "../theme";
+import React, { useEffect, useState } from 'react';
+import LoadData from './LoadData';
 
 const Profile = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [member, setMember] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [imgError, setImgError] = useState(false);
+
+  const supportedExtensions = ['png', 'jpg', 'jpeg', 'webp', 'ico'];
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const rollNumber = localStorage.getItem("rollNumber");
-        if (!rollNumber) {
-          setError("Roll number not found in local storage.");
-          setLoading(false);
-          return;
-        }
+    const storedMember = localStorage.getItem('loggedInMember');
+    if (storedMember) {
+      const parsedMember = JSON.parse(storedMember);
+      setMember(parsedMember);
 
-        const response = await fetch(
-          `https://langar-backend.onrender.com/api/members/${rollNumber}`
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      // Try all extensions until one image loads
+      const tryImageExtensions = async () => {
+        for (let ext of supportedExtensions) {
+          const url = `https://raw.githubusercontent.com/akash6998s/Langar-App/main/src/assets/uploads/${parsedMember.roll_no}.${ext}`;
 
-        const data = await response.json();
+          // Test image by creating it and checking when it loads
+          const img = new Image();
+          img.src = url;
 
-        if (data && data.member) {
-          setUser({
-            profilePic: data.member.Photo
-              ? `https://langar-backend.onrender.com/uploads/${data.member.Photo}`
-              : "",
-            firstName: data.member.Name,
-            lastName: data.member.LastName,
-            rollNumber: data.RollNumber,
-            phone: data.member.PhoneNumber || "N/A",
-            email: data.member.Email || "N/A",
-            address: data.member.Address || "N/A",
+          const loaded = await new Promise((resolve) => {
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
           });
-        } else {
-          setError("User data not found.");
-        }
-      } catch (e) {
-        setError("Failed to fetch user data: " + e.message);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchUserData();
+          if (loaded) {
+            setImageUrl(url);
+            return;
+          }
+        }
+
+        // If none work, show fallback
+        setImgError(true);
+      };
+
+      tryImageExtensions();
+    }
   }, []);
 
-  if (loading)
+  if (!member) {
     return (
-      <div
-        className="flex items-center justify-center min-h-screen"
-        style={{ backgroundColor: theme.colors.neutralLight }}
-      >
-        <Loader />
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
+        <p className="text-gray-600 text-xl font-medium">No profile data found. Please log in.</p>
       </div>
     );
-
-  if (error)
-    return (
-      <div
-        className="flex justify-center items-center min-h-screen px-4"
-        style={{ backgroundColor: theme.colors.neutralLight }}
-      >
-        <p
-          className="text-lg font-semibold text-center max-w-md"
-          style={{ color: theme.colors.danger, fontFamily: theme.fonts.body }}
-        >
-          Error: {error}
-        </p>
-      </div>
-    );
-
-  if (!user)
-    return (
-      <div
-        className="flex justify-center items-center px-4"
-        style={{ backgroundColor: theme.colors.neutralLight }}
-      >
-        <p
-          className="text-lg font-semibold text-center"
-          style={{ color: theme.colors.neutralDark, fontFamily: theme.fonts.body }}
-        >
-          No user data available.
-        </p>
-      </div>
-    );
+  }
 
   return (
-    <div
-      className="flex items-center justify-center px-2"
-      style={{
-        fontFamily: theme.fonts.body,
-      }}
-    >
-      <div
-        className="w-full max-w-3xl p-8 "
-        style={{
-          borderColor: theme.colors.secondaryLight,
-          color: theme.colors.neutralDark,
-        }}
-      >
-        {/* Header */}
-        <div className="flex flex-col items-center space-y-4 mb-10">
-          <div
-            className="w-36 h-36 rounded-full border-4 shadow-md overflow-hidden"
-            style={{ borderColor: theme.colors.primary }}
-          >
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4 font-sans">
+      <LoadData /> {/* Assuming LoadData displays a global loading state */}
+      <div className="max-w-md w-full bg-white shadow-2xl rounded-2xl p-8 transform transition-all duration-300 hover:scale-[1.01] hover:shadow-3xl border border-gray-200">
+        <div className="flex flex-col items-center mb-8">
+          {/* Profile Image */}
+          {imgError || !imageUrl ? (
+            <div className="w-32 h-32 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-3xl font-bold mb-4 border-4 border-blue-300 shadow-inner">
+              IMG
+            </div>
+          ) : (
             <img
-              src={
-                user.profilePic || "https://via.placeholder.com/150?text=No+Image"
-              }
+              src={imageUrl}
               alt="Profile"
-              className="w-full h-full object-cover"
+              className="w-32 h-32 rounded-full object-cover mb-4 border-4 border-blue-300 shadow-md transform transition-transform duration-300 hover:scale-105"
             />
-          </div>
-          <h1
-            className="text-4xl font-bold"
-            style={{
-              color: theme.colors.primary,
-              fontFamily: theme.fonts.body,
-            }}
-          >
-            {user.firstName} {user.lastName}
-          </h1>
+          )}
+
+          {/* Roll Number */}
+          <p className="text-base text-gray-600 font-medium">
+            Roll No: <span className="text-gray-900 font-semibold">{member.roll_no}</span>
+          </p>
         </div>
 
-        {/* Profile Details */}
-        <div>
-          <h2
-            className="text-2xl font-semibold mb-6 border-b-2 pb-2"
-            style={{
-              color: theme.colors.primary,
-              borderColor: theme.colors.primary,
-              fontFamily: theme.fonts.body,
-            }}
-          >
-            Profile Details
-          </h2>
+        {/* User Details */}
+        <div className="space-y-5">
+          <div className="border-b pb-3 border-gray-100">
+            <span className="font-semibold text-gray-700 text-sm block mb-1">Name:</span>
+            <p className="text-gray-900 text-lg font-medium">{member.name} {member.last_name}</p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Roll Number */}
-            <ProfileItem
-              icon={<IdCard color={theme.colors.primary} />}
-              label="Roll Number"
-              value={user.rollNumber}
-            />
+          <div className="border-b pb-3 border-gray-100">
+            <span className="font-semibold text-gray-700 text-sm block mb-1">Email:</span>
+            <p className="text-gray-900 text-lg font-medium">{member.email}</p>
+          </div>
 
-            {/* Phone */}
-            <ProfileItem
-              icon={<Phone color={theme.colors.primary} />}
-              label="Phone"
-              value={user.phone}
-            />
+          <div className="border-b pb-3 border-gray-100">
+            <span className="font-semibold text-gray-700 text-sm block mb-1">Phone:</span>
+            <p className="text-gray-900 text-lg font-medium">{member.phone_no}</p>
+          </div>
 
-            {/* Email */}
-            <ProfileItem
-              icon={<Mail color={theme.colors.primary} />}
-              label="Email"
-              value={user.email}
-            />
-
-            {/* Address */}
-            <ProfileItem
-              icon={<MapPin color={theme.colors.primary} />}
-              label="Address"
-              value={user.address}
-            />
+          <div> {/* No bottom border for the last item */}
+            <span className="font-semibold text-gray-700 text-sm block mb-1">Address:</span>
+            <p className="text-gray-900 text-lg font-medium">{member.address}</p>
           </div>
         </div>
-      </div>
-    </div>
-  );
-};
-
-// Reusable Profile Detail Item
-const ProfileItem = ({ icon, label, value }) => {
-  return (
-    <div className="flex items-start gap-4">
-      <div className="mt-1">{icon}</div>
-      <div>
-        <p className="font-semibold">{label}</p>
-        <p className="text-sm break-words">{value}</p>
       </div>
     </div>
   );

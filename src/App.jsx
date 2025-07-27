@@ -1,66 +1,75 @@
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { theme } from "./theme";
 
-// Pages
-import Home from "./pages/user/Home";
-import Login from "./pages/auth/Login";
-
-// Components
-import Splash from "./Splash";
-import SuperAdmin from "./components/SuperAdmin";
-import Navbar from "./components/Navbar";
+import Header from "./components/Header";
+import Home from "./pages/Home";
 import Activity from "./components/Activity";
+import Members from "./components/Members";
 import Profile from "./components/Profile";
-import AllMember from "./components/AllMember";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import AdminPanel from "./pages/AdminPanel";
+import UploadAllData from "./components/databaseEditCode/UploadAllData";
+import SuperAdmin from "./pages/SuperAdmin";
+import EditDatabase from "./components/databaseEditCode/EditDatabase";
+import RemoveImgFromMembers from "./components/databaseEditCode/removeImgFromAllMembers";
+import UploadExpenseData from "./components/databaseEditCode/UploadExpenseData";
+import LoadData from "./components/LoadData";
+import Splash from './Splash'
 
-function AppWrapper() {
-  return (
-    <Router>
-      <App />
-    </Router>
-  );
-}
-
-function App() {
-  const [showSplash, setShowSplash] = useState(true);
+function AppRoutes() {
+   const [showSplash, setShowSplash] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 2000);
+    const timer = setTimeout(() => setShowSplash(false), 3000);
     return () => clearTimeout(timer);
   }, []);
 
   if (showSplash) return <Splash />;
 
-  const hideNavbarRoutes = ["/"];
-  const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
-
   return (
-    <div
-      className="flex flex-col min-h-full"
-      style={{
-        background: theme.colors.background,
-        fontFamily: theme.fonts.body,
-        scrollBehavior: "smooth",
-        WebkitOverflowScrolling: "touch",
-        height: "100vh", // keep full viewport height for flex
-      }}
-    >
-      {shouldShowNavbar && <Navbar />}
-
-      <div className="flex-1 overflow-auto">
-        <Routes>
+    <div className="h-screen flex flex-col">
+      {/* Main content area - 90% */}
+      <div className="h-[90vh] overflow-y-auto">
+        <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<Home />} />
           <Route path="/activity" element={<Activity />} />
+          <Route path="/members" element={<Members />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/allmember" element={<AllMember />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route path="/superadmin" element={<SuperAdmin />} />
+          <Route path="/load-data" element={<LoadData />} />
+
+          {/* These route are for upload and managing backup data */}
+          <Route path="/upload-backup" element={<UploadAllData />} />
+          <Route path="/edit-database" element={<EditDatabase />} />
+          <Route path="/remove-img" element={<RemoveImgFromMembers />} />
+          <Route path="/upload-expense" element={<UploadExpenseData />} />
         </Routes>
+      </div>
+
+      {/* Bottom navbar - 10% */}
+      <div className="h-[10vh]">
+        <Header />
       </div>
     </div>
   );
 }
 
-export default AppWrapper;
+function App() {
+  return (
+    <Router>
+      <AppRoutes />
+    </Router>
+  );
+}
+
+export default App;
