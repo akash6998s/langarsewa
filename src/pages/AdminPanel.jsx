@@ -8,16 +8,19 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import LoadData from "../components/LoadData"; // Assuming this is your global loading component
+import Loader from "../components/Loader"; // Import your Loader component
+import CustomPopup from "../components/Popup"; // Import your CustomPopup component
 
 const AdminPanel = () => {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true); // Add loading state
-  const [error, setError] = useState(null); // Add error state
+  const [isLoading, setIsLoading] = useState(true); // Renamed from 'loading' for consistency
+  const [popupMessage, setPopupMessage] = useState(null); // Replaces 'error' state
+  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
 
   const fetchUsers = async () => {
-    setLoading(true);
-    setError(null);
+    setIsLoading(true);
+    setPopupMessage(null); // Clear any previous popup messages
+    setPopupType(null);
     try {
       const snapshot = await getDocs(collection(db, "users"));
       // Filter out users that might already be approved or have incomplete data for display
@@ -27,21 +30,24 @@ const AdminPanel = () => {
       setUsers(pendingUsers);
     } catch (err) {
       console.error("Error fetching users:", err);
-      setError("Failed to load users for approval.");
+      setPopupMessage("Failed to load users for approval.");
+      setPopupType("error");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const approveUser = async (user) => {
     // Basic validation before starting the process
     if (!user.roll_no || !user.email || !user.password) {
-      alert("❌ Missing email, password, or roll number for user approval.");
+      setPopupMessage("❌ Missing email, password, or roll number for user approval.");
+      setPopupType("error");
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    setIsLoading(true);
+    setPopupMessage(null); // Clear any previous popup messages
+    setPopupType(null);
 
     try {
       const rollNo = user.roll_no.toString();
@@ -49,8 +55,9 @@ const AdminPanel = () => {
       const memberSnap = await getDoc(memberRef);
 
       if (!memberSnap.exists()) {
-        alert(`❌ Member profile with roll number ${rollNo} not found in 'members' collection.`);
-        setLoading(false);
+        setPopupMessage(`❌ Member profile with roll number ${rollNo} not found in 'members' collection. Please ensure a member profile exists for this roll number.`);
+        setPopupType("error");
+        setIsLoading(false);
         return;
       }
 
@@ -72,13 +79,15 @@ const AdminPanel = () => {
       // Delete the pending user request from the 'users' collection
       await deleteDoc(doc(db, "users", user.id));
 
-      alert(`✅ User with roll no ${rollNo} has been successfully approved!`);
+      setPopupMessage(`✅ User with roll no ${rollNo} has been successfully approved!`);
+      setPopupType("success");
       fetchUsers(); // Refresh the list of pending users
     } catch (err) {
       console.error("Error approving user:", err);
-      setError(`Failed to approve user: ${err.message}`);
+      setPopupMessage(`Failed to approve user: ${err.message}`);
+      setPopupType("error");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -88,21 +97,22 @@ const AdminPanel = () => {
 
   return (
     <div className="min-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-lg p-6 sm:p-8 font-sans flex flex-col items-center max-w-2xl mx-auto">
-      <LoadData /> {/* Global loading indicator */}
+      {/* Loader Component */}
+      {isLoading && <Loader />}
+
+      {/* Custom Popup Component */}
+      {popupMessage && (
+        <CustomPopup
+          message={popupMessage}
+          type={popupType}
+          onClose={() => setPopupMessage(null)} // Allow user to dismiss popup
+        />
+      )}
 
       <h2 className="text-3xl font-extrabold text-gray-800 mb-8 text-center">Admin Approval Panel</h2>
 
-      {loading && (
-        <div className="text-center text-blue-600 font-medium mb-4">Loading pending user requests...</div>
-      )}
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-center">
-          <span className="block sm:inline">{error}</span>
-        </div>
-      )}
-
-      {!loading && users.length === 0 && !error && (
+      {/* No pending users message */}
+      {!isLoading && users.length === 0 && !popupMessage && ( // Only show if not loading, no users, AND no active popup
         <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow-md mt-6 w-full max-w-md text-center">
           <p className="font-semibold text-lg">🎉 No pending user requests at the moment.</p>
           <p className="text-sm mt-1">Check back later for new signups.</p>
@@ -126,7 +136,7 @@ const AdminPanel = () => {
             <button
               onClick={() => approveUser(user)}
               className="bg-green-600 text-white font-medium py-2 px-5 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading} // Disable button during approval process
+              disabled={isLoading} // Disable button during approval process
             >
               Approve
             </button>

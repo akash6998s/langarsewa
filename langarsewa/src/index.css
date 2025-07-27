@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+html, body, #root {
+  /* Ensure these elements take up the full viewport height */
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  /* overflow: hidden; */
+}
+
+body {
+  /* This is the key property to prevent pull-to-refresh */
+  overscroll-behavior-y: contain;
+  /* Add your other existing body styles here, e.g., background-color, font-family */
+}

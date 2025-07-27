@@ -1,57 +1,64 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { doc, updateDoc, setDoc, deleteField } from "firebase/firestore"; // Import deleteField for proper Firestore field deletion
-import LoadData from "./LoadData";
+import { doc, updateDoc, setDoc, deleteField, collection, getDocs } from "firebase/firestore"; // Import deleteField, collection, getDocs
+import Loader from "./Loader"; // Import your Loader component
+import CustomPopup from "./Popup"; // Import your custom Popup component
 
 const Managemember = () => {
   const [members, setMembers] = useState([]);
   const [selectedTab, setSelectedTab] = useState("add");
   const [selectedRollNo, setSelectedRollNo] = useState("");
   const [memberData, setMemberData] = useState(null);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false); // Add loading state
-  const [error, setError] = useState(null); // Add error state
+
+  // States for custom Loader and Popup
+  const [isLoading, setIsLoading] = useState(false);
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
+
+  // Function to fetch members from Firebase
+  const fetchMembersFromFirebase = async () => {
+    setIsLoading(true);
+    setPopupMessage(null); // Clear any previous messages
+    try {
+      const querySnapshot = await getDocs(collection(db, "members"));
+      const memberList = [];
+      querySnapshot.forEach((doc) => {
+        memberList.push({ id: doc.id, ...doc.data() });
+      });
+      setMembers(memberList);
+    } catch (err) {
+      console.error("Error fetching members from Firebase:", err);
+      setPopupMessage("Failed to load members. Please try again.");
+      setPopupType("error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // This part still relies on localStorage, which might not be synchronized
-    // with real-time Firebase changes. For a fully robust app, consider
-    // fetching members directly from Firestore here if not already handled by LoadData.
-    const stored = localStorage.getItem("allMembers");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setMembers(parsed);
-      } catch (err) {
-        console.error("Invalid localStorage data for allMembers.", err);
-        setError("Failed to load members from local storage. Try refreshing.");
-      }
-    }
-  }, []);
+    fetchMembersFromFirebase();
+  }, []); // Fetch members on component mount
 
   const getMaxRollNo = () => {
-    // Ensure that roll_no is treated as a number for max calculation
     const rollNos = members.map((m) => Number(m.roll_no) || 0);
     return Math.max(...rollNos, 0);
   };
 
   const handleRollChange = (rollNo) => {
     setSelectedRollNo(rollNo);
-    setMessage("");
+    setPopupMessage(null); // Clear any previous messages
 
-    // Convert rollNo to a number for strict comparison if needed
     const numRollNo = Number(rollNo);
     const isNew = numRollNo === (getMaxRollNo() + 1);
 
     if (isNew) {
-      // Blank for new roll number, pre-fill roll_no
       setMemberData({
         name: "",
         last_name: "",
         email: "",
         phone_no: "",
         address: "",
-        roll_no: numRollNo, // Use the numeric rollNo
-        // Set defaults for other fields if necessary
+        roll_no: numRollNo,
         approved: false,
         isAdmin: false,
         isSuperAdmin: false,
@@ -61,13 +68,13 @@ const Managemember = () => {
         donation: {},
       });
     } else {
-      // Load from existing
       const member = members.find((m) => Number(m.roll_no) === numRollNo);
       if (member) {
         setMemberData({ ...member });
       } else {
-        setMemberData(null); // Clear form if member not found for selected roll
-        setMessage("❌ Member not found for this roll number.");
+        setMemberData(null);
+        setPopupMessage("❌ Member not found for this roll number.");
+        setPopupType("error");
       }
     }
   };
@@ -78,76 +85,74 @@ const Managemember = () => {
 
   const handleSave = async () => {
     if (!memberData?.roll_no) {
-        setMessage("❌ Please select a roll number first.");
-        return;
+      setPopupMessage("❌ Please select a roll number first.");
+      setPopupType("error");
+      return;
     }
     if (!memberData.name || !memberData.last_name || !memberData.email || !memberData.phone_no || !memberData.address) {
-        setMessage("❌ All fields must be filled.");
-        return;
+      setPopupMessage("❌ All fields must be filled.");
+      setPopupType("error");
+      return;
     }
-    // Basic email validation
     if (!/\S+@\S+\.\S+/.test(memberData.email)) {
-        setMessage("❌ Please enter a valid email address.");
-        return;
+      setPopupMessage("❌ Please enter a valid email address.");
+      setPopupType("error");
+      return;
     }
-    // Basic phone number validation
     if (!/^\d{10}$/.test(memberData.phone_no)) {
-        setMessage("❌ Phone number must be 10 digits.");
-        return;
+      setPopupMessage("❌ Phone number must be 10 digits.");
+      setPopupType("error");
+      return;
     }
 
-    setLoading(true);
-    setMessage("");
+    setIsLoading(true);
+    setPopupMessage(null); // Clear previous popup messages
     try {
-      // Use memberData.roll_no as the ID if memberData.id is not available
-      // It's crucial that 'id' in Firestore matches 'roll_no' for members for easy lookups.
       const idToUse = String(memberData.roll_no);
       const ref = doc(db, "members", idToUse);
-      
+
       const dataToSave = {
         ...memberData,
-        id: idToUse, // Ensure 'id' field matches the document ID
-        roll_no: Number(memberData.roll_no), // Ensure roll_no is stored as a number
+        id: idToUse,
+        roll_no: Number(memberData.roll_no),
       };
 
       await setDoc(ref, dataToSave, { merge: true });
 
-      setMessage("✅ Member saved successfully!");
-      // Optionally, re-fetch members from localStorage or Firebase after save
-      // For now, assuming LoadData will handle this or a page refresh will.
+      setPopupMessage("✅ Member saved successfully!");
+      setPopupType("success");
+      fetchMembersFromFirebase(); // Re-fetch members to update the list and max roll number
     } catch (err) {
       console.error("Save error:", err);
-      setMessage("❌ Error saving member. Please check console for details.");
+      setPopupMessage("❌ Error saving member. Please check console for details.");
+      setPopupType("error");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleDelete = async () => {
     if (!selectedRollNo) {
-        setMessage("❌ Please select a member to delete.");
-        return;
-    }
-    if (!window.confirm(`Are you sure you want to delete details for Roll No: ${selectedRollNo}? This action cannot be undone.`)) {
-        return;
+      setPopupMessage("❌ Please select a member to delete.");
+      setPopupType("error");
+      return;
     }
 
-    setLoading(true);
-    setMessage("");
+    // Removed window.confirm as per instructions, direct action with popup feedback
+    setIsLoading(true);
+    setPopupMessage(null); // Clear previous popup messages
+
     const memberToDelete = members.find((m) => String(m.roll_no) === String(selectedRollNo));
 
     if (!memberToDelete || !memberToDelete.id) {
-      setMessage("❌ Member not found or invalid ID.");
-      setLoading(false);
+      setPopupMessage("❌ Member not found or invalid ID.");
+      setPopupType("error");
+      setIsLoading(false);
       return;
     }
 
     try {
       const ref = doc(db, "members", memberToDelete.id);
-      // We are "deleting" by clearing fields, not deleting the document itself.
-      // This matches your original functionality but is an uncommon pattern.
-      // If you truly want to delete the member document, use `deleteDoc(ref)`.
-      // For now, retaining your functionality to clear specific fields.
       const fieldsToClear = {
         name: deleteField(),
         last_name: deleteField(),
@@ -156,22 +161,24 @@ const Managemember = () => {
         address: deleteField(),
         attendance: deleteField(),
         donation: deleteField(),
-        approved: false, // Explicitly set to false, not deleted
-        isAdmin: false, // Explicitly set to false, not deleted
-        isSuperAdmin: false, // Explicitly set to false, not deleted
-        password: deleteField(), // Delete sensitive fields
+        approved: false,
+        isAdmin: false,
+        isSuperAdmin: false,
+        password: deleteField(),
         img: deleteField(),
       };
       await updateDoc(ref, fieldsToClear);
-      setMessage("🗑️ Member details deleted (roll number document retained).");
-      setMemberData(null); // Clear the form after deletion
-      setSelectedRollNo(""); // Reset selected roll
-      // Re-fetch members to update UI (localStorage or Firebase)
+      setPopupMessage("🗑️ Member details deleted (roll number document retained).");
+      setPopupType("success");
+      setMemberData(null);
+      setSelectedRollNo("");
+      fetchMembersFromFirebase(); // Re-fetch members to update UI
     } catch (err) {
       console.error("Delete error:", err);
-      setMessage("❌ Error deleting member details. Please check console.");
+      setPopupMessage("❌ Error deleting member details. Please check console.");
+      setPopupType("error");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -179,10 +186,21 @@ const Managemember = () => {
   const addTabRolls = [...members.map((m) => Number(m.roll_no)), maxRoll + 1].sort((a, b) => a - b);
   const deleteTabRolls = members.map((m) => Number(m.roll_no)).sort((a, b) => a - b);
 
-
   return (
     <div className="min-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-lg p-6 sm:p-8 font-sans flex flex-col items-center">
-      <LoadData /> {/* Global loading indicator */}
+      {/* Conditionally render Loader */}
+      {isLoading && <Loader />}
+
+      {/* Conditionally render Custom Popup */}
+      {popupMessage && (
+        <CustomPopup
+          message={popupMessage}
+          type={popupType}
+          onClose={() => setPopupMessage(null)} // Close popup by clearing message
+        />
+      )}
+
+      {/* Removed LoadData as Loader component is now used */}
 
       <h2 className="text-3xl font-extrabold text-gray-800 mb-8 text-center">Manage Members</h2>
 
@@ -193,12 +211,13 @@ const Managemember = () => {
             setSelectedTab("add");
             setSelectedRollNo("");
             setMemberData(null);
-            setMessage("");
+            setPopupMessage(null); // Clear messages on tab change
           }}
           className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
             ${selectedTab === "add" ? "bg-blue-600 text-white shadow-md" : "text-gray-700 hover:bg-gray-200"}
             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
           `}
+          disabled={isLoading} // Disable button when loading
         >
           Add Member
         </button>
@@ -207,12 +226,13 @@ const Managemember = () => {
             setSelectedTab("delete");
             setSelectedRollNo("");
             setMemberData(null);
-            setMessage("");
+            setPopupMessage(null); // Clear messages on tab change
           }}
           className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
             ${selectedTab === "delete" ? "bg-red-600 text-white shadow-md" : "text-gray-700 hover:bg-gray-200"}
             focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50
           `}
+          disabled={isLoading} // Disable button when loading
         >
           Delete Member
         </button>
@@ -226,6 +246,7 @@ const Managemember = () => {
           value={selectedRollNo}
           onChange={(e) => handleRollChange(e.target.value)}
           className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+          disabled={isLoading} // Disable select when loading
         >
           <option value="">-- Select --</option>
           {(selectedTab === "add" ? addTabRolls : deleteTabRolls).map((roll) => (
@@ -239,12 +260,7 @@ const Managemember = () => {
         </div>
       </div>
 
-      {loading && (
-        <div className="text-center text-blue-600 font-medium mb-4">Processing...</div>
-      )}
-      {error && (
-        <div className="text-center text-red-600 font-medium mb-4">{error}</div>
-      )}
+      {/* Removed old loading and error display divs */}
 
       {memberData && (
         <div className="w-full max-w-lg bg-white rounded-xl shadow-md p-6 border border-gray-200">
@@ -259,6 +275,7 @@ const Managemember = () => {
                 value={memberData.name || ""}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 readOnly={selectedTab === "add" && String(selectedRollNo) <= maxRoll}
+                disabled={isLoading} // Disable input when loading
               />
             </div>
 
@@ -270,6 +287,7 @@ const Managemember = () => {
                 className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
                 value={memberData.last_name || ""}
                 onChange={(e) => handleInputChange("last_name", e.target.value)}
+                disabled={isLoading} // Disable input when loading
               />
             </div>
 
@@ -277,10 +295,11 @@ const Managemember = () => {
               <label htmlFor="email-input" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
               <input
                 id="email-input"
-                type="email" // Use type="email" for better mobile keyboard
+                type="email"
                 className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
                 value={memberData.email || ""}
                 onChange={(e) => handleInputChange("email", e.target.value)}
+                disabled={isLoading} // Disable input when loading
               />
             </div>
 
@@ -288,21 +307,23 @@ const Managemember = () => {
               <label htmlFor="phone-input" className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
               <input
                 id="phone-input"
-                type="tel" // Use type="tel" for better mobile keyboard
+                type="tel"
                 className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
                 value={memberData.phone_no || ""}
                 onChange={(e) => handleInputChange("phone_no", e.target.value)}
+                disabled={isLoading} // Disable input when loading
               />
             </div>
 
-            <div className="md:col-span-2"> {/* Make address span two columns on medium screens */}
+            <div className="md:col-span-2">
               <label htmlFor="address-input" className="block text-sm font-medium text-gray-700 mb-1">Address</label>
               <textarea
                 id="address-input"
                 className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
-                rows="3" // Increased rows for more space
+                rows="3"
                 value={memberData.address || ""}
                 onChange={(e) => handleInputChange("address", e.target.value)}
+                disabled={isLoading} // Disable textarea when loading
               ></textarea>
             </div>
           </div>
@@ -311,8 +332,9 @@ const Managemember = () => {
             <button
               onClick={handleSave}
               className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+              disabled={isLoading} // Disable button when loading
             >
-              Save Member
+              {isLoading ? "Saving..." : "Save Member"}
             </button>
           )}
 
@@ -320,16 +342,13 @@ const Managemember = () => {
             <button
               onClick={handleDelete}
               className="w-full py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75"
+              disabled={isLoading} // Disable button when loading
             >
-              Delete Member Details
+              {isLoading ? "Deleting..." : "Delete Member Details"}
             </button>
           )}
 
-          {message && (
-            <p className={`text-sm mt-4 text-center font-medium ${message.includes("✅") || message.includes("🗑️") ? "text-green-600" : "text-red-600"}`}>
-              {message}
-            </p>
-          )}
+          {/* Removed old message display div */}
         </div>
       )}
     </div>

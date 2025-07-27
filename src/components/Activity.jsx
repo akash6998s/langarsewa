@@ -1,34 +1,52 @@
 import { useEffect, useState, useMemo } from "react";
-import LoadData from "./LoadData";
+import Loader from "./Loader"; // Import your Loader component
+import CustomPopup from "./Popup"; // Import your CustomPopup component
 
 const months = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
 
-const years = Array.from({ length: 11 }, (_, i) => String(2025 + i));
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 11 }, (_, i) => String(currentYear + i)); // From current year to current year + 10
 const MAX_DAYS_IN_MONTH = 31;
 
 const Activity = () => {
-  const initialYear = String(new Date().getFullYear());
+  const initialYear = String(currentYear);
   const [selectedYear, setSelectedYear] = useState(
-    years.includes(initialYear) ? initialYear : "2025"
+    years.includes(initialYear) ? initialYear : "2025" // Fallback to "2025" if currentYear not in list (e.g., if list starts from a fixed year)
   );
   const [memberAttendance, setMemberAttendance] = useState(null);
 
+  // States for custom Loader and Popup
+  const [isLoading, setIsLoading] = useState(true);
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
+
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("loggedInMember");
-      if (stored) {
-        const parsedData = JSON.parse(stored);
-        setMemberAttendance(parsedData.attendance || {});
-      } else {
+    const loadAttendance = () => {
+      setIsLoading(true); // Start loading
+      setPopupMessage(null); // Clear any previous messages
+      try {
+        const stored = localStorage.getItem("loggedInMember");
+        if (stored) {
+          const parsedData = JSON.parse(stored);
+          setMemberAttendance(parsedData.attendance || {});
+        } else {
+          setMemberAttendance({});
+          setPopupMessage("No member data found. Please log in.");
+          setPopupType("error");
+        }
+      } catch (error) {
+        console.error("Error parsing member data from localStorage:", error);
         setMemberAttendance({});
+        setPopupMessage("Error loading activity data. Please try logging in again.");
+        setPopupType("error");
+      } finally {
+        setIsLoading(false); // End loading
       }
-    } catch (error) {
-      console.error("Error parsing member data from localStorage:", error);
-      setMemberAttendance({});
-    }
+    };
+    loadAttendance();
   }, []);
 
   const currentYearAttendance = useMemo(() => {
@@ -37,7 +55,17 @@ const Activity = () => {
 
   return (
     <div className="flex flex-col bg-gray-50 font-sans min-h-screen">
-      <LoadData className="mb-4" />
+      {/* Loader Component */}
+      {isLoading && <Loader />}
+
+      {/* Custom Popup Component */}
+      {popupMessage && (
+        <CustomPopup
+          message={popupMessage}
+          type={popupType}
+          onClose={() => setPopupMessage(null)} // Allow user to dismiss popup
+        />
+      )}
 
       <h2 className="text-3xl font-extrabold text-gray-800 pt-6 mb-4 text-center">
         Your Activity Sheet
@@ -45,13 +73,14 @@ const Activity = () => {
 
       {/* Year Selector */}
       <div className="flex justify-center mb-8 px-6 md:px-10">
-        <div className="relative">
+        <div className="relative w-full">
           <label htmlFor="year-select" className="sr-only">Select Year</label>
           <select
             id="year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
             className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            disabled={isLoading} // Disable selector while loading
           >
             {years.map((year) => (
               <option key={year} value={year}>
@@ -96,7 +125,7 @@ const Activity = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {memberAttendance === null ? (
+                {isLoading ? (
                   <tr>
                     <td colSpan={MAX_DAYS_IN_MONTH + 1} className="text-center py-8 text-gray-500 text-base">
                       Loading activity data...
@@ -141,16 +170,20 @@ const Activity = () => {
         </div>
       </div>
 
-      {/* Fallback messages */}
-      {memberAttendance && Object.keys(memberAttendance).length === 0 && (
-        <p className="text-center text-gray-500 mt-6 px-6 md:px-10">
-          No activity data found. Please ensure you are logged in correctly.
-        </p>
-      )}
-      {memberAttendance && Object.keys(currentYearAttendance).length === 0 && (
-        <p className="text-center text-gray-500 mt-2 px-6 md:px-10">
-          No activity recorded for {selectedYear}.
-        </p>
+      {/* Fallback messages - only show if not loading and no active popup message */}
+      {!isLoading && !popupMessage && (
+        <>
+          {memberAttendance && Object.keys(memberAttendance).length === 0 && (
+            <p className="text-center text-gray-500 mt-6 px-6 md:px-10">
+              No activity data found. Please ensure you are logged in correctly.
+            </p>
+          )}
+          {memberAttendance && Object.keys(currentYearAttendance).length === 0 && (
+            <p className="text-center text-gray-500 mt-2 px-6 md:px-10">
+              No activity recorded for {selectedYear}.
+            </p>
+          )}
+        </>
       )}
     </div>
   );

@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import ManageAttendance from "../components/ManageAttendance";
 import ManageDonation from "../components/ManageDonation";
 import ManageExpense from "../components/ManageExpense";
-import Managemember from "../components/Managemember";
 import ManageFinance from "../components/ManageFinance";
+import Managemember from "../components/ManageMember";
 
 // ✅ MUI Icons
 import GroupIcon from "@mui/icons-material/Group";

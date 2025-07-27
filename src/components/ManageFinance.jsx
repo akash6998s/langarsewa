@@ -1,67 +1,122 @@
 import { useEffect, useState } from "react";
+import { db } from "../firebase";
+import { collection, getDocs } from "firebase/firestore";
 import Summary from "./Summary";
-import LoadData from "./LoadData";
+import Loader from "./Loader"; // Import your Loader component
+import CustomPopup from "./Popup"; // Import your custom Popup component
 
-// Note: It's good practice to derive current year dynamically for 'years' array as well
+// Dynamically generate years for consistency with other components
+const years = Array.from({ length: 2 }, (_, i) => String(new Date().getFullYear() + i));
 const months = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
 
-// Dynamically generate years for consistency with other components
-const years = Array.from({ length: 2 }, (_, i) => String(new Date().getFullYear() + i));
-
 export default function ManageFinance() {
   const [activeTab, setActiveTab] = useState("donation");
-
-  const [selectedYear, setSelectedYear] = useState(String(new Date().getFullYear())); // Default to current year
-  const [selectedMonth, setSelectedMonth] = useState("July"); // Default to current month for example
+  const [selectedYear, setSelectedYear] = useState(String(new Date().getFullYear()));
+  const [selectedMonth, setSelectedMonth] = useState("July");
 
   const [donations, setDonations] = useState([]);
   const [expenses, setExpenses] = useState([]);
 
-  useEffect(() => {
-    // This is still using localStorage.getItem.
-    // In a real application, you would ideally fetch this data from Firebase
-    // just like you do for members in ManageAttendance/ManageDonation.
-    const allMembers = JSON.parse(localStorage.getItem("allMembers")) || [];
+  // States for custom Loader and Popup
+  const [isLoading, setIsLoading] = useState(false);
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
 
-    const donationList = allMembers.map((member) => {
-      // Ensure that selectedYear and selectedMonth are correctly used to access donation data
-      const donationData = member?.donation?.[selectedYear]?.[selectedMonth];
-      let amount = 0;
+  // --- Functions to fetch data from Firebase ---
 
-      if (typeof donationData === "number") {
-        amount = donationData;
-      } else if (Array.isArray(donationData)) {
-        amount = donationData.reduce((sum, val) => sum + Number(val || 0), 0);
+  const fetchDonations = async () => {
+    setIsLoading(true);
+    setPopupMessage(null);
+    try {
+      const querySnapshot = await getDocs(collection(db, "members"));
+      const donationList = [];
+
+      querySnapshot.forEach((docSnap) => {
+        const member = docSnap.data();
+        const memberRoll = docSnap.id; // Use doc.id for roll number
+
+        // Access donation data using selectedYear and selectedMonth
+        const donationData = member?.donation?.[selectedYear]?.[selectedMonth];
+        let amount = 0;
+
+        if (typeof donationData === "number") {
+          amount = donationData;
+        } else if (Array.isArray(donationData)) {
+          // This case might not be needed if donation amounts are always summed up to a single number
+          // as handled in ManageDonation. If individual donations are stored in an array,
+          // then this logic is correct to sum them.
+          amount = donationData.reduce((sum, val) => sum + Number(val || 0), 0);
+        }
+
+        if (amount > 0) {
+          donationList.push({
+            roll: memberRoll,
+            name: member.name || "Unknown", // Assuming 'name' field exists in member document
+            amount: amount,
+          });
+        }
+      });
+      setDonations(donationList);
+    } catch (err) {
+      console.error("Error fetching donations:", err);
+      setPopupMessage("Failed to load donations. Please try again.");
+      setPopupType("error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchExpenses = async () => {
+    setIsLoading(true);
+    setPopupMessage(null);
+    try {
+      const querySnapshot = await getDocs(collection(db, "expenses"));
+      let expensesList = [];
+
+      // Assuming 'expenses' collection has one document storing all expenses,
+      // similar to how ManageExpense handles it.
+      if (!querySnapshot.empty) {
+        const expenseDoc = querySnapshot.docs[0].data();
+        expensesList = expenseDoc?.[selectedYear]?.[selectedMonth] || [];
       }
-
-      return {
-        // Prioritize 'id' if 'roll_no' is not consistently used
-        roll: member.roll_no || member.id || "-",
-        name: member.name || "Unknown",
-        amount: amount
-      };
-    }).filter(d => d.amount > 0); // Filter out members with 0 donation for cleaner display
-
-    setDonations(donationList);
-  }, [selectedYear, selectedMonth]);
+      setExpenses(expensesList);
+    } catch (err) {
+      console.error("Error fetching expenses:", err);
+      setPopupMessage("Failed to load expenses. Please try again.");
+      setPopupType("error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // This is still using localStorage.getItem.
-    // Consider fetching expenses from Firebase if they are stored there.
-    const expenseData = JSON.parse(localStorage.getItem("expenses")) || {};
-    const expensesList = expenseData?.[selectedYear]?.[selectedMonth] || [];
-    setExpenses(expensesList);
-  }, [selectedYear, selectedMonth]);
+    if (activeTab === "donation") {
+      fetchDonations();
+    } else {
+      fetchExpenses();
+    }
+  }, [activeTab, selectedYear, selectedMonth]);
 
 
   return (
     <div className="min-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-lg p-6 sm:p-8 font-sans flex flex-col items-center">
-      <LoadData />
-      <Summary /> {/* Summary component is placed here */}
+      {/* Conditionally render Loader */}
+      {isLoading && <Loader />}
 
+      {/* Conditionally render Custom Popup */}
+      {popupMessage && (
+        <CustomPopup
+          message={popupMessage}
+          type={popupType}
+          onClose={() => setPopupMessage(null)} // Close popup by clearing message
+        />
+      )}
+
+      {/* Summary component - Assuming it handles its own data fetching or receives props */}
+      <Summary />
 
       {/* Tabs - Styled like ManageAttendance/Donation */}
       <div className="flex bg-gray-100 rounded-xl p-1 mb-8 shadow-sm">
@@ -71,6 +126,7 @@ export default function ManageFinance() {
             ${activeTab === "donation" ? "bg-blue-600 text-white shadow-md" : "text-gray-700 hover:bg-gray-200"}
             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
           `}
+          disabled={isLoading} // Disable button when loading
         >
           Donations
         </button>
@@ -80,6 +136,7 @@ export default function ManageFinance() {
             ${activeTab === "expense" ? "bg-red-600 text-white shadow-md" : "text-gray-700 hover:bg-gray-200"}
             focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50
           `}
+          disabled={isLoading} // Disable button when loading
         >
           Expenses
         </button>
@@ -95,6 +152,7 @@ export default function ManageFinance() {
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
             className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            disabled={isLoading} // Disable select when loading
           >
             {years.map((year) => (
               <option key={year}>{year}</option>
@@ -112,6 +170,7 @@ export default function ManageFinance() {
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
             className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            disabled={isLoading} // Disable select when loading
           >
             {months.map((month) => (
               <option key={month}>{month}</option>
@@ -146,7 +205,7 @@ export default function ManageFinance() {
               ) : (
                 <tr>
                   <td className="px-6 py-4 whitespace-nowrap text-center text-gray-500 italic" colSpan="3">
-                    No donation data available for selected period.
+                    {isLoading ? "Loading donations..." : "No donation data available for selected period."}
                   </td>
                 </tr>
               )}
@@ -176,7 +235,7 @@ export default function ManageFinance() {
               ) : (
                 <tr>
                   <td className="px-6 py-4 whitespace-nowrap text-center text-gray-500 italic" colSpan="2">
-                    No expense data available for selected period.
+                    {isLoading ? "Loading expenses..." : "No expense data available for selected period."}
                   </td>
                 </tr>
               )}
