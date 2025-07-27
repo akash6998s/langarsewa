@@ -3,20 +3,34 @@ import Loader from "./Loader"; // Import your Loader component
 import CustomPopup from "./Popup"; // Import your CustomPopup component
 
 const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const currentYear = new Date().getFullYear();
+const currentMonth = months[new Date().getMonth()];
 const years = Array.from({ length: 11 }, (_, i) => String(currentYear + i)); // From current year to current year + 10
 const MAX_DAYS_IN_MONTH = 31;
 
 const Activity = () => {
   const initialYear = String(currentYear);
   const [selectedYear, setSelectedYear] = useState(
-    years.includes(initialYear) ? initialYear : "2025" // Fallback to "2025" if currentYear not in list (e.g., if list starts from a fixed year)
+    years.includes(initialYear)
+      ? initialYear
+      : String(currentYear) // Fallback to currentYear if not in list
   );
   const [memberAttendance, setMemberAttendance] = useState(null);
+  const [memberDonation, setMemberDonation] = useState(null); // New state for donation
 
   // States for custom Loader and Popup
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +38,7 @@ const Activity = () => {
   const [popupType, setPopupType] = useState(null); // 'success' or 'error'
 
   useEffect(() => {
-    const loadAttendance = () => {
+    const loadActivityData = () => {
       setIsLoading(true); // Start loading
       setPopupMessage(null); // Clear any previous messages
       try {
@@ -32,26 +46,60 @@ const Activity = () => {
         if (stored) {
           const parsedData = JSON.parse(stored);
           setMemberAttendance(parsedData.attendance || {});
+          setMemberDonation(parsedData.donation || {}); // Load donation data
         } else {
           setMemberAttendance({});
+          setMemberDonation({});
           setPopupMessage("No member data found. Please log in.");
           setPopupType("error");
         }
       } catch (error) {
         console.error("Error parsing member data from localStorage:", error);
         setMemberAttendance({});
+        setMemberDonation({});
         setPopupMessage("Error loading activity data. Please try logging in again.");
         setPopupType("error");
       } finally {
         setIsLoading(false); // End loading
       }
     };
-    loadAttendance();
+    loadActivityData();
   }, []);
 
   const currentYearAttendance = useMemo(() => {
     return memberAttendance?.[selectedYear] || {};
   }, [memberAttendance, selectedYear]);
+
+  const currentYearDonation = useMemo(() => {
+    return memberDonation?.[selectedYear] || {};
+  }, [memberDonation, selectedYear]);
+
+  // Calculate total donation for the selected year
+  const totalDonationForSelectedYear = useMemo(() => {
+    return Object.values(currentYearDonation).reduce(
+      (sum, monthDonation) => sum + (monthDonation || 0),
+      0
+    );
+  }, [currentYearDonation]);
+
+  // Calculate attendance percentage for the current month of the selected year
+  const currentMonthAttendancePercentage = useMemo(() => {
+    const monthIndex = months.indexOf(currentMonth);
+    const daysInCurrentMonth = new Date(
+      Number(selectedYear),
+      monthIndex + 1,
+      0
+    ).getDate();
+    const attendanceForCurrentMonth =
+      currentYearAttendance[currentMonth] || [];
+    const attendedDaysCount = attendanceForCurrentMonth.length;
+
+    if (daysInCurrentMonth === 0) {
+      return 0; // Avoid division by zero
+    }
+
+    return ((attendedDaysCount / daysInCurrentMonth) * 100).toFixed(2);
+  }, [currentYearAttendance, selectedYear]);
 
   return (
     <div className="flex flex-col bg-gray-50 font-sans min-h-screen">
@@ -71,10 +119,34 @@ const Activity = () => {
         Your Activity Sheet
       </h2>
 
+      {/* Summary Section */}
+      {!isLoading && (
+        <div className="bg-white rounded-lg shadow-md p-6 mx-6 md:mx-10 mb-6 flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-4">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-gray-700">
+              Total Donation ({selectedYear}):
+            </p>
+            <p className="text-2xl font-bold text-blue-600">
+              ₹{totalDonationForSelectedYear}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-semibold text-gray-700">
+              Attendance ({currentMonth} {selectedYear}):
+            </p>
+            <p className="text-2xl font-bold text-green-600">
+              {currentMonthAttendancePercentage}%
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Year Selector */}
       <div className="flex justify-center mb-8 px-6 md:px-10">
         <div className="relative w-full">
-          <label htmlFor="year-select" className="sr-only">Select Year</label>
+          <label htmlFor="year-select" className="sr-only">
+            Select Year
+          </label>
           <select
             id="year-select"
             value={selectedYear}
@@ -127,24 +199,36 @@ const Activity = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={MAX_DAYS_IN_MONTH + 1} className="text-center py-8 text-gray-500 text-base">
+                    <td
+                      colSpan={MAX_DAYS_IN_MONTH + 1}
+                      className="text-center py-8 text-gray-500 text-base"
+                    >
                       Loading activity data...
                     </td>
                   </tr>
                 ) : (
                   months.map((month) => {
                     const monthIndex = months.indexOf(month);
-                    const daysInMonth = new Date(Number(selectedYear), monthIndex + 1, 0).getDate();
-                    const attendanceForMonth = currentYearAttendance[month] || [];
+                    const daysInMonth = new Date(
+                      Number(selectedYear),
+                      monthIndex + 1,
+                      0
+                    ).getDate();
+                    const attendanceForMonth =
+                      currentYearAttendance[month] || [];
 
                     return (
-                      <tr key={month} className="hover:bg-gray-50 transition-colors duration-150 ease-in-out">
+                      <tr
+                        key={month}
+                        className="hover:bg-gray-50 transition-colors duration-150 ease-in-out"
+                      >
                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10 w-28 sm:w-36">
                           {month}
                         </td>
                         {Array.from({ length: MAX_DAYS_IN_MONTH }, (_, i) => {
                           const dayNumber = i + 1;
-                          const isAttended = attendanceForMonth.includes(dayNumber);
+                          const isAttended =
+                            attendanceForMonth.includes(dayNumber);
                           const isDayInMonth = dayNumber <= daysInMonth;
 
                           return (

@@ -23,7 +23,7 @@ import LoadData from "./components/LoadData";
 import Splash from './Splash'
 
 function AppRoutes() {
-   const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
@@ -33,10 +33,13 @@ function AppRoutes() {
 
   if (showSplash) return <Splash />;
 
+  const hideHeaderRoutes = ["/", "/signup"];
+  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
+
   return (
     <div className="h-screen flex flex-col">
       {/* Main content area - 90% */}
-      <div className="h-[90vh] overflow-y-auto">
+      <div className={`h-[${shouldHideHeader ? "100" : "90"}vh] overflow-y-auto`}>
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<Home />} />
@@ -57,12 +60,15 @@ function AppRoutes() {
       </div>
 
       {/* Bottom navbar - 10% */}
-      <div className="h-[10vh]">
-        <Header />
-      </div>
+      {!shouldHideHeader && (
+        <div className="h-[10vh]">
+          <Header />
+        </div>
+      )}
     </div>
   );
 }
+
 
 function App() {
   return (

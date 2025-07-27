@@ -7,6 +7,7 @@ import {
   updateDoc,
   getDoc,
 } from "firebase/firestore";
+import { AiOutlineClose } from "react-icons/ai";
 import CustomPopup from "./Popup"; // Renamed to avoid conflict with reactjs-popup if it's still needed elsewhere
 import Loader from "./Loader"; // Import your Loader component
 import Popup from "reactjs-popup";
@@ -407,7 +408,8 @@ export default function ManageAttendance() {
                   className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-full p-1 transition-colors duration-200"
                   aria-label="Close popup"
                 >
-                  <span className="material-icons text-3xl">close</span>
+                 <AiOutlineClose className="text-2xl text-gray-600 hover:text-gray-800" />
+
                 </button>
               </div>
 

@@ -128,7 +128,7 @@ function Signup() {
       });
 
       setPopupMessage("✅ Signup successful. Please wait for admin approval.");
-      setPopupType("success");
+      // setPopupType("success");
       // Delay navigation slightly to allow popup to be seen
       setTimeout(() => {
         navigate("/");
@@ -136,7 +136,7 @@ function Signup() {
     } catch (err) {
       console.error("Signup error:", err);
       setPopupMessage("Signup error: " + err.message);
-      setPopupType("error");
+      // setPopupType("error");
     } finally {
       setIsLoading(false); // End loading
     }

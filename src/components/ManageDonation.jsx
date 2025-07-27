@@ -7,6 +7,7 @@ import {
   getDoc,
   updateDoc,
 } from "firebase/firestore";
+import { AiOutlineClose } from "react-icons/ai";
 import CustomPopup from "./Popup"; // Import your custom Popup component
 import Loader from "./Loader"; // Import your Loader component
 import Popup from "reactjs-popup"; // Keep this for the roll number selection modal
@@ -344,7 +345,8 @@ function ManageDonation() {
                   className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-full p-1 transition-colors duration-200"
                   aria-label="Close popup"
                 >
-                  <span className="material-icons text-3xl">close</span>
+                  <AiOutlineClose className="text-2xl text-gray-600 hover:text-gray-800" />
+
                 </button>
               </div>
 
