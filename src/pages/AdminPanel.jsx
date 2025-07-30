@@ -10,6 +10,8 @@ import {
 import { db } from "../firebase";
 import Loader from "../components/Loader"; // Import your Loader component
 import CustomPopup from "../components/Popup"; // Import your CustomPopup component
+import { theme } from '../theme'; // Import the theme
+import LoadData from "../components/LoadData";
 
 const AdminPanel = () => {
   const [users, setUsers] = useState([]);
@@ -96,7 +98,14 @@ const AdminPanel = () => {
   }, []);
 
   return (
-    <div className="min-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-lg p-6 sm:p-8 font-sans flex flex-col items-center max-w-2xl mx-auto">
+    <div
+      className="min-h-[calc(100vh-10rem)] rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center max-w-2xl mx-auto"
+      style={{
+        backgroundColor: theme.colors.neutralLight,
+        fontFamily: theme.fonts.body,
+      }}
+    >
+      <LoadData/>
       {/* Loader Component */}
       {isLoading && <Loader />}
 
@@ -109,12 +118,29 @@ const AdminPanel = () => {
         />
       )}
 
-      <h2 className="text-3xl font-extrabold text-gray-800 mb-8 text-center">Admin Approval Panel</h2>
+      <h2
+        className="text-3xl font-extrabold mb-8 text-center"
+        style={{ color: theme.colors.neutralDark, fontFamily: theme.fonts.heading }}
+      >
+        Admin Approval Panel
+      </h2>
 
       {/* No pending users message */}
       {!isLoading && users.length === 0 && !popupMessage && ( // Only show if not loading, no users, AND no active popup
-        <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow-md mt-6 w-full max-w-md text-center">
-          <p className="font-semibold text-lg">🎉 No pending user requests at the moment.</p>
+        <div
+          className="border-l-4 p-4 rounded-lg shadow-md mt-6 w-full max-w-md text-center"
+          style={{
+            backgroundColor: theme.colors.primaryLight,
+            borderColor: theme.colors.primary,
+            color: theme.colors.primary,
+          }}
+        >
+          <p
+            className="font-semibold text-lg"
+            style={{ color: theme.colors.neutralDark }}
+          >
+            🎉 No pending user requests at the moment.
+          </p>
           <p className="text-sm mt-1">Check back later for new signups.</p>
         </div>
       )}
@@ -123,19 +149,52 @@ const AdminPanel = () => {
         {users.map((user) => (
           <div
             key={user.id}
-            className="bg-white border border-gray-200 rounded-lg shadow-md p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center transition-all duration-200 ease-in-out hover:shadow-lg hover:border-blue-300"
+            className="border rounded-lg shadow-md p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center transition-all duration-200 ease-in-out hover:shadow-lg"
+            style={{
+              backgroundColor: theme.colors.neutralLight,
+              borderColor: theme.colors.primaryLight,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = theme.colors.primary}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = theme.colors.primaryLight}
           >
             <div className="flex-grow mb-3 sm:mb-0">
-              <p className="text-gray-800 text-lg font-semibold">
-                Email: <span className="font-normal text-blue-700 break-words">{user.email}</span>
+              <p
+                className="text-lg font-semibold"
+                style={{ color: theme.colors.neutralDark }}
+              >
+                Email:{" "}
+                <span
+                  className="font-normal break-words"
+                  style={{ color: theme.colors.primary }}
+                >
+                  {user.email}
+                </span>
               </p>
-              <p className="text-gray-600 text-sm mt-1">
-                Roll No: <span className="font-medium text-gray-700">{user.roll_no}</span>
+              <p
+                className="text-sm mt-1"
+                style={{ color: theme.colors.primary }}
+              >
+                Roll No:{" "}
+                <span
+                  className="font-medium"
+                  style={{ color: theme.colors.neutralDark }}
+                >
+                  {user.roll_no}
+                </span>
               </p>
             </div>
             <button
               onClick={() => approveUser(user)}
-              className="bg-green-600 text-white font-medium py-2 px-5 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+              className="font-medium py-2 px-5 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: theme.colors.success,
+                color: theme.colors.neutralLight,
+                "--tw-ring-color": theme.colors.successLight,
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.successLight}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.success}
               disabled={isLoading} // Disable button during approval process
             >
               Approve

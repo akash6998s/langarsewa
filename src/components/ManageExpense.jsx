@@ -9,7 +9,8 @@ import {
 } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 import Loader from "./Loader"; // Import your Loader component
-import CustomPopup from "./Popup"; // Import your custom Popup component
+import CustomPopup from "./Popup"; // Import your CustomPopup component
+import { theme } from '../theme'; // Import the theme
 
 const years = ["2024", "2025"];
 const months = [
@@ -178,7 +179,13 @@ export default function ManageExpense() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div
+      className="p-6 max-w-3xl mx-auto rounded-xl shadow-lg"
+      style={{
+        backgroundColor: theme.colors.neutralLight,
+        fontFamily: theme.fonts.body,
+      }}
+    >
       {/* Conditionally render Loader */}
       {isLoading && <Loader />}
 
@@ -191,34 +198,80 @@ export default function ManageExpense() {
         />
       )}
 
-      {/* LoadData seems to be for global loading, removed its local rendering */}
-      {/* <LoadData /> */}
-      <h2 className="text-3xl font-bold text-center text-blue-800 mb-6">
+      <h2
+        className="text-3xl font-extrabold text-center mb-6"
+        style={{ color: theme.colors.neutralDark, fontFamily: theme.fonts.heading }}
+      >
         Manage Expenses
       </h2>
 
-      <div className="flex justify-center space-x-4 mb-6">
+      <div
+        className="flex justify-center space-x-4 mb-6 rounded-xl p-1 shadow-sm"
+        style={{ backgroundColor: theme.colors.tertiaryLight }}
+      >
         <button
           onClick={() => setMode("add")}
-          className={`px-5 py-2 rounded-lg font-semibold shadow ${
-            mode === "add"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-800"
-          }`}
+          className={`px-5 py-2 rounded-lg font-semibold shadow transition-all duration-300 ease-in-out
+            focus:outline-none focus:ring-2 focus:ring-opacity-50
+          `}
+          style={{
+            backgroundColor:
+              mode === "add" ? theme.colors.primary : "transparent",
+            color:
+              mode === "add"
+                ? theme.colors.neutralLight
+                : theme.colors.primary,
+            boxShadow:
+              mode === "add" ? "0 4px 6px rgba(0, 0, 0, 0.1)" : "none",
+            "--tw-ring-color": theme.colors.primaryLight,
+          }}
+          onMouseEnter={(e) => {
+            if (mode !== "add") {
+              e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+              e.currentTarget.style.color = theme.colors.neutralDark;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (mode !== "add") {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = theme.colors.primary;
+            }
+          }}
           disabled={isLoading} // Disable button when loading
         >
-          ➕ Add Expense
+          Add Expense
         </button>
         <button
           onClick={() => setMode("delete")}
-          className={`px-5 py-2 rounded-lg font-semibold shadow ${
-            mode === "delete"
-              ? "bg-red-600 text-white"
-              : "bg-gray-200 text-gray-800"
-          }`}
+          className={`px-5 py-2 rounded-lg font-semibold shadow transition-all duration-300 ease-in-out
+            focus:outline-none focus:ring-2 focus:ring-opacity-50
+          `}
+          style={{
+            backgroundColor:
+              mode === "delete" ? theme.colors.danger : "transparent",
+            color:
+              mode === "delete"
+                ? theme.colors.neutralLight
+                : theme.colors.primary,
+            boxShadow:
+              mode === "delete" ? "0 4px 6px rgba(0, 0, 0, 0.1)" : "none",
+            "--tw-ring-color": theme.colors.dangerLight,
+          }}
+          onMouseEnter={(e) => {
+            if (mode !== "delete") {
+              e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+              e.currentTarget.style.color = theme.colors.neutralDark;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (mode !== "delete") {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = theme.colors.primary;
+            }
+          }}
           disabled={isLoading} // Disable button when loading
         >
-          🗑️ Delete Expense
+          Delete Expense
         </button>
       </div>
 
@@ -226,7 +279,16 @@ export default function ManageExpense() {
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)}
-          className="p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="p-2.5 border rounded-lg focus:outline-none focus:ring-2"
+          style={{
+            backgroundColor: theme.colors.neutralLight,
+            borderColor: theme.colors.primaryLight,
+            color: theme.colors.primary,
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            outlineColor: theme.colors.primary,
+            "--tw-ring-color": theme.colors.primary,
+          }}
           disabled={isLoading} // Disable select when loading
         >
           {years.map((year) => (
@@ -237,7 +299,16 @@ export default function ManageExpense() {
         <select
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(e.target.value)}
-          className="p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="p-2.5 border rounded-lg focus:outline-none focus:ring-2"
+          style={{
+            backgroundColor: theme.colors.neutralLight,
+            borderColor: theme.colors.primaryLight,
+            color: theme.colors.primary,
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            outlineColor: theme.colors.primary,
+            "--tw-ring-color": theme.colors.primary,
+          }}
           disabled={isLoading} // Disable select when loading
         >
           {months.map((month) => (
@@ -247,61 +318,123 @@ export default function ManageExpense() {
       </div>
 
       {mode === "add" && (
-        <div className="bg-white p-4 shadow rounded-lg mb-6">
+        <div
+          className="p-4 shadow rounded-lg mb-6"
+          style={{
+            backgroundColor: theme.colors.neutralLight,
+            border: `1px solid ${theme.colors.primaryLight}`,
+          }}
+        >
           <div className="mb-4">
             <input
               type="number"
               placeholder="Amount (₹)"
-              className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2"
+              style={{
+                backgroundColor: theme.colors.neutralLight,
+                borderColor: theme.colors.primaryLight,
+                color: theme.colors.primary,
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                outlineColor: theme.colors.success,
+                "--tw-ring-color": theme.colors.success,
+              }}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               disabled={isLoading} // Disable input when loading
             />
           </div>
           <div className="mb-4">
-            <input
-              type="text"
+            <textarea // Changed from input to textarea
               placeholder="Description"
-              className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2"
+              rows="4" // Added rows attribute for height
+              style={{
+                backgroundColor: theme.colors.neutralLight,
+                borderColor: theme.colors.primaryLight,
+                color: theme.colors.primary,
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                outlineColor: theme.colors.success,
+                "--tw-ring-color": theme.colors.success,
+              }}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              disabled={isLoading} // Disable input when loading
-            />
+              disabled={isLoading} // Disable textarea when loading
+            ></textarea> {/* Changed from input to textarea */}
           </div>
           <button
             onClick={handleAddExpense}
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition"
+            className="w-full py-2 rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-opacity-75"
+            style={{
+              backgroundColor: theme.colors.success,
+              color: theme.colors.neutralLight,
+              "--tw-ring-color": theme.colors.successLight,
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.successLight}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.success}
             disabled={isLoading} // Disable button when loading
           >
-            {isLoading ? "Saving..." : "✅ Save Expense"}
+            {isLoading ? "Saving..." : "Save Expense"}
           </button>
         </div>
       )}
 
       {mode === "delete" && (
-        <div className="bg-white p-4 shadow rounded-lg">
+        <div
+          className="p-4 shadow rounded-lg"
+          style={{
+            backgroundColor: theme.colors.neutralLight,
+            border: `1px solid ${theme.colors.primaryLight}`,
+          }}
+        >
           {expenses.length === 0 ? (
-            <p className="text-center text-gray-500">No expenses found.</p>
+            <p className="text-center" style={{ color: theme.colors.primary }}>
+              No expenses found.
+            </p>
           ) : (
             <ul className="space-y-3">
               {expenses.map((exp) => (
                 <li
                   key={exp.id}
-                  className="flex justify-between items-center border p-3 rounded-lg shadow-sm hover:bg-gray-50"
+                  className="flex flex-col border p-3 rounded-lg shadow-sm transition-colors duration-150 ease-in-out" // Changed to flex-col
+                  style={{
+                    backgroundColor: theme.colors.neutralLight,
+                    borderColor: theme.colors.primaryLight,
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.neutralLight}
                 >
-                  <div>
-                    <p className="text-lg font-medium text-gray-800">
+                  <div className="flex justify-between items-center w-full mb-2"> {/* New flex container for amount and button */}
+                    <p
+                      className="text-lg font-medium"
+                      style={{ color: theme.colors.neutralDark }}
+                    >
                       ₹{exp.amount}
                     </p>
-                    <p className="text-sm text-gray-500">{exp.description}</p>
+                    <button
+                      onClick={() => handleDeleteExpense(exp.id)}
+                      className="px-3 py-1 rounded-md text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-opacity-75"
+                      style={{
+                        backgroundColor: theme.colors.danger,
+                        color: theme.colors.neutralLight,
+                        "--tw-ring-color": theme.colors.dangerLight,
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.dangerLight}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.danger}
+                      disabled={isLoading} // Disable button when loading
+                    >
+                      {isLoading ? "Deleting..." : "Delete"}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleDeleteExpense(exp.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm font-medium"
-                    disabled={isLoading} // Disable button when loading
+                  <p
+                    className="text-sm w-full" // Added w-full for full width
+                    style={{ color: theme.colors.primary }}
                   >
-                    {isLoading ? "Deleting..." : "Delete"}
-                  </button>
+                    {exp.description}
+                  </p>
                 </li>
               ))}
             </ul>

@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { collection, query, getDocs, where } from "firebase/firestore";
-import { db } from "../firebase";
-import Loader from "../components/Loader";
-import Popup from "../components/Popup";
+// No Firebase imports needed
+import Loader from "../components/Loader"; // Assuming Loader component exists
+import Popup from "../components/Popup"; // Assuming Popup component exists
+import { theme } from "../theme"; // Import the theme
+import LoadData from "./LoadData";
 
 const Attendance = () => {
+  // State variables for year, month, members, days in month, loading, and popup
   const [year, setYear] = useState("2025");
   const [month, setMonth] = useState("July");
   const [members, setMembers] = useState([]);
@@ -13,80 +15,162 @@ const Attendance = () => {
   const [popupMessage, setPopupMessage] = useState("");
   const [popupType, setPopupType] = useState("");
 
+  // Define available months and years for dropdowns
   const months = [
     "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "July", "August", "September", "October", "November", "December",
   ];
   const years = Array.from({ length: 11 }, (_, i) => String(2025 + i));
 
-  useEffect(() => {
-    const monthIndex = months.findIndex(m => m.toLowerCase() === month.toLowerCase());
-    const days = new Date(Number(year), monthIndex + 1, 0).getDate();
-    setDaysInMonth(Array.from({ length: days }, (_, i) => i + 1));
-  }, [year, month]);
+  // --- Utility for Month Name Normalization ---
+  // Firebase stores months like "January", "February", etc.
+  // JavaScript Date.toLocaleDateString('en-US', { month: 'long' }) also gives this format.
+  // Ensure consistency by capitalizing the first letter and making the rest lowercase.
+  const normalizeMonthName = (monthName) => {
+    if (!monthName) return '';
+    return monthName.charAt(0).toUpperCase() + monthName.slice(1).toLowerCase();
+  };
 
-  const fetchMembers = useCallback(async () => {
+  // --- Effect to calculate days in month and their short day names ---
+  // This runs whenever the selected year or month changes
+  useEffect(() => {
+    const normalizedMonth = normalizeMonthName(month); // Normalize selected month name
+    const monthIndex = months.findIndex(
+      (m) => m.toLowerCase() === normalizedMonth.toLowerCase()
+    );
+
+    // If month not found, default to 0 (January) to avoid errors
+    const safeMonthIndex = monthIndex !== -1 ? monthIndex : 0;
+
+    const numDays = new Date(Number(year), safeMonthIndex + 1, 0).getDate();
+    const daysArray = [];
+    for (let i = 1; i <= numDays; i++) {
+      const date = new Date(Number(year), safeMonthIndex, i);
+      // Get short form of the day of the week (e.g., "Mon", "Tue")
+      const dayOfWeekShort = date.toLocaleDateString('en-US', { weekday: 'short' });
+      daysArray.push({ day: i, dayOfWeek: dayOfWeekShort });
+    }
+    setDaysInMonth(daysArray);
+  }, [year, month]); // Dependencies for this effect
+
+  // --- Function to fetch members and their attendance data from localStorage ---
+  // Wrapped in useCallback to memoize and prevent unnecessary re-creations
+  const fetchMembersFromLocalStorage = useCallback(() => {
     setLoading(true);
     setPopupMessage("");
     setPopupType("");
 
     try {
-      const membersCollectionRef = collection(db, "members");
-      const memberSnapshot = await getDocs(membersCollectionRef);
-      const fetchedMembers = memberSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        roll_no: doc.data().roll_no,
-        name: doc.data().name || "Unnamed",
-        last_name: doc.data().last_name || "",
-        attendance: [],
-      }));
+      // Get all members data from localStorage
+      const storedMembers = localStorage.getItem('allMembers');
+      let allMembersData = storedMembers ? JSON.parse(storedMembers) : [];
 
-      const membersWithAttendance = await Promise.all(
-        fetchedMembers.map(async (member) => {
-          const memberDocRef = collection(db, "members");
-          const q = query(memberDocRef, where("roll_no", "==", member.roll_no));
-          const memberDataSnapshot = await getDocs(q);
+      // Sort members numerically by roll_no as per requirement
+      allMembersData.sort((a, b) => {
+        // Use 'roll_no' as per the provided data structure
+        const rollA = parseInt(a.roll_no, 10);
+        const rollB = parseInt(b.roll_no, 10);
 
-          let currentMonthAttendance = [];
-          if (!memberDataSnapshot.empty) {
-            const memberDoc = memberDataSnapshot.docs[0].data();
-            currentMonthAttendance = memberDoc.attendance?.[year]?.[month] || [];
-          }
+        // Handle cases where roll_no might be missing or invalid (NaN)
+        if (isNaN(rollA) && isNaN(rollB)) return 0;
+        if (isNaN(rollA)) return 1; // Put members with invalid roll_no at the end
+        if (isNaN(rollB)) return -1; // Put members with invalid roll_no at the end
 
-          return {
-            ...member,
-            attendance: currentMonthAttendance,
-          };
-        })
-      );
+        return rollA - rollB; // Numerical ascending sort
+      });
+
+      // Process each member to extract attendance for the selected year and month
+      const membersWithAttendance = allMembersData.map((member) => {
+        // Normalize the selected month name to match local storage keys (e.g., "July")
+        const normalizedMonth = normalizeMonthName(month);
+        
+        // Access attendance from the member object for the current year and normalized month
+        // Ensure the year is accessed as a string key
+        const currentMonthAttendance = member.attendance?.[year]?.[normalizedMonth] || [];
+
+        return {
+          ...member,
+          attendance: currentMonthAttendance, // This will be an array of days [1, 5, 10]
+        };
+      });
 
       setMembers(membersWithAttendance);
     } catch (error) {
-      console.error("Error fetching members or attendance: ", error);
-      setPopupMessage("Failed to load attendance data. Please try again.");
+      console.error("Error fetching data from localStorage: ", error);
+      setPopupMessage("Failed to load attendance data from local storage.");
       setPopupType("error");
     } finally {
       setLoading(false);
     }
-  }, [year, month]);
+  }, [year, month]); // Dependencies: re-run if year or month changes
 
+  // --- Effect to trigger data fetching when component mounts or `fetchMembersFromLocalStorage` changes ---
   useEffect(() => {
-    fetchMembers();
-  }, [fetchMembers]);
+    fetchMembersFromLocalStorage();
+  }, [fetchMembersFromLocalStorage]);
 
+  // --- Function to copy attendance for a specific day ---
+  const handleCopyAttendance = (day) => {
+    // Filter members who were present on the selected day and get their roll numbers
+    const presentRollNumbers = members
+      .filter((member) => member.attendance.includes(day))
+      .map((member) => member.roll_no);
+
+    // Sort the roll numbers numerically before joining for a clean, ordered output
+    presentRollNumbers.sort((a, b) => {
+      const rollA = parseInt(a, 10);
+      const rollB = parseInt(b, 10);
+      if (isNaN(rollA) && isNaN(rollB)) return 0;
+      if (isNaN(rollA)) return 1;
+      if (isNaN(rollB)) return -1;
+      return rollA - rollB;
+    });
+
+    const textToCopy = presentRollNumbers.join(", ");
+
+    try {
+      // Use the modern Clipboard API if available
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy);
+      } else {
+        // Fallback for older browsers (document.execCommand is deprecated but still works)
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      setPopupMessage("Copied roll numbers successfully!");
+      setPopupType("success");
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+      setPopupMessage("Failed to copy roll numbers. Please try manually.");
+      setPopupType("error");
+    }
+  };
+
+  // --- Component Render ---
   return (
-    <div className="p-6 md:p-10 bg-gray-50 min-h-screen">
-      <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">
-        Attendance Sheet
-      </h2>
-
-      {/* Year & Month Dropdowns */}
+    <div
+      className="p-6 md:p-10 font-[Inter,sans-serif]"
+      style={{ background: theme.colors.background }}
+    >
+      <LoadData/>
+      {/* Year & Month Dropdowns Container */}
       <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-center">
+        {/* Year Dropdown */}
         <div className="relative">
           <select
             value={year}
             onChange={(e) => setYear(e.target.value)}
-            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            className="block appearance-none w-full bg-white py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
+            style={{
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+              borderWidth: "1px",
+              borderStyle: "solid",
+            }}
             disabled={loading}
           >
             {years.map((y) => (
@@ -97,11 +181,18 @@ const Attendance = () => {
           </select>
         </div>
 
+        {/* Month Dropdown */}
         <div className="relative">
           <select
             value={month}
             onChange={(e) => setMonth(e.target.value)}
-            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            className="block appearance-none w-full bg-white py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
+            style={{
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+              borderWidth: "1px",
+              borderStyle: "solid",
+            }}
             disabled={loading}
           >
             {months.map((m) => (
@@ -113,64 +204,100 @@ const Attendance = () => {
         </div>
       </div>
 
-      {/* Loader */}
+      {/* Loader Component */}
       {loading && <Loader />}
 
-      {/* Table */}
+      {/* Attendance Table */}
       {!loading && (
         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-          <div className="overflow-auto max-h-[calc(100vh-280px)]">
-            <table className="min-w-[900px] w-full border-collapse">
-              <thead className="bg-gray-100">
+          <div className="overflow-x-auto max-h-[calc(100vh-280px)]">
+            <table className="w-full border-collapse table-auto">
+              {/* Table Header */}
+              <thead
+                style={{ backgroundColor: theme.colors.tertiaryLight }}
+                className="sticky top-0 z-50"
+              >
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sticky left-0 bg-gray-100 z-40 w-28 sm:w-36">
+                  <th
+                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider sticky left-0 z-40 w-28 sm:w-40 border border-gray-300"
+                    style={{
+                      backgroundColor: theme.colors.tertiaryLight,
+                      color: theme.colors.primary,
+                    }}
+                  >
                     Roll No & Name
                   </th>
-                  {daysInMonth.map((day) => (
+                  {daysInMonth.map((dayData) => (
                     <th
-                      key={day}
-                      className="px-3 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                      key={`header-${dayData.day}`}
+                      className="p-1 text-center text-xs font-semibold uppercase tracking-wider border border-gray-300 cursor-pointer select-none min-w-[50px] sm:min-w-0 sm:px-3 sm:py-3 sm:text-sm"
+                      style={{ color: theme.colors.primary }}
+                      onDoubleClick={() => handleCopyAttendance(dayData.day)}
+                      title={`Double-click to copy roll numbers for Day ${dayData.day}`}
                     >
-                      {day}
+                      {dayData.day}
+                      <br />
+                      {dayData.dayOfWeek}
                     </th>
                   ))}
                 </tr>
               </thead>
 
-              <tbody className="bg-white divide-y divide-gray-200">
+              {/* Table Body */}
+              <tbody
+                className="bg-white divide-y"
+                style={{ borderColor: theme.colors.primaryLight }}
+              >
                 {members.length === 0 ? (
                   <tr>
                     <td
                       colSpan={daysInMonth.length + 1}
-                      className="text-center py-8 text-gray-500 text-base"
+                      className="text-center py-8 text-base border border-gray-300"
+                      style={{ color: theme.colors.primary }}
                     >
-                      No members found or attendance data for the selected period.
+                      No members found or attendance data for the selected
+                      period.
                     </td>
                   </tr>
                 ) : (
                   members.map((member) => (
                     <tr
                       key={member.roll_no}
-                      className="hover:bg-gray-50 transition-colors duration-150 ease-in-out"
+                      className="transition-colors duration-150 ease-in-out"
                     >
-                      <td className="px-4 py-3 align-top sticky left-0 bg-white z-10 shadow-sm w-28 sm:w-36">
-                        <div className="text-sm font-medium text-gray-900 break-words">
-                          <div className="font-bold text-base">{member.roll_no}</div>
-                          <div className="text-gray-600 text-sm break-words">
+                      <td
+                        className="px-4 py-3 align-top sticky left-0 z-10 shadow-sm w-28 sm:w-40 border border-gray-300"
+                        style={{ backgroundColor: theme.colors.neutralLight }}
+                      >
+                        <div
+                          className="text-sm font-medium break-words"
+                          style={{ color: theme.colors.neutralDark }}
+                        >
+                          <div
+                            className="font-bold text-base"
+                            style={{ color: theme.colors.neutralDark }}
+                          >
+                            {member.roll_no}
+                          </div>
+                          <div
+                            className="text-sm break-words"
+                            style={{ color: theme.colors.primary }}
+                          >
                             {member.name} {member.last_name}
                           </div>
                         </div>
                       </td>
-                      {daysInMonth.map((day) => (
+                      {daysInMonth.map((dayData) => (
                         <td
-                          key={day}
-                          className={`px-3 py-3 whitespace-nowrap text-center text-sm font-medium ${
-                            member.attendance.includes(day)
-                              ? "text-green-600"
-                              : "text-gray-300"
-                          }`}
+                          key={`data-${member.roll_no}-${dayData.day}`}
+                          className={`p-1 whitespace-nowrap text-center text-xs font-medium border border-gray-300 min-w-[50px] sm:min-w-0 sm:px-3 sm:py-3 sm:text-sm`}
+                          style={{
+                            color: member.attendance.includes(dayData.day)
+                              ? theme.colors.success
+                              : theme.colors.primaryLight,
+                          }}
                         >
-                          {member.attendance.includes(day) ? "✔" : ""}
+                          {member.attendance.includes(dayData.day) ? "✔" : ""}
                         </td>
                       ))}
                     </tr>
@@ -182,7 +309,7 @@ const Attendance = () => {
         </div>
       )}
 
-      {/* Popup */}
+      {/* Popup Component */}
       <Popup
         message={popupMessage}
         type={popupType}

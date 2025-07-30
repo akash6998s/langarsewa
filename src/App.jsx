@@ -20,7 +20,7 @@ import EditDatabase from "./components/databaseEditCode/EditDatabase";
 import RemoveImgFromMembers from "./components/databaseEditCode/removeImgFromAllMembers";
 import UploadExpenseData from "./components/databaseEditCode/UploadExpenseData";
 import LoadData from "./components/LoadData";
-import Splash from './Splash'
+import Splash from "./Splash";
 
 function AppRoutes() {
   const [showSplash, setShowSplash] = useState(true);
@@ -31,6 +31,20 @@ function AppRoutes() {
     return () => clearTimeout(timer);
   }, []);
 
+  const pathname = window.location.pathname;
+  const loggedInMember = JSON.parse(localStorage.getItem("loggedInMember"));
+  const isAdmin = loggedInMember?.isAdmin;
+
+  const protectedPaths = ["/admin", "/superadmin"];
+  const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
+
+  if (isProtected && !isAdmin) {
+    window.location.href = "/";
+  }
+
+  console.log("Path:", pathname);
+  console.log("isAdmin:", isAdmin);
+
   if (showSplash) return <Splash />;
 
   const hideHeaderRoutes = ["/", "/signup"];
@@ -39,7 +53,10 @@ function AppRoutes() {
   return (
     <div className="h-screen flex flex-col">
       {/* Main content area - 90% */}
-      <div className={`h-[${shouldHideHeader ? "100" : "90"}vh] overflow-y-auto`}>
+      <div
+        className={`h-[${shouldHideHeader ? "100" : "90"}vh] overflow-y-auto`}
+        >
+        <LoadData/>
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<Home />} />
@@ -68,7 +85,6 @@ function AppRoutes() {
     </div>
   );
 }
-
 
 function App() {
   return (

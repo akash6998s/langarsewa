@@ -10,7 +10,8 @@ import {
 import { AiOutlineClose } from "react-icons/ai";
 import CustomPopup from "./Popup"; // Renamed to avoid conflict with reactjs-popup if it's still needed elsewhere
 import Loader from "./Loader"; // Import your Loader component
-import Popup from "reactjs-popup";
+import Popup from "reactjs-popup"; // Keep this for the roll selection modal
+import { theme } from '../theme'; // Import the theme
 
 export default function ManageAttendance() {
   const [activeTab, setActiveTab] = useState("add");
@@ -21,9 +22,13 @@ export default function ManageAttendance() {
   const [selectedRolls, setSelectedRolls] = useState([]);
 
   // States for custom Loader and Popup
-  const [isLoading, setIsLoading] = useState(false); // Changed name from 'loading' to avoid confusion with `reactjs-popup`'s loading
+  const [isLoading, setIsLoading] = useState(false);
   const [popupMessage, setPopupMessage] = useState(null);
   const [popupType, setPopupType] = useState(null); // 'success' or 'error'
+
+  // State for the reactjs-popup modal (for selecting rolls)
+  const [showRollSelectionPopup, setShowRollSelectionPopup] = useState(false);
+
 
   const months = [
     "January",
@@ -205,7 +210,13 @@ export default function ManageAttendance() {
   );
 
   return (
-    <div className="min-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-lg p-6 sm:p-8 font-sans flex flex-col items-center">
+    <div
+      className="min-h-[calc(100vh-10rem)] rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center"
+      style={{
+        backgroundColor: theme.colors.neutralLight,
+        fontFamily: theme.fonts.body,
+      }}
+    >
       {/* Conditionally render Loader */}
       {isLoading && <Loader />}
 
@@ -218,58 +229,104 @@ export default function ManageAttendance() {
         />
       )}
 
-      {/* LoadData seems to be for global loading, removed its local rendering */}
-      {/* <LoadData /> */}
-
-      <h2 className="text-3xl font-extrabold text-gray-800 mb-8 text-center">
+      <h2
+        className="text-3xl font-extrabold mb-8 text-center"
+        style={{ color: theme.colors.neutralDark, fontFamily: theme.fonts.heading }}
+      >
         Manage Member Attendance
       </h2>
 
-      {/* Tab Buttons (Identical to ManageDonation) */}
-      <div className="flex bg-gray-100 rounded-xl p-1 mb-8 shadow-sm">
+      {/* Tab Buttons */}
+      <div
+        className="flex rounded-xl p-1 mb-8 shadow-sm"
+        style={{ backgroundColor: theme.colors.tertiaryLight }}
+      >
         <button
           onClick={() => setActiveTab("add")}
           className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
-            ${
-              activeTab === "add"
-                ? "bg-blue-600 text-white shadow-md"
-                : "text-gray-700 hover:bg-gray-200"
-            }
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+            focus:outline-none focus:ring-2 focus:ring-opacity-50
           `}
+          style={{
+            backgroundColor:
+              activeTab === "add" ? theme.colors.primary : "transparent",
+            color:
+              activeTab === "add"
+                ? theme.colors.neutralLight
+                : theme.colors.primary,
+            boxShadow:
+              activeTab === "add" ? "0 4px 6px rgba(0, 0, 0, 0.1)" : "none",
+            "--tw-ring-color": theme.colors.primaryLight,
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "add") {
+              e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+              e.currentTarget.style.color = theme.colors.neutralDark;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "add") {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = theme.colors.primary;
+            }
+          }}
         >
           Add Attendance
         </button>
         <button
           onClick={() => setActiveTab("delete")}
           className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
-            ${
-              activeTab === "delete"
-                ? "bg-red-600 text-white shadow-md"
-                : "text-gray-700 hover:bg-gray-200"
-            }
-            focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50
+            focus:outline-none focus:ring-2 focus:ring-opacity-50
           `}
+          style={{
+            backgroundColor:
+              activeTab === "delete" ? theme.colors.danger : "transparent",
+            color:
+              activeTab === "delete"
+                ? theme.colors.neutralLight
+                : theme.colors.primary,
+            boxShadow:
+              activeTab === "delete" ? "0 4px 6px rgba(0, 0, 0, 0.1)" : "none",
+            "--tw-ring-color": theme.colors.dangerLight,
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "delete") {
+              e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+              e.currentTarget.style.color = theme.colors.neutralDark;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "delete") {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = theme.colors.primary;
+            }
+          }}
         >
           Delete Attendance
         </button>
       </div>
 
-      {/* Date Selectors (Styled similar to ManageDonation inputs) */}
+      {/* Date Selectors */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-lg mb-8">
-        {" "}
-        {/* Increased gap for consistency */}
         {/* Year Select */}
         <div className="relative">
           <label
             htmlFor="year-select-att"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium mb-1"
+            style={{ color: theme.colors.primary }}
           >
             Select Year
           </label>
           <select
             id="year-select-att" // Unique ID
-            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            className="block appearance-none w-full py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
+            style={{
+              backgroundColor: theme.colors.neutralLight,
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              outlineColor: theme.colors.primary,
+            }}
             value={year}
             onChange={(e) => setYear(e.target.value)}
           >
@@ -279,7 +336,10 @@ export default function ManageAttendance() {
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 mt-6">
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 mt-6"
+            style={{ color: theme.colors.primary }}
+          >
             <svg
               className="fill-current h-4 w-4"
               xmlns="http://www.w3.org/2000/svg"
@@ -293,13 +353,22 @@ export default function ManageAttendance() {
         <div className="relative">
           <label
             htmlFor="month-select-att"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium mb-1"
+            style={{ color: theme.colors.primary }}
           >
             Select Month
           </label>
           <select
             id="month-select-att" // Unique ID
-            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            className="block appearance-none w-full py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
+            style={{
+              backgroundColor: theme.colors.neutralLight,
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              outlineColor: theme.colors.primary,
+            }}
             value={month}
             onChange={(e) => setMonth(e.target.value)}
           >
@@ -307,7 +376,10 @@ export default function ManageAttendance() {
               <option key={m}>{m}</option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 mt-6">
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 mt-6"
+            style={{ color: theme.colors.primary }}
+          >
             <svg
               className="fill-current h-4 w-4"
               xmlns="http://www.w3.org/2000/svg"
@@ -321,13 +393,22 @@ export default function ManageAttendance() {
         <div className="relative">
           <label
             htmlFor="day-select-att"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium mb-1"
+            style={{ color: theme.colors.primary }}
           >
             Select Day
           </label>
           <select
             id="day-select-att" // Unique ID
-            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            className="block appearance-none w-full py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
+            style={{
+              backgroundColor: theme.colors.neutralLight,
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              outlineColor: theme.colors.primary,
+            }}
             value={day}
             onChange={(e) => setDay(e.target.value)}
           >
@@ -337,7 +418,10 @@ export default function ManageAttendance() {
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 mt-6">
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 mt-6"
+            style={{ color: theme.colors.primary }}
+          >
             <svg
               className="fill-current h-4 w-4"
               xmlns="http://www.w3.org/2000/svg"
@@ -349,39 +433,30 @@ export default function ManageAttendance() {
         </div>
       </div>
 
-      {/* Note: Original `loading` and `error` displays are removed as they are replaced by Loader and CustomPopup */}
-
-      {/* Select Roll Number Button & Popup Trigger (Identical to ManageDonation) */}
+      {/* Select Roll Number Button & Popup Trigger */}
       <div className="w-full max-w-lg mb-6">
-        {/* Removed reactjs-popup import and direct usage as CustomPopup is now handling messages */}
-        {/* The 'Select Roll Numbers' button will directly control a local state for its own modal */}
         <Popup
           trigger={
             <button
-              className="w-full py-3 bg-gray-800 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-75"
-              // Removed onClick={() => setShowPopup(true)} as your CustomPopup is for status messages, not selecting rolls.
-              // This Popup (from reactjs-popup) is used to select roll numbers.
+              className="w-full py-3 font-semibold rounded-lg shadow-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75"
+              onClick={() => setShowRollSelectionPopup(true)} // Open the popup
+              style={{
+                backgroundColor: theme.colors.primary,
+                color: theme.colors.neutralLight,
+                "--tw-ring-color": theme.colors.primaryLight,
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.primaryLight}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
             >
               Select Roll Numbers ({selectedRolls.length} selected)
             </button>
           }
           modal
           nested
-          // `open` and `onClose` logic for this specific Popup instance should remain.
-          // Your original implementation using `showPopup` for this purpose is correct.
-          // Let's reintroduce showPopup specifically for THIS modal.
-          open={false} // Set to false for now, as you had a `showPopup` state previously.
-          // Let's re-add the `showPopup` state for *this* popup, separate from the custom success/error popup
-          // For now, I'll keep the existing `Popup` (from `reactjs-popup`) which seems to be controlling the member selection modal.
-          // If you intended to replace this with your *custom* popup, let me know.
-          // Assuming the `Popup` you've imported from `reactjs-popup` is still for selecting members,
-          // and your custom `Popup` is for success/error messages.
-          // Let's re-add state for this `reactjs-popup`'s modal.
-          onClose={() => {
-            /* This onClose should be handled by reactjs-popup's internal state or a dedicated state */
-          }}
+          open={showRollSelectionPopup} // Control popup visibility
+          onClose={() => setShowRollSelectionPopup(false)} // Close the popup
           contentStyle={{
-            background: "white",
+            background: theme.colors.neutralLight,
             borderRadius: "0.75rem",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
             width: "90%",
@@ -391,30 +466,52 @@ export default function ManageAttendance() {
             flexDirection: "column",
             maxHeight: "90vh",
             margin: "auto",
+            border: `1px solid ${theme.colors.primaryLight}`,
           }}
           overlayStyle={{
             backgroundColor: "rgba(0, 0, 0, 0.6)",
           }}
         >
           {(close) => (
-            <div className="bg-white rounded-xl shadow-2xl p-0 md:p-0 max-h-[90vh] w-full max-w-2xl overflow-hidden flex flex-col relative">
-              <div className="flex items-start justify-between p-6 pb-3 bg-white border-b border-gray-200 sticky top-0 z-10">
-                <h2 className="text-2xl font-bold text-gray-800 flex-grow pr-4">
+            <div
+              className="rounded-xl shadow-2xl p-0 md:p-0 max-h-[90vh] w-full max-w-2xl overflow-hidden flex flex-col relative"
+              style={{ backgroundColor: theme.colors.neutralLight }}
+            >
+              <div
+                className="flex items-start justify-between p-6 pb-3 border-b sticky top-0 z-10"
+                style={{
+                  backgroundColor: theme.colors.neutralLight,
+                  borderColor: theme.colors.primaryLight,
+                }}
+              >
+                <h2
+                  className="text-2xl font-bold flex-grow pr-4"
+                  style={{ color: theme.colors.neutralDark }}
+                >
                   Select Roll Numbers
                 </h2>
 
                 <button
                   onClick={close}
-                  className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-full p-1 transition-colors duration-200"
+                  className="rounded-full p-1 transition-colors duration-200 focus:outline-none focus:ring-2"
+                  style={{
+                    color: theme.colors.primary,
+                    outlineColor: theme.colors.primaryLight,
+                  }}
                   aria-label="Close popup"
                 >
-                 <AiOutlineClose className="text-2xl text-gray-600 hover:text-gray-800" />
-
+                  <AiOutlineClose
+                    className="text-2xl"
+                    style={{ color: theme.colors.primary }}
+                  />
                 </button>
               </div>
 
               {members.length === 0 && !isLoading ? ( // Using isLoading for member fetching
-                <p className="text-gray-500 text-center py-8 px-6">
+                <p
+                  className="text-center py-8 px-6"
+                  style={{ color: theme.colors.primary }}
+                >
                   No members available.
                 </p>
               ) : (
@@ -426,13 +523,40 @@ export default function ManageAttendance() {
                       className={`
                           flex items-center justify-center p-3 rounded-lg border-2
                           text-lg font-bold transition-all duration-200 ease-in-out
-                          ${
-                            selectedRolls.includes(member.id)
-                              ? "bg-blue-600 text-white border-blue-600 shadow-md transform scale-105"
-                              : "bg-gray-100 text-gray-800 border-gray-300 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-700"
-                          }
-                          focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
+                          focus:outline-none focus:ring-2 focus:ring-offset-2
                         `}
+                      style={{
+                        backgroundColor: selectedRolls.includes(member.id)
+                          ? theme.colors.primary
+                          : theme.colors.tertiaryLight,
+                        color: selectedRolls.includes(member.id)
+                          ? theme.colors.neutralLight
+                          : theme.colors.primary,
+                        borderColor: selectedRolls.includes(member.id)
+                          ? theme.colors.primary
+                          : theme.colors.primaryLight,
+                        boxShadow: selectedRolls.includes(member.id)
+                          ? "0 4px 6px rgba(0, 0, 0, 0.1)"
+                          : "none",
+                        transform: selectedRolls.includes(member.id)
+                          ? "scale(1.05)"
+                          : "none",
+                        "--tw-ring-color": theme.colors.primaryLight,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!selectedRolls.includes(member.id)) {
+                          e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+                          e.currentTarget.style.borderColor = theme.colors.primary;
+                          e.currentTarget.style.color = theme.colors.neutralDark;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!selectedRolls.includes(member.id)) {
+                          e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight;
+                          e.currentTarget.style.borderColor = theme.colors.primaryLight;
+                          e.currentTarget.style.color = theme.colors.primary;
+                        }
+                      }}
                     >
                       {member.id}
                     </button>
@@ -444,12 +568,19 @@ export default function ManageAttendance() {
         </Popup>
       </div>
 
-      {/* Action Buttons (Identical to ManageDonation) */}
+      {/* Action Buttons */}
       <div className="w-full max-w-lg">
         {activeTab === "add" && (
           <button
             onClick={handleSubmit}
-            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+            className="w-full py-3 font-semibold rounded-lg shadow-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75"
+            style={{
+              backgroundColor: theme.colors.primary,
+              color: theme.colors.neutralLight,
+              "--tw-ring-color": theme.colors.primaryLight,
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.primaryLight}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
             disabled={isLoading} // Disable button when loading
           >
             {isLoading && activeTab === "add" ? "Adding..." : "Submit Attendance"}
@@ -459,7 +590,14 @@ export default function ManageAttendance() {
         {activeTab === "delete" && (
           <button
             onClick={handleDelete}
-            className="w-full py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75"
+            className="w-full py-3 font-semibold rounded-lg shadow-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75"
+            style={{
+              backgroundColor: theme.colors.danger,
+              color: theme.colors.neutralLight,
+              "--tw-ring-color": theme.colors.dangerLight,
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.dangerLight}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.danger}
             disabled={isLoading} // Disable button when loading
           >
             {isLoading && activeTab === "delete"

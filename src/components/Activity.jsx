@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import Loader from "./Loader"; // Import your Loader component
 import CustomPopup from "./Popup"; // Import your CustomPopup component
+import { theme } from '../theme'; // Import the theme
+import LoadData from "./LoadData";
 
 const months = [
   "January",
@@ -18,7 +20,7 @@ const months = [
 ];
 
 const currentYear = new Date().getFullYear();
-const currentMonth = months[new Date().getMonth()];
+const currentMonth = months[new Date().getMonth()]; // e.g., "July"
 const years = Array.from({ length: 11 }, (_, i) => String(currentYear + i)); // From current year to current year + 10
 const MAX_DAYS_IN_MONTH = 31;
 
@@ -30,12 +32,18 @@ const Activity = () => {
       : String(currentYear) // Fallback to currentYear if not in list
   );
   const [memberAttendance, setMemberAttendance] = useState(null);
-  const [memberDonation, setMemberDonation] = useState(null); // New state for donation
+  const [memberDonation, setMemberDonation] = useState(null);
 
   // States for custom Loader and Popup
   const [isLoading, setIsLoading] = useState(true);
   const [popupMessage, setPopupMessage] = useState(null);
-  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
+  const [popupType, setPopupType] = useState(null);
+
+  // Utility to normalize month names (e.g., "july" to "July")
+  const normalizeMonthName = (monthName) => {
+    if (!monthName) return '';
+    return monthName.charAt(0).toUpperCase() + monthName.slice(1).toLowerCase();
+  };
 
   useEffect(() => {
     const loadActivityData = () => {
@@ -45,37 +53,45 @@ const Activity = () => {
         const stored = localStorage.getItem("loggedInMember");
         if (stored) {
           const parsedData = JSON.parse(stored);
+          // Assuming attendance and donation are directly under the parsed member object
           setMemberAttendance(parsedData.attendance || {});
-          setMemberDonation(parsedData.donation || {}); // Load donation data
+          setMemberDonation(parsedData.donation || {});
         } else {
           setMemberAttendance({});
           setMemberDonation({});
-          setPopupMessage("No member data found. Please log in.");
+          setPopupMessage("No member data found in local storage. Please ensure you are logged in.");
           setPopupType("error");
         }
       } catch (error) {
         console.error("Error parsing member data from localStorage:", error);
         setMemberAttendance({});
         setMemberDonation({});
-        setPopupMessage("Error loading activity data. Please try logging in again.");
+        setPopupMessage("Error loading activity data from local storage. Please try logging in again.");
         setPopupType("error");
       } finally {
         setIsLoading(false); // End loading
       }
     };
     loadActivityData();
-  }, []);
+  }, []); // Empty dependency array means this effect runs once on mount
 
+  // Memoized attendance data for the selected year
   const currentYearAttendance = useMemo(() => {
+    // Access attendance data for the selected year.
+    // Ensure `selectedYear` is used as a string key to match the object structure.
     return memberAttendance?.[selectedYear] || {};
   }, [memberAttendance, selectedYear]);
 
+  // Memoized donation data for the selected year
   const currentYearDonation = useMemo(() => {
+    // Access donation data for the selected year.
+    // Ensure `selectedYear` is used as a string key to match the object structure.
     return memberDonation?.[selectedYear] || {};
   }, [memberDonation, selectedYear]);
 
   // Calculate total donation for the selected year
   const totalDonationForSelectedYear = useMemo(() => {
+    // Sum up all donation values for months within the current year's donation object
     return Object.values(currentYearDonation).reduce(
       (sum, monthDonation) => sum + (monthDonation || 0),
       0
@@ -84,25 +100,35 @@ const Activity = () => {
 
   // Calculate attendance percentage for the current month of the selected year
   const currentMonthAttendancePercentage = useMemo(() => {
-    const monthIndex = months.indexOf(currentMonth);
+    // Normalize currentMonth to match the casing in the attendance object (e.g., "July" vs "july")
+    const normalizedCurrentMonth = normalizeMonthName(currentMonth);
+
+    const monthIndex = months.indexOf(normalizedCurrentMonth);
+    // Calculate total days in the current month of the selected year
     const daysInCurrentMonth = new Date(
       Number(selectedYear),
-      monthIndex + 1,
-      0
+      monthIndex + 1, // Month index is 0-based, so add 1 for Date constructor
+      0 // Day 0 of the next month gives the last day of the current month
     ).getDate();
+
+    // Get attendance array for the current month from the current year's attendance data
     const attendanceForCurrentMonth =
-      currentYearAttendance[currentMonth] || [];
+      currentYearAttendance[normalizedCurrentMonth] || [];
     const attendedDaysCount = attendanceForCurrentMonth.length;
 
     if (daysInCurrentMonth === 0) {
-      return 0; // Avoid division by zero
+      return 0; // Avoid division by zero if month has no days (shouldn't happen for valid dates)
     }
 
     return ((attendedDaysCount / daysInCurrentMonth) * 100).toFixed(2);
-  }, [currentYearAttendance, selectedYear]);
+  }, [currentYearAttendance, selectedYear, currentMonth]); // Dependencies for this calculation
 
   return (
-    <div className="flex flex-col bg-gray-50 font-sans min-h-screen">
+    <div
+      className="flex py-2 flex-col font-[Inter,sans-serif]"
+      style={{ background: theme.colors.background }}
+    >
+      <LoadData/>
       {/* Loader Component */}
       {isLoading && <Loader />}
 
@@ -115,26 +141,45 @@ const Activity = () => {
         />
       )}
 
-      <h2 className="text-3xl font-extrabold text-gray-800 pt-6 mb-4 text-center">
+      {/* Page Title with themed heading font and color */}
+      <h2
+        className="text-3xl font-extrabold pt-6 mb-4 text-center font-[EB_Garamond,serif]"
+        style={{ color: theme.colors.neutralDark }}
+      >
         Your Activity Sheet
       </h2>
 
       {/* Summary Section */}
       {!isLoading && (
-        <div className="bg-white rounded-lg shadow-md p-6 mx-6 md:mx-10 mb-6 flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <div
+          className="rounded-lg shadow-md p-6 mx-6 md:mx-10 mb-6 flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-4"
+          style={{ backgroundColor: theme.colors.neutralLight }}
+        >
           <div className="text-center">
-            <p className="text-lg font-semibold text-gray-700">
+            <p
+              className="text-lg font-semibold"
+              style={{ color: theme.colors.primary }}
+            >
               Total Donation ({selectedYear}):
             </p>
-            <p className="text-2xl font-bold text-blue-600">
+            <p
+              className="text-2xl font-bold"
+              style={{ color: theme.colors.success }}
+            >
               ₹{totalDonationForSelectedYear}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-semibold text-gray-700">
+            <p
+              className="text-lg font-semibold"
+              style={{ color: theme.colors.primary }}
+            >
               Attendance ({currentMonth} {selectedYear}):
             </p>
-            <p className="text-2xl font-bold text-green-600">
+            <p
+              className="text-2xl font-bold"
+              style={{ color: theme.colors.success }}
+            >
               {currentMonthAttendancePercentage}%
             </p>
           </div>
@@ -151,7 +196,14 @@ const Activity = () => {
             id="year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            className="block appearance-none w-full py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
+            style={{
+              backgroundColor: theme.colors.neutralLight,
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+            }}
             disabled={isLoading} // Disable selector while loading
           >
             {years.map((year) => (
@@ -160,7 +212,10 @@ const Activity = () => {
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2"
+            style={{ color: theme.colors.primary }}
+          >
             <svg
               className="fill-current h-4 w-4"
               xmlns="http://www.w3.org/2000/svg"
@@ -174,14 +229,28 @@ const Activity = () => {
 
       {/* Attendance Table */}
       <div className="flex-grow overflow-auto px-6 md:px-10 pb-6">
-        <div className="bg-white rounded-lg shadow-xl flex flex-col">
+        <div
+          className="rounded-lg shadow-xl flex flex-col"
+          style={{ backgroundColor: theme.colors.neutralLight }}
+        >
           <div className="overflow-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-100">
+            <table
+              className="min-w-full table-fixed border-collapse border border-gray-300 shadow-md rounded-lg"
+              style={{ borderColor: theme.colors.primaryLight }}
+            >
+              {/* Table Header */}
+              <thead
+                className="sticky top-0 z-50"
+                style={{ backgroundColor: theme.colors.tertiaryLight }}
+              >
                 <tr>
                   <th
                     scope="col"
-                    className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sticky left-0 bg-gray-100 z-40 w-28 sm:w-36"
+                    className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider sticky left-0 z-40 w-28 sm:w-36 border border-gray-300 bg-white"
+                    style={{
+                      backgroundColor: theme.colors.tertiaryLight,
+                      color: theme.colors.primary,
+                    }}
                   >
                     Month
                   </th>
@@ -189,19 +258,23 @@ const Activity = () => {
                     <th
                       key={i + 1}
                       scope="col"
-                      className="px-3 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                      className="px-3 py-3 text-center text-xs font-semibold uppercase border border-gray-300"
+                      style={{ color: theme.colors.primary }}
                     >
                       {i + 1}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+
+              {/* Table Body */}
+              <tbody className="bg-white">
                 {isLoading ? (
                   <tr>
                     <td
                       colSpan={MAX_DAYS_IN_MONTH + 1}
-                      className="text-center py-8 text-gray-500 text-base"
+                      className="text-center py-8 text-base border border-gray-300"
+                      style={{ color: theme.colors.primary }}
                     >
                       Loading activity data...
                     </td>
@@ -214,31 +287,38 @@ const Activity = () => {
                       monthIndex + 1,
                       0
                     ).getDate();
-                    const attendanceForMonth =
-                      currentYearAttendance[month] || [];
+                    // Normalize month name for lookup in currentYearAttendance
+                    const attendanceForMonth = currentYearAttendance[normalizeMonthName(month)] || [];
 
                     return (
                       <tr
                         key={month}
-                        className="hover:bg-gray-50 transition-colors duration-150 ease-in-out"
+                        className="transition-colors duration-150 ease-in-out hover:bg-gray-100"
                       >
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10 w-28 sm:w-36">
+                        <td
+                          className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky left-0 z-10 w-28 sm:w-36 border border-gray-300 bg-white"
+                          style={{ color: theme.colors.neutralDark }}
+                        >
                           {month}
                         </td>
                         {Array.from({ length: MAX_DAYS_IN_MONTH }, (_, i) => {
                           const dayNumber = i + 1;
-                          const isAttended =
-                            attendanceForMonth.includes(dayNumber);
+                          const isAttended = attendanceForMonth.includes(dayNumber);
                           const isDayInMonth = dayNumber <= daysInMonth;
 
                           return (
                             <td
                               key={dayNumber}
-                              className={`px-3 py-3 whitespace-nowrap text-center text-sm ${
-                                isDayInMonth && isAttended
-                                  ? "text-green-600 font-bold"
-                                  : "text-gray-400"
+                              className={`px-3 py-3 text-center text-sm border border-gray-300 ${
+                                isDayInMonth && isAttended ? "font-bold" : ""
                               }`}
+                              style={{
+                                color:
+                                  isDayInMonth && isAttended
+                                    ? theme.colors.success
+                                    : theme.colors.primaryLight,
+                                backgroundColor: isDayInMonth ? "white" : "#f9f9f9",
+                              }}
                             >
                               {isDayInMonth && isAttended ? "✔" : ""}
                             </td>
@@ -258,12 +338,18 @@ const Activity = () => {
       {!isLoading && !popupMessage && (
         <>
           {memberAttendance && Object.keys(memberAttendance).length === 0 && (
-            <p className="text-center text-gray-500 mt-6 px-6 md:px-10">
+            <p
+              className="text-center mt-6 px-6 md:px-10"
+              style={{ color: theme.colors.primary }}
+            >
               No activity data found. Please ensure you are logged in correctly.
             </p>
           )}
           {memberAttendance && Object.keys(currentYearAttendance).length === 0 && (
-            <p className="text-center text-gray-500 mt-2 px-6 md:px-10">
+            <p
+              className="text-center mt-2 px-6 md:px-10"
+              style={{ color: theme.colors.primary }}
+            >
               No activity recorded for {selectedYear}.
             </p>
           )}

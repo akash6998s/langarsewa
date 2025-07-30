@@ -12,6 +12,7 @@ import CustomPopup from "./Popup"; // Import your custom Popup component
 import Loader from "./Loader"; // Import your Loader component
 import Popup from "reactjs-popup"; // Keep this for the roll number selection modal
 import "reactjs-popup/dist/index.css"; // Keep this for reactjs-popup base styles
+import { theme } from '../theme'; // Import the theme
 
 function ManageDonation() {
   const [activeTab, setActiveTab] = useState("add");
@@ -180,7 +181,13 @@ function ManageDonation() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-lg p-6 sm:p-8 font-sans flex flex-col items-center">
+    <div
+      className="min-h-[calc(100vh-10rem)] rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center"
+      style={{
+        backgroundColor: theme.colors.neutralLight,
+        fontFamily: theme.fonts.body,
+      }}
+    >
       {/* Conditionally render Loader */}
       {isLoading && <Loader />}
 
@@ -193,37 +200,76 @@ function ManageDonation() {
         />
       )}
 
-      {/* LoadData seems to be for global loading, removed its local rendering */}
-      {/* <LoadData /> */}
-
-      <h2 className="text-3xl font-extrabold text-gray-800 mb-8 text-center">
+      <h2
+        className="text-3xl font-extrabold mb-8 text-center"
+        style={{ color: theme.colors.neutralDark, fontFamily: theme.fonts.heading }}
+      >
         Manage Member Donations
       </h2>
 
-      <div className="flex bg-gray-100 rounded-xl p-1 mb-8 shadow-sm">
+      <div
+        className="flex rounded-xl p-1 mb-8 shadow-sm"
+        style={{ backgroundColor: theme.colors.tertiaryLight }}
+      >
         <button
           onClick={() => setActiveTab("add")}
           className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
-            ${
-              activeTab === "add"
-                ? "bg-blue-600 text-white shadow-md"
-                : "text-gray-700 hover:bg-gray-200"
-            }
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+            focus:outline-none focus:ring-2 focus:ring-opacity-50
           `}
+          style={{
+            backgroundColor:
+              activeTab === "add" ? theme.colors.primary : "transparent",
+            color:
+              activeTab === "add"
+                ? theme.colors.neutralLight
+                : theme.colors.primary,
+            boxShadow:
+              activeTab === "add" ? "0 4px 6px rgba(0, 0, 0, 0.1)" : "none",
+            "--tw-ring-color": theme.colors.primaryLight,
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "add") {
+              e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+              e.currentTarget.style.color = theme.colors.neutralDark;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "add") {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = theme.colors.primary;
+            }
+          }}
         >
           Add Donation
         </button>
         <button
           onClick={() => setActiveTab("delete")}
           className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
-            ${
-              activeTab === "delete"
-                ? "bg-red-600 text-white shadow-md"
-                : "text-gray-700 hover:bg-gray-200"
-            }
-            focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50
+            focus:outline-none focus:ring-2 focus:ring-opacity-50
           `}
+          style={{
+            backgroundColor:
+              activeTab === "delete" ? theme.colors.danger : "transparent",
+            color:
+              activeTab === "delete"
+                ? theme.colors.neutralLight
+                : theme.colors.primary,
+            boxShadow:
+              activeTab === "delete" ? "0 4px 6px rgba(0, 0, 0, 0.1)" : "none",
+            "--tw-ring-color": theme.colors.dangerLight,
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "delete") {
+              e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+              e.currentTarget.style.color = theme.colors.neutralDark;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "delete") {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = theme.colors.primary;
+            }
+          }}
         >
           Delete Donation
         </button>
@@ -233,7 +279,8 @@ function ManageDonation() {
         <div className="relative">
           <label
             htmlFor="year-select"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium mb-1"
+            style={{ color: theme.colors.primary }}
           >
             Select Year
           </label>
@@ -241,7 +288,15 @@ function ManageDonation() {
             id="year-select"
             value={year}
             onChange={(e) => setYear(e.target.value)}
-            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            className="block appearance-none w-full py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
+            style={{
+              backgroundColor: theme.colors.neutralLight,
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              outlineColor: theme.colors.primary,
+            }}
           >
             {years.map((y) => (
               <option key={y} value={y}>
@@ -249,7 +304,10 @@ function ManageDonation() {
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 mt-6">
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 mt-6"
+            style={{ color: theme.colors.primary }}
+          >
             <svg
               className="fill-current h-4 w-4"
               xmlns="http://www.w3.org/2000/svg"
@@ -263,7 +321,8 @@ function ManageDonation() {
         <div className="relative">
           <label
             htmlFor="month-select"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium mb-1"
+            style={{ color: theme.colors.primary }}
           >
             Select Month
           </label>
@@ -271,13 +330,24 @@ function ManageDonation() {
             id="month-select"
             value={month}
             onChange={(e) => setMonth(e.target.value)}
-            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            className="block appearance-none w-full py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
+            style={{
+              backgroundColor: theme.colors.neutralLight,
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              outlineColor: theme.colors.primary,
+            }}
           >
             {months.map((m) => (
               <option key={m}>{m}</option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 mt-6">
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 mt-6"
+            style={{ color: theme.colors.primary }}
+          >
             <svg
               className="fill-current h-4 w-4"
               xmlns="http://www.w3.org/2000/svg"
@@ -291,7 +361,8 @@ function ManageDonation() {
         <div className="md:col-span-2">
           <label
             htmlFor="amount-input"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium mb-1"
+            style={{ color: theme.colors.primary }}
           >
             Enter Amount
           </label>
@@ -301,24 +372,39 @@ function ManageDonation() {
             placeholder="e.g., 500"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="block w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 shadow-sm transition duration-150 ease-in-out"
+            className="block w-full py-3 px-4 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
+            style={{
+              backgroundColor: theme.colors.neutralLight,
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              outlineColor: theme.colors.primary,
+            }}
           />
         </div>
       </div>
 
-      {/* Original loading and error messages replaced by custom Loader and Popup */}
-
       <div className="w-full max-w-lg mb-6">
         <Popup
           trigger={
-            <button className="w-full py-3 bg-gray-800 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-75">
+            <button
+              className="w-full py-3 font-semibold rounded-lg shadow-md hover:bg-gray-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75"
+              style={{
+                backgroundColor: theme.colors.primary,
+                color: theme.colors.neutralLight,
+                "--tw-ring-color": theme.colors.primaryLight,
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.primaryLight}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
+            >
               Select Roll Number: {selectedRoll || "None Selected"}
             </button>
           }
           modal
           nested
           contentStyle={{
-            background: "white",
+            background: theme.colors.neutralLight,
             borderRadius: "0.75rem",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
             width: "90%",
@@ -328,30 +414,52 @@ function ManageDonation() {
             flexDirection: "column",
             maxHeight: "90vh",
             margin: "auto",
+            border: `1px solid ${theme.colors.primaryLight}`,
           }}
           overlayStyle={{
             backgroundColor: "rgba(0, 0, 0, 0.6)",
           }}
         >
           {(close) => (
-            <div className="bg-white rounded-xl shadow-2xl p-0 md:p-0 max-h-[90vh] w-full max-w-2xl overflow-hidden flex flex-col relative">
-              <div className="flex items-start justify-between p-6 pb-3 bg-white border-b border-gray-200 sticky top-0 z-10">
-                <h3 className="text-2xl font-bold text-gray-800 flex-grow pr-4">
+            <div
+              className="rounded-xl shadow-2xl p-0 md:p-0 max-h-[90vh] w-full max-w-2xl overflow-hidden flex flex-col relative"
+              style={{ backgroundColor: theme.colors.neutralLight }}
+            >
+              <div
+                className="flex items-start justify-between p-6 pb-3 border-b sticky top-0 z-10"
+                style={{
+                  backgroundColor: theme.colors.neutralLight,
+                  borderColor: theme.colors.primaryLight,
+                }}
+              >
+                <h3
+                  className="text-2xl font-bold flex-grow pr-4"
+                  style={{ color: theme.colors.neutralDark }}
+                >
                   Select Roll Number
                 </h3>
 
                 <button
                   onClick={close}
-                  className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-full p-1 transition-colors duration-200"
+                  className="rounded-full p-1 transition-colors duration-200 focus:outline-none focus:ring-2"
+                  style={{
+                    color: theme.colors.primary,
+                    outlineColor: theme.colors.primaryLight,
+                  }}
                   aria-label="Close popup"
                 >
-                  <AiOutlineClose className="text-2xl text-gray-600 hover:text-gray-800" />
-
+                  <AiOutlineClose
+                    className="text-2xl"
+                    style={{ color: theme.colors.primary }}
+                  />
                 </button>
               </div>
 
               {rollNumbers.length === 0 && !isLoading ? (
-                <p className="text-gray-500 text-center py-8 px-6">
+                <p
+                  className="text-center py-8 px-6"
+                  style={{ color: theme.colors.primary }}
+                >
                   No roll numbers available.
                 </p>
               ) : (
@@ -366,13 +474,40 @@ function ManageDonation() {
                       className={`
                           flex items-center justify-center p-3 rounded-lg border-2
                           text-lg font-bold transition-all duration-200 ease-in-out
-                          ${
-                            selectedRoll === roll
-                              ? "bg-blue-600 text-white border-blue-600 shadow-md transform scale-105"
-                              : "bg-gray-100 text-gray-800 border-gray-300 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-700"
-                          }
-                          focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
+                          focus:outline-none focus:ring-2 focus:ring-offset-2
                         `}
+                      style={{
+                        backgroundColor: selectedRoll === roll
+                          ? theme.colors.primary
+                          : theme.colors.tertiaryLight,
+                        color: selectedRoll === roll
+                          ? theme.colors.neutralLight
+                          : theme.colors.primary,
+                        borderColor: selectedRoll === roll
+                          ? theme.colors.primary
+                          : theme.colors.primaryLight,
+                        boxShadow: selectedRoll === roll
+                          ? "0 4px 6px rgba(0, 0, 0, 0.1)"
+                          : "none",
+                        transform: selectedRoll === roll
+                          ? "scale(1.05)"
+                          : "none",
+                        "--tw-ring-color": theme.colors.primaryLight,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedRoll !== roll) {
+                          e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+                          e.currentTarget.style.borderColor = theme.colors.primary;
+                          e.currentTarget.style.color = theme.colors.neutralDark;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedRoll !== roll) {
+                          e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight;
+                          e.currentTarget.style.borderColor = theme.colors.primaryLight;
+                          e.currentTarget.style.color = theme.colors.primary;
+                        }
+                      }}
                     >
                       {roll}
                     </button>
@@ -388,7 +523,14 @@ function ManageDonation() {
         {activeTab === "add" && (
           <button
             onClick={handleDonation}
-            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+            className="w-full py-3 font-semibold rounded-lg shadow-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75"
+            style={{
+              backgroundColor: theme.colors.primary,
+              color: theme.colors.neutralLight,
+              "--tw-ring-color": theme.colors.primaryLight,
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.primaryLight}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
             disabled={isLoading} // Disable button when loading
           >
             {isLoading && activeTab === "add" ? "Adding..." : "Add Donation"}
@@ -398,7 +540,14 @@ function ManageDonation() {
         {activeTab === "delete" && (
           <button
             onClick={handleDeleteDonation}
-            className="w-full py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75"
+            className="w-full py-3 font-semibold rounded-lg shadow-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75"
+            style={{
+              backgroundColor: theme.colors.danger,
+              color: theme.colors.neutralLight,
+              "--tw-ring-color": theme.colors.dangerLight,
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.dangerLight}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.danger}
             disabled={isLoading} // Disable button when loading
           >
             {isLoading && activeTab === "delete"

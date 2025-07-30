@@ -10,9 +10,7 @@ import CustomPopup from "./Popup";
 import { theme } from '../theme';
 
 // Dynamically generate years for consistency with other components
-// Increased the range slightly to include a few past years for better utility
-const currentYear = new Date().getFullYear();
-const years = Array.from({ length: 5 }, (_, i) => String(currentYear - 2 + i)); // Shows 2 years prior, current, and next 2 years
+const years = Array.from({ length: 2 }, (_, i) => String(new Date().getFullYear() + i));
 const months = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
@@ -20,9 +18,8 @@ const months = [
 
 export default function ManageFinance() {
   const [activeTab, setActiveTab] = useState("donation");
-  const [selectedYear, setSelectedYear] = useState(String(currentYear));
-  // Set initial month to the current month for a more relevant default view
-  const [selectedMonth, setSelectedMonth] = useState(months[new Date().getMonth()]);
+  const [selectedYear, setSelectedYear] = useState(String(new Date().getFullYear()));
+  const [selectedMonth, setSelectedMonth] = useState("July");
 
   const [donations, setDonations] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -110,7 +107,7 @@ export default function ManageFinance() {
 
   return (
     <div
-      className="rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center w-full min-h-screen" // Added min-h-screen for better vertical fill
+      className="rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center w-full" // Removed min-h-[calc(100vh-10rem)]
       style={{
         backgroundColor: theme.colors.neutralLight,
         fontFamily: theme.fonts.body, // Ensure font is applied
@@ -129,12 +126,11 @@ export default function ManageFinance() {
       )}
 
       {/* Summary component - Assuming it handles its own data fetching or receives props */}
-      {/* It might be beneficial to pass donations and expenses data to Summary if it needs to display combined totals */}
       <Summary />
 
       {/* Tabs - Styled like ManageAttendance/Donation */}
       <div
-        className="flex rounded-xl p-1 my-8 shadow-sm max-w-sm w-full" // Added max-w-sm and w-full for better control on larger screens
+        className="flex rounded-xl p-1 my-8 shadow-sm"
         style={{ backgroundColor: theme.colors.tertiaryLight }}
       >
         <button
@@ -231,7 +227,7 @@ export default function ManageFinance() {
             disabled={isLoading} // Disable select when loading
           >
             {years.map((year) => (
-              <option key={year} value={year}>{year}</option>
+              <option key={year}>{year}</option>
             ))}
           </select>
           <div
@@ -273,7 +269,7 @@ export default function ManageFinance() {
             disabled={isLoading} // Disable select when loading
           >
             {months.map((month) => (
-              <option key={month} value={month}>{month}</option>
+              <option key={month}>{month}</option>
             ))}
           </select>
           <div
@@ -309,21 +305,21 @@ export default function ManageFinance() {
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" // Added whitespace-nowrap
+                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                     style={{ color: theme.colors.primary }}
                   >
                     Roll Number
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" // Added whitespace-nowrap
+                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                     style={{ color: theme.colors.primary }}
                   >
                     Name
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" // Added whitespace-nowrap
+                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                     style={{ color: theme.colors.primary }}
                   >
                     Amount (₹)
@@ -339,7 +335,7 @@ export default function ManageFinance() {
                     <tr
                       key={index}
                       className="transition-colors duration-150 ease-in-out"
-                      style={{ '--tw-bg-opacity': 1, backgroundColor: theme.colors.neutralLight, }} // Default background
+                      style={{ '--tw-bg-opacity': 1, backgroundColor: theme.colors.neutralLight,  }} // Default background
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.neutralLight}
                     >
@@ -398,14 +394,14 @@ export default function ManageFinance() {
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" // Added whitespace-nowrap
+                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                     style={{ color: theme.colors.primary }}
                   >
                     Description
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" // Added whitespace-nowrap
+                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                     style={{ color: theme.colors.primary }}
                   >
                     Amount (₹)
@@ -421,7 +417,7 @@ export default function ManageFinance() {
                     <tr
                       key={index}
                       className="transition-colors duration-150 ease-in-out"
-                      style={{ '--tw-bg-opacity': 1, backgroundColor: theme.colors.neutralLight, }} // Default background
+                      style={{ '--tw-bg-opacity': 1, backgroundColor: theme.colors.neutralLight,  }} // Default background
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.neutralLight}
                     >

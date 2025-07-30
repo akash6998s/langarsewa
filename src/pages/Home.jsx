@@ -1,11 +1,19 @@
 import AttendanceSheet from "../components/AttendanceSheet";
-import LoadData from "../components/LoadData";
-import Summary from "../components/Summary";
+import { theme } from "../theme"; // Import the theme
 
 function Home() {
   return (
-    <div>
-      <LoadData/>
+    <div
+      className="min-h-screen py-8"
+      style={{ background: theme.colors.background }} // Apply theme background color
+    >
+      {/* Designed heading with Tailwind CSS and Hindi text */}
+      <h2
+        className="text-4xl md:text-5xl font-extrabold text-center tracking-tight leading-tight px-4 font-[EB_Garamond,serif]"
+        style={{ color: theme.colors.neutralDark }} // Apply theme neutralDark color for text
+      >
+        सुदर्शन सेना भोजन वितरण
+      </h2>
       <AttendanceSheet />
     </div>
   );

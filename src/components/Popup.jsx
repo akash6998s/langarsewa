@@ -6,9 +6,10 @@ const Popup = ({ message, type, onClose }) => {
 
   const isSuccess = type === "success";
 
+  // Use theme colors for background based on type
   const bgColor = isSuccess
     ? theme.colors.success
-    : theme.colors.accent;
+    : theme.colors.danger; // Using danger for error/accent as per theme.js
 
   const title = isSuccess ? "✅ Success:" : "❌ Error:";
 
@@ -20,9 +21,9 @@ const Popup = ({ message, type, onClose }) => {
         className="flex flex-col gap-2 p-6 rounded-2xl shadow-2xl border relative"
         style={{
           backgroundColor: bgColor,
-          color: theme.colors.neutralLight,
-          borderColor: `${theme.colors.neutralLight}33`,
-          fontFamily: theme.fonts.body,
+          color: theme.colors.neutralLight, // Text color from theme
+          borderColor: `${theme.colors.neutralLight}33`, // Border color from theme with transparency
+          fontFamily: theme.fonts.body, // Font family from theme
           minWidth: "300px",
           maxWidth: "90%",
         }}
@@ -30,7 +31,7 @@ const Popup = ({ message, type, onClose }) => {
         <button
           onClick={onClose}
           className="absolute top-3 right-4 text-2xl font-bold hover:opacity-80"
-          style={{ color: theme.colors.neutralLight }}
+          style={{ color: theme.colors.neutralLight }} // Close button color from theme
         >
           ×
         </button>
