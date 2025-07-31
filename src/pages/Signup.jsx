@@ -11,6 +11,9 @@ import CustomPopup from "../components/Popup"; // Import your CustomPopup compon
 import { theme } from "../theme"; // Import the theme
 import { Link } from "react-router-dom";
 import LoadData from "../components/LoadData";
+// Import Material-UI Icons
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 
 function Signup() {
@@ -26,6 +29,9 @@ function Signup() {
   const [popupMessage, setPopupMessage] = useState(null);
   const [popupType, setPopupType] = useState(null); // 'success' or 'error'
 
+  // New state for password visibility
+  const [showPassword, setShowPassword] = useState(false);
+
   useEffect(() => {
     const fetchRollNumbers = async () => {
       setIsLoading(true); // Start loading for roll numbers
@@ -33,7 +39,13 @@ function Signup() {
       setPopupType(null); // Clear popup type as well
       try {
         const snap = await getDocs(collection(db, "members"));
-        const rolls = snap.docs.map((doc) => doc.id);
+        let rolls = snap.docs.map((doc) => doc.id);
+        // Sort the roll numbers in ascending order
+        rolls.sort((a, b) => {
+          // Assuming roll numbers are strings that can be compared numerically
+          // If they contain non-numeric characters, a more complex sort might be needed
+          return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+        });
         setRollOptions(rolls);
       } catch (err) {
         console.error("Error fetching roll numbers:", err);
@@ -322,25 +334,41 @@ function Signup() {
             >
               Password
             </label>
-            <input
-              type="password"
-              className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              required
-              disabled={isLoading} // Disable when loading
-              style={{
-                backgroundColor: theme.colors.neutralLight,
-                borderColor: theme.colors.primaryLight,
-                color: theme.colors.neutralDark,
-                borderWidth: "1px",
-                borderStyle: "solid",
-                outlineColor: theme.colors.primary,
-                "--tw-ring-color": theme.colors.primary,
-                "--tw-placeholder-color": theme.colors.primary, // Custom property for placeholder
-              }}
-            />
+            <div className="relative"> {/* Added relative positioning for the icon */}
+              <input
+                type={showPassword ? "text" : "password"} // Toggle type based on state
+                className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 pr-10" // Added pr-10 for icon space
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                required
+                disabled={isLoading} // Disable when loading
+                style={{
+                  backgroundColor: theme.colors.neutralLight,
+                  borderColor: theme.colors.primaryLight,
+                  color: theme.colors.neutralDark,
+                  borderWidth: "1px",
+                  borderStyle: "solid",
+                  outlineColor: theme.colors.primary,
+                  "--tw-ring-color": theme.colors.primary,
+                  "--tw-placeholder-color": theme.colors.primary, // Custom property for placeholder
+                }}
+              />
+              <button
+                type="button" // Important: type="button" to prevent form submission
+                onClick={() => setShowPassword(!showPassword)} // Toggle password visibility
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
+                style={{ color: theme.colors.primary }}
+                disabled={isLoading} // Disable button when loading
+              >
+                {/* MUI Icons for show/hide password */}
+                {showPassword ? (
+                  <VisibilityOff className="h-5 w-5" />
+                ) : (
+                  <Visibility className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Submit */}
@@ -370,7 +398,7 @@ function Signup() {
             Already have an account?{" "}
             <Link
               to="/"
-              className="font-medium hover:underline transition-colors duration-200"
+              className="font-medium underline hover:underline transition-colors duration-200"
               style={{ color: theme.colors.primary }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.color = theme.colors.primaryLight)

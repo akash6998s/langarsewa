@@ -6,50 +6,100 @@ import {
   doc,
   setDoc,
   getDoc,
+  query,
+  where,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import Loader from "../components/Loader"; // Import your Loader component
-import CustomPopup from "../components/Popup"; // Import your CustomPopup component
-import { theme } from '../theme'; // Import the theme
+import Loader from "../components/Loader";
+import { theme } from "../theme";
 import LoadData from "../components/LoadData";
 
 const AdminPanel = () => {
-  const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); // Renamed from 'loading' for consistency
-  const [popupMessage, setPopupMessage] = useState(null); // Replaces 'error' state
-  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
+  const [pendingUsers, setPendingUsers] = useState([]);
+  const [approvedUsers, setApprovedUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [activeTab, setActiveTab] = useState("pending");
 
-  const fetchUsers = async () => {
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [userToConfirm, setUserToConfirm] = useState(null);
+  const [confirmationAction, setConfirmationAction] = useState(null);
+
+  const fetchPendingUsers = async () => {
     setIsLoading(true);
-    setPopupMessage(null); // Clear any previous popup messages
-    setPopupType(null);
+    setPopupMessage(null);
     try {
-      const snapshot = await getDocs(collection(db, "users"));
-      // Filter out users that might already be approved or have incomplete data for display
-      const pendingUsers = snapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter(user => user.email && user.roll_no && !user.approved); // Ensure basic data exists and not already approved
-      setUsers(pendingUsers);
+      const q = query(collection(db, "users"));
+      const snapshot = await getDocs(q);
+      const usersList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPendingUsers(usersList);
     } catch (err) {
-      console.error("Error fetching users:", err);
-      setPopupMessage("Failed to load users for approval.");
-      setPopupType("error");
+      console.error("Error fetching pending users:", err);
+      setPopupMessage("Failed to load pending users.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const fetchApprovedUsers = async () => {
+    setIsLoading(true);
+    setPopupMessage(null);
+    try {
+      const q = query(collection(db, "members"), where("approved", "==", true));
+      const snapshot = await getDocs(q);
+      const approvedList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setApprovedUsers(approvedList);
+    } catch (err) {
+      console.error("Error fetching approved users:", err);
+      setPopupMessage("Failed to load approved users.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleApproveUser = (user) => {
+    setIsConfirming(true);
+    setConfirmationAction("approve");
+    setUserToConfirm(user);
+    setPopupMessage(
+      `Are you sure you want to approve user with roll number ${user.roll_no}?`
+    );
+  };
+
+  const handleRemovePendingUser = (user) => {
+    setIsConfirming(true);
+    setConfirmationAction("removePending");
+    setUserToConfirm(user);
+    setPopupMessage(
+      `Are you sure you want to remove the pending request for user with roll number ${user.roll_no}?`
+    );
+  };
+
+  const handleRemoveApprovedUser = (user) => {
+    setIsConfirming(true);
+    setConfirmationAction("removeApproved");
+    setUserToConfirm(user);
+    setPopupMessage(
+      `Are you sure you want to remove the approved member with roll number ${user.roll_no}? This will remove their login access.`
+    );
+  };
+
   const approveUser = async (user) => {
-    // Basic validation before starting the process
     if (!user.roll_no || !user.email || !user.password) {
-      setPopupMessage("❌ Missing email, password, or roll number for user approval.");
-      setPopupType("error");
+      setPopupMessage(
+        "❌ Missing email, password, or roll number for user approval."
+      );
       return;
     }
-
     setIsLoading(true);
-    setPopupMessage(null); // Clear any previous popup messages
-    setPopupType(null);
+    setPopupMessage(null);
 
     try {
       const rollNo = user.roll_no.toString();
@@ -57,64 +107,115 @@ const AdminPanel = () => {
       const memberSnap = await getDoc(memberRef);
 
       if (!memberSnap.exists()) {
-        setPopupMessage(`❌ Member profile with roll number ${rollNo} not found in 'members' collection. Please ensure a member profile exists for this roll number.`);
-        setPopupType("error");
+        setPopupMessage(
+          `❌ Member profile with roll number ${rollNo} not found in 'members' collection.`
+        );
         setIsLoading(false);
         return;
       }
 
-      // Merge user data into the existing member profile
       const memberData = memberSnap.data();
       await setDoc(
         memberRef,
         {
           ...memberData,
           email: user.email,
-          password: user.password, // IMPORTANT: Storing plain text password in Firestore is INSECURE and NOT recommended for production. Consider hashing or re-thinking your user data flow.
+          password: user.password,
           approved: true,
-          // You might also want to add isAdmin: false, isSuperAdmin: false by default here
-          // unless your 'members' document already has these or they're handled elsewhere.
         },
-        { merge: true } // Use merge to avoid overwriting other fields in the member document
+        { merge: true }
       );
 
-      // Delete the pending user request from the 'users' collection
       await deleteDoc(doc(db, "users", user.id));
 
-      setPopupMessage(`✅ User with roll no ${rollNo} has been successfully approved!`);
-      setPopupType("success");
-      fetchUsers(); // Refresh the list of pending users
+      setPopupMessage(
+        `✅ User with roll no ${rollNo} has been successfully approved!`
+      );
+      fetchPendingUsers();
     } catch (err) {
       console.error("Error approving user:", err);
       setPopupMessage(`Failed to approve user: ${err.message}`);
-      setPopupType("error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const removeUser = async (userId, userRollNo) => {
+  const removePendingUser = async (user) => {
     setIsLoading(true);
-    setPopupMessage(null); // Clear any previous popup messages
-    setPopupType(null);
+    setPopupMessage(null);
 
     try {
-      await deleteDoc(doc(db, "users", userId));
-      setPopupMessage(`🗑️ User with roll no ${userRollNo} has been successfully removed.`);
-      setPopupType("success");
-      fetchUsers(); // Refresh the list of pending users
+      await deleteDoc(doc(db, "users", user.id));
+      setPopupMessage(
+        `🗑️ User with roll no ${user.roll_no} has been successfully removed from pending requests.`
+      );
+      fetchPendingUsers();
     } catch (err) {
       console.error("Error removing user:", err);
       setPopupMessage(`Failed to remove user: ${err.message}`);
-      setPopupType("error");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const removeApprovedUser = async (user) => {
+    setIsLoading(true);
+    setPopupMessage(null);
+
+    try {
+      const memberRef = doc(db, "members", user.roll_no.toString());
+      await updateDoc(memberRef, {
+        email: null,
+        password: null,
+        approved: false,
+      });
+
+      setPopupMessage(
+        `🗑️ Member with roll no ${user.roll_no} has been successfully removed from the approved list.`
+      );
+      fetchApprovedUsers();
+    } catch (err) {
+      console.error("Error removing approved user:", err);
+      setPopupMessage(`Failed to remove approved user: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirmation = (isConfirmed) => {
+    if (isConfirmed && userToConfirm) {
+      if (confirmationAction === "approve") {
+        approveUser(userToConfirm);
+      } else if (confirmationAction === "removePending") {
+        removePendingUser(userToConfirm);
+      } else if (confirmationAction === "removeApproved") {
+        removeApprovedUser(userToConfirm);
+      }
+    }
+    setIsConfirming(false);
+    setUserToConfirm(null);
+    setConfirmationAction(null);
+    if (!isConfirmed) {
+      setPopupMessage(null);
+    }
+  };
+
+  const closePopup = () => {
+    setPopupMessage(null);
+    if (isConfirming) {
+      setIsConfirming(false);
+      setUserToConfirm(null);
+      setConfirmationAction(null);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (activeTab === "pending") {
+      fetchPendingUsers();
+    } else {
+      fetchApprovedUsers();
+    }
+  }, [activeTab]);
 
   return (
     <div
@@ -124,120 +225,390 @@ const AdminPanel = () => {
         fontFamily: theme.fonts.body,
       }}
     >
-      <LoadData/>
-      {/* Loader Component */}
+      <LoadData />
       {isLoading && <Loader />}
 
-      {/* Custom Popup Component */}
+      {/* Inline Popup JSX */}
       {popupMessage && (
-        <CustomPopup
-          message={popupMessage}
-          type={popupType}
-          onClose={() => setPopupMessage(null)} // Allow user to dismiss popup
-        />
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
+          <div
+            className="relative p-8 rounded-xl shadow-lg w-full max-w-sm"
+            style={{ backgroundColor: theme.colors.neutralLight }}
+          >
+            <p
+              className="text-lg font-medium text-center"
+              style={{ color: theme.colors.neutralDark }}
+            >
+              {popupMessage}
+            </p>
+            {isConfirming ? (
+              <div className="flex justify-center space-x-4 mt-6">
+                <button
+                  onClick={() => handleConfirmation(false)}
+                  className="py-2 px-6 rounded-lg font-medium shadow-md transition-colors duration-200"
+                  style={{
+                    backgroundColor: theme.colors.danger,
+                    color: theme.colors.neutralLight,
+                  }}
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => handleConfirmation(true)}
+                  className="py-2 px-6 rounded-lg font-medium shadow-md transition-colors duration-200"
+                  style={{
+                    backgroundColor: theme.colors.success,
+                    color: theme.colors.neutralLight,
+                  }}
+                >
+                  Yes
+                </button>
+              </div>
+            ) : (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={closePopup}
+                  className="py-2 px-6 rounded-lg font-medium shadow-md transition-colors duration-200"
+                  style={{
+                    backgroundColor: theme.colors.primary,
+                    color: theme.colors.neutralLight,
+                  }}
+                >
+                  OK
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       <h2
         className="text-3xl font-extrabold mb-8 text-center"
-        style={{ color: theme.colors.neutralDark, fontFamily: theme.fonts.heading }}
+        style={{
+          color: theme.colors.neutralDark,
+          fontFamily: theme.fonts.heading,
+        }}
       >
         Admin Approval Panel
       </h2>
 
-      {/* No pending users message */}
-      {!isLoading && users.length === 0 && !popupMessage && ( // Only show if not loading, no users, AND no active popup
-        <div
-          className="border-l-4 p-4 rounded-lg shadow-md mt-6 w-full max-w-md text-center"
+      {/* Tab Buttons */}
+      <div
+        className="flex rounded-xl p-1 mb-8 shadow-sm"
+        style={{ backgroundColor: theme.colors.tertiaryLight }}
+      >
+        <button
+          onClick={() => setActiveTab("pending")}
+          className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
+            focus:outline-none focus:ring-2 focus:ring-opacity-50
+          `}
           style={{
-            backgroundColor: theme.colors.primaryLight,
-            borderColor: theme.colors.primary,
-            color: theme.colors.primary,
+            backgroundColor:
+              activeTab === "pending" ? theme.colors.primary : "transparent",
+            color:
+              activeTab === "pending"
+                ? theme.colors.neutralLight
+                : theme.colors.primary,
+            boxShadow:
+              activeTab === "pending" ? "0 4px 6px rgba(0, 0, 0, 0.1)" : "none",
+            "--tw-ring-color": theme.colors.primaryLight,
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "pending") {
+              e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+              e.currentTarget.style.color = theme.colors.neutralDark;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "pending") {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = theme.colors.primary;
+            }
           }}
         >
-          <p
-            className="font-semibold text-lg"
-            style={{ color: theme.colors.neutralDark }}
-          >
-            🎉 No pending user requests at the moment.
-          </p>
-          <p className="text-sm mt-1">Check back later for new signups.</p>
-        </div>
-      )}
+          Pending
+        </button>
+        <button
+          onClick={() => setActiveTab("approved")}
+          className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
+            focus:outline-none focus:ring-2 focus:ring-opacity-50
+          `}
+          style={{
+            backgroundColor:
+              activeTab === "approved" ? theme.colors.success : "transparent",
+            color:
+              activeTab === "approved"
+                ? theme.colors.neutralLight
+                : theme.colors.primary,
+            boxShadow:
+              activeTab === "approved"
+                ? "0 4px 6px rgba(0, 0, 0, 0.1)"
+                : "none",
+            "--tw-ring-color": theme.colors.successLight,
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "approved") {
+              e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+              e.currentTarget.style.color = theme.colors.neutralDark;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "approved") {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = theme.colors.primary;
+            }
+          }}
+        >
+          Approved
+        </button>
+      </div>
 
-      <div className="w-full max-w-md space-y-4">
-        {users.map((user) => (
-          <div
-            key={user.id}
-            className="border rounded-lg shadow-md p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center transition-all duration-200 ease-in-out hover:shadow-lg"
-            style={{
-              backgroundColor: theme.colors.neutralLight,
-              borderColor: theme.colors.primaryLight,
-              borderWidth: '1px',
-              borderStyle: 'solid',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = theme.colors.primary}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = theme.colors.primaryLight}
-          >
-            <div className="flex-grow mb-3 sm:mb-0">
-              <p
-                className="text-lg font-semibold"
+      {activeTab === "pending" && (
+        <>
+          {!isLoading && pendingUsers.length === 0 && !popupMessage && (
+            <div
+              className="flex flex-col items-center justify-center p-8 text-center rounded-lg shadow-inner mt-6 w-full max-w-md"
+              style={{
+                backgroundColor: theme.colors.neutralLight,
+                border: `1px solid ${theme.colors.primaryLight}`,
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-16 w-16 mb-4"
+                style={{ color: theme.colors.primary }}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                />
+              </svg>
+              <h3
+                className="text-xl font-bold"
                 style={{ color: theme.colors.neutralDark }}
               >
-                Email:{" "}
-                <span
-                  className="font-normal break-words"
-                  style={{ color: theme.colors.primary }}
-                >
-                  {user.email}
-                </span>
+                No Pending Requests
+              </h3>
+              <p
+                className="mt-2 text-sm"
+                style={{ color: theme.colors.neutralDark }}
+              >
+                All user requests have been approved or removed.
               </p>
               <p
-                className="text-sm mt-1"
-                style={{ color: theme.colors.primary }}
+                className="text-sm"
+                style={{ color: theme.colors.neutralDark }}
               >
-                Roll No:{" "}
-                <span
-                  className="font-medium"
-                  style={{ color: theme.colors.neutralDark }}
-                >
-                  {user.roll_no}
-                </span>
+                Check back later for new signups.
               </p>
             </div>
-            {/* Changed this div for inline buttons */}
-            <div className="flex space-x-2"> {/* Removed flex-col and space-y-2 */}
-              <button
-                onClick={() => approveUser(user)}
-                className="font-medium py-2 px-5 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+          )}
+          <div className="w-full max-w-md space-y-4">
+            {pendingUsers.map((user) => (
+              <div
+                key={user.id}
+                className="border rounded-lg shadow-md p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center transition-all duration-200 ease-in-out hover:shadow-lg"
                 style={{
-                  backgroundColor: theme.colors.success,
-                  color: theme.colors.neutralLight,
-                  "--tw-ring-color": theme.colors.successLight,
+                  backgroundColor: theme.colors.neutralLight,
+                  borderColor: theme.colors.primaryLight,
+                  borderWidth: "1px",
+                  borderStyle: "solid",
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.successLight}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.success}
-                disabled={isLoading}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.borderColor = theme.colors.primary)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.borderColor =
+                    theme.colors.primaryLight)
+                }
               >
-                Approve
-              </button>
-              <button
-                onClick={() => removeUser(user.id, user.roll_no)}
-                className="font-medium py-2 px-5 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  backgroundColor: theme.colors.danger,
-                  color: theme.colors.neutralLight,
-                  "--tw-ring-color": theme.colors.dangerLight,
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.dangerLight}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.error}
-                disabled={isLoading}
-              >
-                Remove
-              </button>
-            </div>
+                <div className="flex-grow mb-3 sm:mb-0">
+                  <p
+                    className="text-lg font-semibold"
+                    style={{ color: theme.colors.neutralDark }}
+                  >
+                    Roll No:{" "}
+                    <span
+                      className="font-medium break-words"
+                      style={{ color: theme.colors.primary }}
+                    >
+                      {user.roll_no}
+                    </span>
+                  </p>
+                  <p
+                    className="text-sm mt-1"
+                    style={{ color: theme.colors.neutralDark }}
+                  >
+                    Email:{" "}
+                    <span
+                      className="font-normal break-words"
+                      style={{ color: theme.colors.primary }}
+                    >
+                      {user.email}
+                    </span>
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleApproveUser(user)}
+                    className="font-medium py-2 px-5 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: theme.colors.success,
+                      color: theme.colors.neutralLight,
+                      "--tw-ring-color": theme.colors.successLight,
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        theme.colors.successLight)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        theme.colors.success)
+                    }
+                    disabled={isLoading || isConfirming}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleRemovePendingUser(user)}
+                    className="font-medium py-2 px-5 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: theme.colors.danger,
+                      color: theme.colors.neutralLight,
+                      "--tw-ring-color": theme.colors.dangerLight,
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        theme.colors.dangerLight)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        theme.colors.danger)
+                    }
+                    disabled={isLoading || isConfirming}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
+
+      {activeTab === "approved" && (
+        <>
+          {!isLoading && approvedUsers.length === 0 && !popupMessage && (
+            <div
+              className="border-l-4 p-4 rounded-lg shadow-md mt-6 w-full max-w-md text-center"
+              style={{
+                backgroundColor: theme.colors.primaryLight,
+                borderColor: theme.colors.primary,
+                color: theme.colors.primary,
+              }}
+            >
+              <p
+                className="font-semibold text-lg"
+                style={{ color: theme.colors.neutralDark }}
+              >
+                🤷‍♂️ No approved users found.
+              </p>
+              <p className="text-sm mt-1">
+                Approved users will appear here after being added.
+              </p>
+            </div>
+          )}
+          <div className="w-full max-w-md space-y-4">
+            {approvedUsers
+              .sort((a, b) => Number(a.roll_no) - Number(b.roll_no))
+              .map((user) => (
+                <div
+                  key={user.id}
+                  className="border rounded-lg shadow-md px-2 py-2 flex flex-col transition-all duration-200 ease-in-out hover:shadow-lg"
+                  style={{
+                    backgroundColor: theme.colors.neutralLight,
+                    borderColor: theme.colors.success,
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.borderColor = theme.colors.success)
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.borderColor =
+                      theme.colors.successLight)
+                  }
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <p
+                      className="text-lg font-semibold"
+                      style={{ color: theme.colors.neutralDark }}
+                    >
+                      Roll No:{" "}
+                      <span
+                        className="font-medium"
+                        style={{ color: theme.colors.primary }}
+                      >
+                        {user.roll_no}
+                      </span>
+                    </p>
+                    <button
+                      onClick={() => handleRemoveApprovedUser(user)}
+                      className="font-medium py-2 px-5 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      style={{
+                        backgroundColor: theme.colors.danger,
+                        color: theme.colors.neutralLight,
+                        "--tw-ring-color": theme.colors.dangerLight,
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor =
+                          theme.colors.dangerLight)
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor =
+                          theme.colors.danger)
+                      }
+                      disabled={isLoading || isConfirming}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div>
+                    <p
+                      className="text-sm"
+                      style={{ color: theme.colors.neutralDark }}
+                    >
+                      Name:{" "}
+                      <span
+                        className="font-normal break-words"
+                        style={{ color: theme.colors.primary }}
+                      >
+                        {user.name} {user.last_name || ""}
+                      </span>
+                    </p>
+                    <p
+                      className="text-sm mt-1"
+                      style={{ color: theme.colors.neutralDark }}
+                    >
+                      Email:{" "}
+                      <span
+                        className="font-normal break-words"
+                        style={{ color: theme.colors.primary }}
+                      >
+                        {user.email}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

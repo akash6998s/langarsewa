@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 import LoadData from "../components/LoadData"; // Assuming this is your global loading component
 import { theme } from "../theme"; // Import the theme
 import { Link } from "react-router-dom";
+// Import Material-UI Icons for password visibility
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 
 function Login() {
@@ -14,6 +17,9 @@ function Login() {
   const [loading, setLoading] = useState(false); // Add loading state for the login process
   const [errorMessage, setErrorMessage] = useState(""); // Add state for error messages
   const navigate = useNavigate();
+
+  // New state for password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   // Effect to auto-fill credentials from localStorage on component mount
   useEffect(() => {
@@ -155,25 +161,41 @@ function Login() {
           <label htmlFor="password" className="sr-only">
             Password
           </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            className="appearance-none relative block w-full px-4 py-3 border placeholder-gray-500 rounded-lg focus:outline-none focus:z-10 sm:text-lg transition duration-200 ease-in-out"
-            style={{
-              borderColor: theme.colors.primaryLight,
-              color: theme.colors.neutralDark,
-              "--tw-placeholder-color": theme.colors.primary, // Custom property for placeholder
-              outlineColor: theme.colors.primary,
-              "--tw-ring-color": theme.colors.primary, // For focus ring
-            }}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            disabled={loading}
-          />
+          <div className="relative"> {/* Added relative positioning for the icon */}
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"} // Toggle type based on state
+              autoComplete="current-password"
+              required
+              className="appearance-none relative block w-full px-4 py-3 border placeholder-gray-500 rounded-lg focus:outline-none focus:z-10 sm:text-lg transition duration-200 ease-in-out pr-10" // Added pr-10 for icon space
+              style={{
+                borderColor: theme.colors.primaryLight,
+                color: theme.colors.neutralDark,
+                "--tw-placeholder-color": theme.colors.primary, // Custom property for placeholder
+                outlineColor: theme.colors.primary,
+                "--tw-ring-color": theme.colors.primary, // For focus ring
+              }}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              disabled={loading}
+            />
+            <button
+              type="button" // Important: type="button" to prevent form submission
+              onClick={() => setShowPassword(!showPassword)} // Toggle password visibility
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
+              style={{ color: theme.colors.primary }}
+              disabled={loading} // Disable button when loading
+            >
+              {/* MUI Icons for show/hide password */}
+              {showPassword ? (
+                <VisibilityOff className="h-5 w-5" />
+              ) : (
+                <Visibility className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         <button
@@ -226,7 +248,7 @@ function Login() {
           Don’t have an account?{" "}
           <Link
             to="/signup"
-            className="font-medium hover:underline transition-colors duration-200"
+            className="font-medium underline hover:underline transition-colors duration-200"
             style={{ color: theme.colors.primary }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.color = theme.colors.primaryLight)

@@ -250,8 +250,7 @@ export default function ManageFinance() {
 
 
   return (
-    <div
-      className="rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center w-full min-h-screen"
+    <div class="rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center w-[90vw] min-h-screen" 
       style={{
         backgroundColor: theme.colors.neutralLight,
         fontFamily: theme.fonts.body,
