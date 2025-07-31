@@ -46,9 +46,12 @@ const Activity = () => {
   };
 
   useEffect(() => {
-    const loadActivityData = () => {
+    const loadActivityData = async () => { // Made async to use await
       setIsLoading(true); // Start loading
       setPopupMessage(null); // Clear any previous messages
+
+      const minLoadPromise = new Promise(resolve => setTimeout(resolve, 2000)); // 2-second delay
+
       try {
         const stored = localStorage.getItem("loggedInMember");
         if (stored) {
@@ -69,6 +72,8 @@ const Activity = () => {
         setPopupMessage("Error loading activity data from local storage. Please try logging in again.");
         setPopupType("error");
       } finally {
+        // Ensure the loader stays for at least 4 seconds
+        await minLoadPromise;
         setIsLoading(false); // End loading
       }
     };

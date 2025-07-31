@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -14,6 +14,25 @@ function Login() {
   const [loading, setLoading] = useState(false); // Add loading state for the login process
   const [errorMessage, setErrorMessage] = useState(""); // Add state for error messages
   const navigate = useNavigate();
+
+  // Effect to auto-fill credentials from localStorage on component mount
+  useEffect(() => {
+    try {
+      const storedMember = localStorage.getItem("loggedInMember");
+      if (storedMember) {
+        const memberData = JSON.parse(storedMember);
+        // Ensure email and password properties exist before setting
+        if (memberData.email && memberData.password) {
+          setEmail(memberData.email);
+          setPassword(memberData.password);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to parse loggedInMember from localStorage:", error);
+      // Optionally, clear the malformed item from localStorage
+      localStorage.removeItem("loggedInMember");
+    }
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,7 +60,7 @@ function Login() {
 
       if (!approvedMember) {
         setErrorMessage(
-          "❌ profile not found. Please ensure you are registered and approved."
+          "❌ Profile not found. Please ensure you are registered and approved."
         );
         await signOut(auth); // Sign out if member profile isn't found/approved
         return; // Stop further execution

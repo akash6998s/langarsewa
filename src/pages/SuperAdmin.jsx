@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ManageAttendance from "../components/ManageAttendance";
 import ManageDonation from "../components/ManageDonation";
 import ManageExpense from "../components/ManageExpense";
-import ManageFinance from "../components/ManageFinance";
+import ManageFinance from "../components/ManageFinance"; // Ensure this is the updated one
 import Managemember from "../components/ManageMember";
 import { theme } from '../theme'; // Import the theme
 
@@ -15,7 +15,7 @@ import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import AdminPanel from "./AdminPanel";
-import LoadData from "../components/LoadData";
+import LoadData from "../components/LoadData"; // Assuming this handles data loading for local storage
 
 // Updated navItems with components and new order
 const navItems = [
@@ -26,7 +26,6 @@ const navItems = [
   { name: "Manage Finance", key: "finance", icon: <CurrencyExchangeIcon fontSize="small" /> },
   { name: "Users", key: "users", icon: <GroupIcon fontSize="small" /> },
 ];
-
 
 const SuperAdmin = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,7 +51,7 @@ const SuperAdmin = () => {
       default:
         return (
           <div
-            className="flex items-center justify-center h-full text-xl font-medium p-8"
+            className="flex items-center justify-center h-full text-xl font-medium p-8 text-center"
             style={{ color: theme.colors.primary }}
           >
             Please select a section from the sidebar to view content.
@@ -63,10 +62,11 @@ const SuperAdmin = () => {
 
   return (
     <div
-      className="min-h-screen flex font-[Inter,sans-serif]"
+      className="min-h-screen flex font-[Inter,sans-serif] antialiased" // Added antialiased for smoother fonts
       style={{ background: theme.colors.background }}
     >
-      <LoadData/>
+      <LoadData/> {/* This component seems to handle initial data loading */}
+
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-full w-64 shadow-xl z-40 transform transition-transform duration-300 ease-in-out
@@ -94,6 +94,8 @@ const SuperAdmin = () => {
             style={{
               color: theme.colors.neutralLight,
               outlineColor: theme.colors.neutralLight,
+              "--tw-ring-color": theme.colors.neutralLight,
+              "--tw-ring-opacity": 0.75,
             }}
             aria-label="Close sidebar"
           >
@@ -110,7 +112,8 @@ const SuperAdmin = () => {
                 setIsOpen(false); // Close sidebar on mobile
               }}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ease-in-out
-                focus:outline-none focus:ring-2 focus:ring-opacity-75
+                focus:outline-none focus:ring-2 focus:ring-opacity-75 border-b-2 border-transparent
+                ${activeTab === item.key ? 'shadow-md' : ''}
               `}
               style={{
                 backgroundColor:
@@ -124,6 +127,7 @@ const SuperAdmin = () => {
                 fontWeight: activeTab === item.key ? "semibold" : "normal",
                 boxShadow: activeTab === item.key ? "0 4px 6px rgba(0, 0, 0, 0.1)" : "none",
                 "--tw-ring-color": theme.colors.primaryLight, // Tailwind ring color
+                borderColor: activeTab === item.key ? theme.colors.primaryLight : 'transparent',
               }}
               onMouseEnter={(e) => {
                 if (activeTab !== item.key) {
@@ -159,6 +163,8 @@ const SuperAdmin = () => {
             style={{
               color: theme.colors.primary,
               outlineColor: theme.colors.primaryLight,
+              "--tw-ring-color": theme.colors.primaryLight,
+              "--tw-ring-opacity": 0.75,
             }}
             aria-label="Open sidebar"
           >

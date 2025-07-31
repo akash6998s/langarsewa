@@ -41,10 +41,12 @@ function ManageDonation() {
     "November",
     "December",
   ];
+  // --- MODIFIED THIS LINE ---
   const years = Array.from(
-    { length: 2 },
-    (_, i) => String(new Date().getFullYear() + i)
+    { length: 11 }, // Generates 11 years
+    (_, i) => String(2025 + i) // Starting from 2025 up to 2035
   );
+  // --- END MODIFICATION ---
 
   useEffect(() => {
     const fetchRolls = async () => {
@@ -168,7 +170,7 @@ function ManageDonation() {
         setSelectedRoll(null);
         setAmount("");
       } else {
-        setPopupMessage("No donation found for the selected date to subtract from.");
+        setPopupMessage("No donation found for the selected date.");
         setPopupType("error");
       }
     } catch (e) {
@@ -296,6 +298,7 @@ function ManageDonation() {
               borderWidth: '1px',
               borderStyle: 'solid',
               outlineColor: theme.colors.primary,
+              "--tw-ring-color": theme.colors.primary,
             }}
           >
             {years.map((y) => (
@@ -338,6 +341,7 @@ function ManageDonation() {
               borderWidth: '1px',
               borderStyle: 'solid',
               outlineColor: theme.colors.primary,
+              "--tw-ring-color": theme.colors.primary,
             }}
           >
             {months.map((m) => (
@@ -464,54 +468,56 @@ function ManageDonation() {
                 </p>
               ) : (
                 <div className="grid grid-cols-5 gap-2 p-6 overflow-y-auto flex-grow">
-                  {rollNumbers.map((roll) => (
-                    <button
-                      key={roll}
-                      onClick={() => {
-                        setSelectedRoll(roll);
-                        close();
-                      }}
-                      className={`
+                  {rollNumbers
+                    .sort((a, b) => Number(a) - Number(b)) // Sort roll numbers numerically
+                    .map((roll) => (
+                      <button
+                        key={roll}
+                        onClick={() => {
+                          setSelectedRoll(roll);
+                          close();
+                        }}
+                        className={`
                           flex items-center justify-center p-3 rounded-lg border-2
                           text-lg font-bold transition-all duration-200 ease-in-out
                           focus:outline-none focus:ring-2 focus:ring-offset-2
                         `}
-                      style={{
-                        backgroundColor: selectedRoll === roll
-                          ? theme.colors.primary
-                          : theme.colors.tertiaryLight,
-                        color: selectedRoll === roll
-                          ? theme.colors.neutralLight
-                          : theme.colors.primary,
-                        borderColor: selectedRoll === roll
-                          ? theme.colors.primary
-                          : theme.colors.primaryLight,
-                        boxShadow: selectedRoll === roll
-                          ? "0 4px 6px rgba(0, 0, 0, 0.1)"
-                          : "none",
-                        transform: selectedRoll === roll
-                          ? "scale(1.05)"
-                          : "none",
-                        "--tw-ring-color": theme.colors.primaryLight,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (selectedRoll !== roll) {
-                          e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
-                          e.currentTarget.style.borderColor = theme.colors.primary;
-                          e.currentTarget.style.color = theme.colors.neutralDark;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (selectedRoll !== roll) {
-                          e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight;
-                          e.currentTarget.style.borderColor = theme.colors.primaryLight;
-                          e.currentTarget.style.color = theme.colors.primary;
-                        }
-                      }}
-                    >
-                      {roll}
-                    </button>
-                  ))}
+                        style={{
+                          backgroundColor: selectedRoll === roll
+                            ? theme.colors.primary
+                            : theme.colors.tertiaryLight,
+                          color: selectedRoll === roll
+                            ? theme.colors.neutralLight
+                            : theme.colors.primary,
+                          borderColor: selectedRoll === roll
+                            ? theme.colors.primary
+                            : theme.colors.primaryLight,
+                          boxShadow: selectedRoll === roll
+                            ? "0 4px 6px rgba(0, 0, 0, 0.1)"
+                            : "none",
+                          transform: selectedRoll === roll
+                            ? "scale(1.05)"
+                            : "none",
+                          "--tw-ring-color": theme.colors.primaryLight,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedRoll !== roll) {
+                            e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+                            e.currentTarget.style.borderColor = theme.colors.primary;
+                            e.currentTarget.style.color = theme.colors.neutralDark;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedRoll !== roll) {
+                            e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight;
+                            e.currentTarget.style.borderColor = theme.colors.primaryLight;
+                            e.currentTarget.style.color = theme.colors.primary;
+                          }
+                        }}
+                      >
+                        {roll}
+                      </button>
+                    ))}
                 </div>
               )}
             </div>

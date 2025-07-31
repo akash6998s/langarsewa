@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 // Removed Firebase imports: db, collection, getDocs
 import Loader from './Loader'; // Import your Loader component
-import CustomPopup from './Popup'; // Import your CustomPopup component
+import CustomPopup from './Popup'; // Import your custom Popup component
 import { theme } from '../theme'; // Import the theme
 import LoadData from './LoadData';
 
@@ -22,56 +22,64 @@ const Profile = () => {
             setPopupMessage(null); // Clear any previous popup messages
             setImgError(false); // Reset image error state
 
-            const storedMember = localStorage.getItem('loggedInMember'); // Get data from localStorage
+            // Create a promise that resolves after 3 seconds
+            const minLoadPromise = new Promise(resolve => setTimeout(resolve, 3000)); // 3-second delay
 
-            if (storedMember) {
-                try {
-                    const parsedMember = JSON.parse(storedMember); // Parse the JSON string
-                    setMember(parsedMember); // Set the member state
+            try {
+                const storedMember = localStorage.getItem('loggedInMember'); // Get data from localStorage
 
-                    // Attempt to load the profile image using the roll_no
-                    // This iterates through supported extensions until an image is found
-                    let imageFound = false;
-                    if (parsedMember.roll_no) { // Ensure roll_no exists before trying to load image
-                        for (let ext of supportedExtensions) {
-                            const url = `https://raw.githubusercontent.com/akash6998s/Langar-App/main/src/assets/uploads/${parsedMember.roll_no}.${ext}`;
+                if (storedMember) {
+                    try {
+                        const parsedMember = JSON.parse(storedMember); // Parse the JSON string
+                        setMember(parsedMember); // Set the member state
 
-                            const img = new Image(); // Create a new Image object to check if URL is valid
-                            img.src = url;
+                        // Attempt to load the profile image using the roll_no
+                        // This iterates through supported extensions until an image is found
+                        let imageFound = false;
+                        if (parsedMember.roll_no) { // Ensure roll_no exists before trying to load image
+                            for (let ext of supportedExtensions) {
+                                const url = `https://raw.githubusercontent.com/akash6998s/Langar-App/main/src/assets/uploads/${parsedMember.roll_no}.${ext}`;
 
-                            const loaded = await new Promise((resolve) => {
-                                img.onload = () => resolve(true); // Resolve true if image loads successfully
-                                img.onerror = () => resolve(false); // Resolve false if image fails to load
-                            });
+                                const img = new Image(); // Create a new Image object to check if URL is valid
+                                img.src = url;
 
-                            if (loaded) {
-                                setImageUrl(url); // Set the URL if image is found
-                                imageFound = true;
-                                break; // Stop checking once an image is found
+                                const loaded = await new Promise((resolve) => {
+                                    img.onload = () => resolve(true); // Resolve true if image loads successfully
+                                    img.onerror = () => resolve(false); // Resolve false if image fails to load
+                                });
+
+                                if (loaded) {
+                                    setImageUrl(url); // Set the URL if image is found
+                                    imageFound = true;
+                                    break; // Stop checking once an image is found
+                                }
                             }
                         }
-                    }
 
-                    if (!imageFound) {
-                        setImgError(true); // Set image error if no image was found
-                        setPopupMessage("Profile image not found. Displaying placeholder.");
-                        setPopupType("info"); // Informational popup for missing image
-                    }
+                        if (!imageFound) {
+                            setImgError(true); // Set image error if no image was found
+                            setPopupMessage("Profile image not found. Displaying placeholder.");
+                            setPopupType("info"); // Informational popup for missing image
+                        }
 
-                } catch (error) {
-                    // Handle errors during JSON parsing from localStorage
-                    console.error("Error parsing member data from localStorage:", error);
-                    setPopupMessage("Failed to load profile data. Please try logging in again.");
+                    } catch (error) {
+                        // Handle errors during JSON parsing from localStorage
+                        console.error("Error parsing member data from localStorage:", error);
+                        setPopupMessage("Failed to load profile data. Please try logging in again.");
+                        setPopupType("error");
+                        setMember(null); // Clear member data on parse error
+                    }
+                } else {
+                    // If no 'loggedInMember' data is found in localStorage
+                    setPopupMessage("No profile data found. Please log in.");
                     setPopupType("error");
-                    setMember(null); // Clear member data on parse error
+                    setMember(null); // Ensure member is null if not found
                 }
-            } else {
-                // If no 'loggedInMember' data is found in localStorage
-                setPopupMessage("No profile data found. Please log in.");
-                setPopupType("error");
-                setMember(null); // Ensure member is null if not found
+            } finally {
+                // Ensure the loader stays for at least 3 seconds
+                await minLoadPromise;
+                setIsLoading(false); // End loading state regardless of success or failure
             }
-            setIsLoading(false); // End loading state regardless of success or failure
         };
 
         loadProfileData();
@@ -81,7 +89,11 @@ const Profile = () => {
 
     // Show Loader while data is being fetched
     if (isLoading) {
-        return <Loader />;
+        return (
+            <div className="min-h-screen flex items-center justify-center" style={{ background: theme.colors.background }}>
+                <Loader />
+            </div>
+        );
     }
 
     // Show an error message if no member data is found after loading

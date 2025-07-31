@@ -93,6 +93,25 @@ const AdminPanel = () => {
     }
   };
 
+  const removeUser = async (userId, userRollNo) => {
+    setIsLoading(true);
+    setPopupMessage(null); // Clear any previous popup messages
+    setPopupType(null);
+
+    try {
+      await deleteDoc(doc(db, "users", userId));
+      setPopupMessage(`🗑️ User with roll no ${userRollNo} has been successfully removed.`);
+      setPopupType("success");
+      fetchUsers(); // Refresh the list of pending users
+    } catch (err) {
+      console.error("Error removing user:", err);
+      setPopupMessage(`Failed to remove user: ${err.message}`);
+      setPopupType("error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -185,20 +204,37 @@ const AdminPanel = () => {
                 </span>
               </p>
             </div>
-            <button
-              onClick={() => approveUser(user)}
-              className="font-medium py-2 px-5 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: theme.colors.success,
-                color: theme.colors.neutralLight,
-                "--tw-ring-color": theme.colors.successLight,
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.successLight}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.success}
-              disabled={isLoading} // Disable button during approval process
-            >
-              Approve
-            </button>
+            {/* Changed this div for inline buttons */}
+            <div className="flex space-x-2"> {/* Removed flex-col and space-y-2 */}
+              <button
+                onClick={() => approveUser(user)}
+                className="font-medium py-2 px-5 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: theme.colors.success,
+                  color: theme.colors.neutralLight,
+                  "--tw-ring-color": theme.colors.successLight,
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.successLight}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.success}
+                disabled={isLoading}
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => removeUser(user.id, user.roll_no)}
+                className="font-medium py-2 px-5 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: theme.colors.danger,
+                  color: theme.colors.neutralLight,
+                  "--tw-ring-color": theme.colors.dangerLight,
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.dangerLight}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.error}
+                disabled={isLoading}
+              >
+                Remove
+              </button>
+            </div>
           </div>
         ))}
       </div>

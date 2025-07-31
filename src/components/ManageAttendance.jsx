@@ -45,9 +45,9 @@ export default function ManageAttendance() {
     "December",
   ];
   const years = Array.from(
-    { length: 2 },
-    (_, i) => String(new Date().getFullYear() + i)
-  ); // Current year and next year
+  { length: 11 }, // Create an array with 11 elements
+  (_, i) => String(2025 + i) // Map each element to a string representing years from 2025 to 2035
+);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -127,7 +127,7 @@ export default function ManageAttendance() {
       setPopupType("error");
     } else {
       setPopupMessage(
-        `Attendance added for ${successCount} members. ${skipCount} members already marked for this day.`
+        `Attendance added for ${successCount} members.`
       );
       setPopupType("success");
     }
@@ -516,51 +516,53 @@ export default function ManageAttendance() {
                 </p>
               ) : (
                 <div className="grid grid-cols-5 gap-2 p-6 overflow-y-auto flex-grow">
-                  {members.map((member) => (
-                    <button
-                      key={member.id}
-                      onClick={() => toggleRoll(member.id)}
-                      className={`
+                  {members
+                    .sort((a, b) => Number(a.id) - Number(b.id)) // Sort members numerically by ID
+                    .map((member) => (
+                      <button
+                        key={member.id}
+                        onClick={() => toggleRoll(member.id)}
+                        className={`
                           flex items-center justify-center p-3 rounded-lg border-2
                           text-lg font-bold transition-all duration-200 ease-in-out
                           focus:outline-none focus:ring-2 focus:ring-offset-2
                         `}
-                      style={{
-                        backgroundColor: selectedRolls.includes(member.id)
-                          ? theme.colors.primary
-                          : theme.colors.tertiaryLight,
-                        color: selectedRolls.includes(member.id)
-                          ? theme.colors.neutralLight
-                          : theme.colors.primary,
-                        borderColor: selectedRolls.includes(member.id)
-                          ? theme.colors.primary
-                          : theme.colors.primaryLight,
-                        boxShadow: selectedRolls.includes(member.id)
-                          ? "0 4px 6px rgba(0, 0, 0, 0.1)"
-                          : "none",
-                        transform: selectedRolls.includes(member.id)
-                          ? "scale(1.05)"
-                          : "none",
-                        "--tw-ring-color": theme.colors.primaryLight,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!selectedRolls.includes(member.id)) {
-                          e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
-                          e.currentTarget.style.borderColor = theme.colors.primary;
-                          e.currentTarget.style.color = theme.colors.neutralDark;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!selectedRolls.includes(member.id)) {
-                          e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight;
-                          e.currentTarget.style.borderColor = theme.colors.primaryLight;
-                          e.currentTarget.style.color = theme.colors.primary;
-                        }
-                      }}
-                    >
-                      {member.id}
-                    </button>
-                  ))}
+                        style={{
+                          backgroundColor: selectedRolls.includes(member.id)
+                            ? theme.colors.primary
+                            : theme.colors.tertiaryLight,
+                          color: selectedRolls.includes(member.id)
+                            ? theme.colors.neutralLight
+                            : theme.colors.primary,
+                          borderColor: selectedRolls.includes(member.id)
+                            ? theme.colors.primary
+                            : theme.colors.primaryLight,
+                          boxShadow: selectedRolls.includes(member.id)
+                            ? "0 4px 6px rgba(0, 0, 0, 0.1)"
+                            : "none",
+                          transform: selectedRolls.includes(member.id)
+                            ? "scale(1.05)"
+                            : "none",
+                          "--tw-ring-color": theme.colors.primaryLight,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!selectedRolls.includes(member.id)) {
+                            e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
+                            e.currentTarget.style.borderColor = theme.colors.primary;
+                            e.currentTarget.style.color = theme.colors.neutralDark;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!selectedRolls.includes(member.id)) {
+                            e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight;
+                            e.currentTarget.style.borderColor = theme.colors.primaryLight;
+                            e.currentTarget.style.color = theme.colors.primary;
+                          }
+                        }}
+                      >
+                        {member.id}
+                      </button>
+                    ))}
                 </div>
               )}
             </div>

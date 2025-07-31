@@ -12,7 +12,10 @@ import Loader from "./Loader"; // Import your Loader component
 import CustomPopup from "./Popup"; // Import your CustomPopup component
 import { theme } from '../theme'; // Import the theme
 
-const years = ["2024", "2025"];
+// --- MODIFIED THIS LINE ---
+const years = Array.from({ length: 11 }, (_, i) => String(2025 + i)); // Generates years from 2025 to 2035
+// --- END MODIFICATION ---
+
 const months = [
   "January",
   "February",

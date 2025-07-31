@@ -42,8 +42,6 @@ function AppRoutes() {
     window.location.href = "/";
   }
 
-  console.log("Path:", pathname);
-  console.log("isAdmin:", isAdmin);
 
   if (showSplash) return <Splash />;
 

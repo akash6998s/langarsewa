@@ -190,7 +190,7 @@ function Signup() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center"
+      className="min-h-screen flex p-4 items-center justify-center"
       style={{
         backgroundColor: theme.colors.background,
         fontFamily: theme.fonts.body,

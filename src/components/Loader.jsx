@@ -6,7 +6,7 @@ const { colors, fonts } = theme;
 const Loader = () => {
   return (
     <div
-      className="fixed inset-0 flex flex-col justify-center items-center z-50"
+      className="fixed inset-0 flex flex-col justify-center items-center z-500"
       style={{
         backdropFilter: "blur(6px)",
         backgroundColor: `${colors.neutralLight}`, // semi-transparent light background
