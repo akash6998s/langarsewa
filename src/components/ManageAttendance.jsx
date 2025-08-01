@@ -8,17 +8,27 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { AiOutlineClose } from "react-icons/ai";
-import CustomPopup from "./Popup"; // Renamed to avoid conflict with reactjs-popup if it's still needed elsewhere
-import Loader from "./Loader"; // Import your Loader component
-import Popup from "reactjs-popup"; // Keep this for the roll selection modal
-import { theme } from '../theme'; // Import the theme
+import CustomPopup from "./Popup";
+import Loader from "./Loader";
+import Popup from "reactjs-popup";
+import { theme } from '../theme';
 
 export default function ManageAttendance() {
   const [activeTab, setActiveTab] = useState("add");
   const [members, setMembers] = useState([]);
-  const [year, setYear] = useState(String(new Date().getFullYear())); // Default to current year
-  const [month, setMonth] = useState("July"); // Default to current month for example
-  const [day, setDay] = useState(String(new Date().getDate())); // Default to current day for example
+  const [year, setYear] = useState(String(new Date().getFullYear()));
+  
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+  
+  // Dynamically set the default month to the current month
+  const currentMonthIndex = new Date().getMonth();
+  const currentMonthName = months[currentMonthIndex];
+  const [month, setMonth] = useState(currentMonthName);
+
+  const [day, setDay] = useState(String(new Date().getDate()));
   const [selectedRolls, setSelectedRolls] = useState([]);
 
   // States for custom Loader and Popup
@@ -29,30 +39,15 @@ export default function ManageAttendance() {
   // State for the reactjs-popup modal (for selecting rolls)
   const [showRollSelectionPopup, setShowRollSelectionPopup] = useState(false);
 
-
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
   const years = Array.from(
-  { length: 11 }, // Create an array with 11 elements
-  (_, i) => String(2025 + i) // Map each element to a string representing years from 2025 to 2035
-);
+    { length: 11 },
+    (_, i) => String(2025 + i)
+  );
 
   useEffect(() => {
     const fetchMembers = async () => {
-      setIsLoading(true); // Start loading
-      setPopupMessage(null); // Clear any previous messages
+      setIsLoading(true);
+      setPopupMessage(null);
       try {
         const querySnapshot = await getDocs(collection(db, "members"));
         const memberList = [];
@@ -65,7 +60,7 @@ export default function ManageAttendance() {
         setPopupMessage("Failed to load members. Please try again.");
         setPopupType("error");
       } finally {
-        setIsLoading(false); // End loading
+        setIsLoading(false);
       }
     };
     fetchMembers();
@@ -84,8 +79,8 @@ export default function ManageAttendance() {
       return;
     }
 
-    setIsLoading(true); // Start loading for submission
-    setPopupMessage(null); // Clear previous popup messages
+    setIsLoading(true);
+    setPopupMessage(null);
     const dayNumber = Number(day);
     let successCount = 0;
     let skipCount = 0;
@@ -118,7 +113,7 @@ export default function ManageAttendance() {
       }
     }
 
-    setIsLoading(false); // End loading
+    setIsLoading(false);
 
     if (errorOccurred) {
       setPopupMessage(
@@ -141,8 +136,8 @@ export default function ManageAttendance() {
       return;
     }
 
-    setIsLoading(true); // Start loading for deletion
-    setPopupMessage(null); // Clear previous popup messages
+    setIsLoading(true);
+    setPopupMessage(null);
     const dayNumber = Number(day);
     let deletedCount = 0;
     let errorOccurred = false;
@@ -184,7 +179,7 @@ export default function ManageAttendance() {
       }
     }
 
-    setIsLoading(false); // End loading
+    setIsLoading(false);
 
     if (errorOccurred) {
       setPopupMessage(
@@ -225,7 +220,7 @@ export default function ManageAttendance() {
         <CustomPopup
           message={popupMessage}
           type={popupType}
-          onClose={() => setPopupMessage(null)} // Close popup by clearing message
+          onClose={() => setPopupMessage(null)}
         />
       )}
 
@@ -306,7 +301,7 @@ export default function ManageAttendance() {
       </div>
 
       {/* Date Selectors */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-lg mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-lg mb-8">
         {/* Year Select */}
         <div className="relative">
           <label
@@ -317,7 +312,7 @@ export default function ManageAttendance() {
             Select Year
           </label>
           <select
-            id="year-select-att" // Unique ID
+            id="year-select-att"
             className="block appearance-none w-full py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
             style={{
               backgroundColor: theme.colors.neutralLight,
@@ -359,7 +354,7 @@ export default function ManageAttendance() {
             Select Month
           </label>
           <select
-            id="month-select-att" // Unique ID
+            id="month-select-att"
             className="block appearance-none w-full py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
             style={{
               backgroundColor: theme.colors.neutralLight,
@@ -399,7 +394,7 @@ export default function ManageAttendance() {
             Select Day
           </label>
           <select
-            id="day-select-att" // Unique ID
+            id="day-select-att"
             className="block appearance-none w-full py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white shadow-sm transition duration-150 ease-in-out"
             style={{
               backgroundColor: theme.colors.neutralLight,
@@ -439,7 +434,7 @@ export default function ManageAttendance() {
           trigger={
             <button
               className="w-full py-3 font-semibold rounded-lg shadow-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75"
-              onClick={() => setShowRollSelectionPopup(true)} // Open the popup
+              onClick={() => setShowRollSelectionPopup(true)}
               style={{
                 backgroundColor: theme.colors.primary,
                 color: theme.colors.neutralLight,
@@ -453,8 +448,8 @@ export default function ManageAttendance() {
           }
           modal
           nested
-          open={showRollSelectionPopup} // Control popup visibility
-          onClose={() => setShowRollSelectionPopup(false)} // Close the popup
+          open={showRollSelectionPopup}
+          onClose={() => setShowRollSelectionPopup(false)}
           contentStyle={{
             background: theme.colors.neutralLight,
             borderRadius: "0.75rem",
@@ -507,7 +502,7 @@ export default function ManageAttendance() {
                 </button>
               </div>
 
-              {members.length === 0 && !isLoading ? ( // Using isLoading for member fetching
+              {members.length === 0 && !isLoading ? (
                 <p
                   className="text-center py-8 px-6"
                   style={{ color: theme.colors.primary }}
@@ -517,7 +512,7 @@ export default function ManageAttendance() {
               ) : (
                 <div className="grid grid-cols-5 gap-2 p-6 overflow-y-auto flex-grow">
                   {members
-                    .sort((a, b) => Number(a.id) - Number(b.id)) // Sort members numerically by ID
+                    .sort((a, b) => Number(a.id) - Number(b.id))
                     .map((member) => (
                       <button
                         key={member.id}
@@ -583,7 +578,7 @@ export default function ManageAttendance() {
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.primaryLight}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
-            disabled={isLoading} // Disable button when loading
+            disabled={isLoading}
           >
             {isLoading && activeTab === "add" ? "Adding..." : "Submit Attendance"}
           </button>
@@ -600,7 +595,7 @@ export default function ManageAttendance() {
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.dangerLight}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.danger}
-            disabled={isLoading} // Disable button when loading
+            disabled={isLoading}
           >
             {isLoading && activeTab === "delete"
               ? "Deleting..."

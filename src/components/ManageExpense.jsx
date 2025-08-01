@@ -8,14 +8,11 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
-import Loader from "./Loader"; // Import your Loader component
-import CustomPopup from "./Popup"; // Import your CustomPopup component
-import { theme } from '../theme'; // Import the theme
+import Loader from "./Loader";
+import CustomPopup from "./Popup";
+import { theme } from '../theme';
 
-// --- MODIFIED THIS LINE ---
-const years = Array.from({ length: 11 }, (_, i) => String(2025 + i)); // Generates years from 2025 to 2035
-// --- END MODIFICATION ---
-
+const years = Array.from({ length: 11 }, (_, i) => String(2025 + i));
 const months = [
   "January",
   "February",
@@ -33,24 +30,28 @@ const months = [
 
 export default function ManageExpense() {
   const [mode, setMode] = useState("add");
-  const [selectedYear, setSelectedYear] = useState("2025");
-  const [selectedMonth, setSelectedMonth] = useState("July");
+  // --- MODIFIED THESE LINES ---
+  const today = new Date();
+  const currentYear = today.getFullYear().toString();
+  const currentMonth = months[today.getMonth()];
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  // --- END MODIFICATION ---
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [expenses, setExpenses] = useState([]);
 
-  // States for custom Loader and Popup
   const [isLoading, setIsLoading] = useState(false);
   const [popupMessage, setPopupMessage] = useState(null);
-  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
+  const [popupType, setPopupType] = useState(null);
 
   useEffect(() => {
     fetchExpenses();
   }, [selectedYear, selectedMonth]);
 
   const fetchExpenses = async () => {
-    setIsLoading(true); // Start loading
-    setPopupMessage(null); // Clear any previous messages
+    setIsLoading(true);
+    setPopupMessage(null);
     try {
       const snapshot = await getDocs(collection(db, "expenses"));
       const data = [];
@@ -73,7 +74,7 @@ export default function ManageExpense() {
       setPopupMessage("Failed to load expenses. Please try again.");
       setPopupType("error");
     } finally {
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
   };
 
@@ -84,15 +85,14 @@ export default function ManageExpense() {
       return;
     }
 
-    setIsLoading(true); // Start loading for submission
-    setPopupMessage(null); // Clear previous popup messages
+    setIsLoading(true);
+    setPopupMessage(null);
 
     try {
       const snapshot = await getDocs(collection(db, "expenses"));
       let docRef = null;
 
       if (snapshot.empty) {
-        // If no expense document exists, create a new one
         const newDocRef = doc(collection(db, "expenses"));
         await setDoc(newDocRef, {
           [selectedYear]: {
@@ -106,7 +106,6 @@ export default function ManageExpense() {
           },
         });
       } else {
-        // If an expense document exists, update the first one found
         const firstDoc = snapshot.docs[0];
         docRef = doc(db, "expenses", firstDoc.id);
         const docData = firstDoc.data();
@@ -121,7 +120,6 @@ export default function ManageExpense() {
           },
         ];
 
-        // Use dot notation to update nested fields
         await updateDoc(docRef, {
           [`${selectedYear}.${selectedMonth}`]: updated,
         });
@@ -131,19 +129,19 @@ export default function ManageExpense() {
       setDescription("");
       setPopupMessage("Expense added successfully.");
       setPopupType("success");
-      fetchExpenses(); // Re-fetch expenses to update the list
+      fetchExpenses();
     } catch (e) {
       console.error("Error adding expense:", e);
       setPopupMessage("Failed to add expense. Please try again.");
       setPopupType("error");
     } finally {
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
   };
 
   const handleDeleteExpense = async (idToDelete) => {
-    setIsLoading(true); // Start loading for deletion
-    setPopupMessage(null); // Clear previous popup messages
+    setIsLoading(true);
+    setPopupMessage(null);
 
     try {
       const snapshot = await getDocs(collection(db, "expenses"));
@@ -164,20 +162,19 @@ export default function ManageExpense() {
         (e) => e.id !== idToDelete
       );
 
-      // Update the document with the filtered expenses
       await updateDoc(docRef, {
         [`${selectedYear}.${selectedMonth}`]: updatedExpenses,
       });
 
       setPopupMessage("Expense deleted successfully.");
       setPopupType("success");
-      fetchExpenses(); // Re-fetch expenses to update the list
+      fetchExpenses();
     } catch (e) {
       console.error("Error deleting expense:", e);
       setPopupMessage("Failed to delete expense. Please try again.");
       setPopupType("error");
     } finally {
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
   };
 
@@ -189,15 +186,12 @@ export default function ManageExpense() {
         fontFamily: theme.fonts.body,
       }}
     >
-      {/* Conditionally render Loader */}
       {isLoading && <Loader />}
-
-      {/* Conditionally render Custom Popup */}
       {popupMessage && (
         <CustomPopup
           message={popupMessage}
           type={popupType}
-          onClose={() => setPopupMessage(null)} // Close popup by clearing message
+          onClose={() => setPopupMessage(null)}
         />
       )}
 
@@ -240,7 +234,7 @@ export default function ManageExpense() {
               e.currentTarget.style.color = theme.colors.primary;
             }
           }}
-          disabled={isLoading} // Disable button when loading
+          disabled={isLoading}
         >
           Add Expense
         </button>
@@ -272,7 +266,7 @@ export default function ManageExpense() {
               e.currentTarget.style.color = theme.colors.primary;
             }
           }}
-          disabled={isLoading} // Disable button when loading
+          disabled={isLoading}
         >
           Delete Expense
         </button>
@@ -292,7 +286,7 @@ export default function ManageExpense() {
             outlineColor: theme.colors.primary,
             "--tw-ring-color": theme.colors.primary,
           }}
-          disabled={isLoading} // Disable select when loading
+          disabled={isLoading}
         >
           {years.map((year) => (
             <option key={year}>{year}</option>
@@ -312,7 +306,7 @@ export default function ManageExpense() {
             outlineColor: theme.colors.primary,
             "--tw-ring-color": theme.colors.primary,
           }}
-          disabled={isLoading} // Disable select when loading
+          disabled={isLoading}
         >
           {months.map((month) => (
             <option key={month}>{month}</option>
@@ -344,14 +338,14 @@ export default function ManageExpense() {
               }}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              disabled={isLoading} // Disable input when loading
+              disabled={isLoading}
             />
           </div>
           <div className="mb-4">
-            <textarea // Changed from input to textarea
+            <textarea
               placeholder="Description"
               className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2"
-              rows="4" // Added rows attribute for height
+              rows="4"
               style={{
                 backgroundColor: theme.colors.neutralLight,
                 borderColor: theme.colors.primaryLight,
@@ -363,8 +357,8 @@ export default function ManageExpense() {
               }}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              disabled={isLoading} // Disable textarea when loading
-            ></textarea> {/* Changed from input to textarea */}
+              disabled={isLoading}
+            ></textarea>
           </div>
           <button
             onClick={handleAddExpense}
@@ -376,7 +370,7 @@ export default function ManageExpense() {
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.successLight}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.success}
-            disabled={isLoading} // Disable button when loading
+            disabled={isLoading}
           >
             {isLoading ? "Saving..." : "Save Expense"}
           </button>
@@ -400,7 +394,7 @@ export default function ManageExpense() {
               {expenses.map((exp) => (
                 <li
                   key={exp.id}
-                  className="flex flex-col border p-3 rounded-lg shadow-sm transition-colors duration-150 ease-in-out" // Changed to flex-col
+                  className="flex flex-col border p-3 rounded-lg shadow-sm transition-colors duration-150 ease-in-out"
                   style={{
                     backgroundColor: theme.colors.neutralLight,
                     borderColor: theme.colors.primaryLight,
@@ -410,7 +404,7 @@ export default function ManageExpense() {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.neutralLight}
                 >
-                  <div className="flex justify-between items-center w-full mb-2"> {/* New flex container for amount and button */}
+                  <div className="flex justify-between items-center w-full mb-2">
                     <p
                       className="text-lg font-medium"
                       style={{ color: theme.colors.neutralDark }}
@@ -427,13 +421,13 @@ export default function ManageExpense() {
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.dangerLight}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.danger}
-                      disabled={isLoading} // Disable button when loading
+                      disabled={isLoading}
                     >
                       {isLoading ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                   <p
-                    className="text-sm w-full" // Added w-full for full width
+                    className="text-sm w-full"
                     style={{ color: theme.colors.primary }}
                   >
                     {exp.description}

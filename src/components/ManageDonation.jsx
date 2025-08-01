@@ -17,16 +17,7 @@ import { theme } from '../theme'; // Import the theme
 function ManageDonation() {
   const [activeTab, setActiveTab] = useState("add");
   const [year, setYear] = useState(String(new Date().getFullYear()));
-  const [month, setMonth] = useState("July");
-  const [amount, setAmount] = useState("");
-  const [rollNumbers, setRollNumbers] = useState([]);
-  const [selectedRoll, setSelectedRoll] = useState(null);
-
-  // States for custom Loader and Popup
-  const [isLoading, setIsLoading] = useState(true); // Renamed from 'loading' for clarity
-  const [popupMessage, setPopupMessage] = useState(null);
-  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
-
+  
   const months = [
     "January",
     "February",
@@ -41,12 +32,25 @@ function ManageDonation() {
     "November",
     "December",
   ];
-  // --- MODIFIED THIS LINE ---
+  
+  // Dynamically set the default month to the current month name
+  const currentMonthIndex = new Date().getMonth();
+  const currentMonthName = months[currentMonthIndex];
+  const [month, setMonth] = useState(currentMonthName);
+  
+  const [amount, setAmount] = useState("");
+  const [rollNumbers, setRollNumbers] = useState([]);
+  const [selectedRoll, setSelectedRoll] = useState(null);
+
+  // States for custom Loader and Popup
+  const [isLoading, setIsLoading] = useState(true); // Renamed from 'loading' for clarity
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
+
   const years = Array.from(
     { length: 11 }, // Generates 11 years
-    (_, i) => String(2025 + i) // Starting from 2025 up to 2035
+    (_, i) => String(new Date().getFullYear() + i) // Starting from the current year
   );
-  // --- END MODIFICATION ---
 
   useEffect(() => {
     const fetchRolls = async () => {

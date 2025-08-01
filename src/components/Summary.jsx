@@ -85,9 +85,8 @@ export default function Summary() {
 
   return (
     <div
-      className="w-full mx-auto p-4 sm:p-6 md:p-8"
+      className="w-full mx-auto sm:p-6 md:p-8"
       style={{
-        backgroundColor: theme.colors.neutralLight,
         fontFamily: theme.fonts.body,
       }}
     >

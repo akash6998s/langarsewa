@@ -202,7 +202,7 @@ const SuperAdmin = () => {
         </header>
 
         {/* Dynamic Component Area */}
-        <main className="flex-1 p-4 md:p-8 mt-16 md:mt-0 overflow-auto">
+        <main className="p-4 md:p-8 mt-16 pb-12 md:mt-0 overflow-auto">
           {renderActiveComponent()}
         </main>
       </div>
