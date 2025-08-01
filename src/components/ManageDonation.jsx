@@ -188,7 +188,7 @@ function ManageDonation() {
 
   return (
     <div
-      className="min-h-[calc(100vh-10rem)] rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center"
+      className="min-h-[calc(100vh-10rem)] m-4 rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center"
       style={{
         backgroundColor: theme.colors.neutralLight,
         fontFamily: theme.fonts.body,

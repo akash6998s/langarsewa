@@ -180,7 +180,7 @@ export default function ManageExpense() {
 
   return (
     <div
-      className="p-6 max-w-3xl mx-auto rounded-xl shadow-lg"
+      className="p-6 max-w-3xl m-4 mx-auto rounded-xl shadow-lg"
       style={{
         backgroundColor: theme.colors.neutralLight,
         fontFamily: theme.fonts.body,

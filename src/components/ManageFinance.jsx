@@ -336,7 +336,7 @@ export default function ManageFinance() {
 
   return (
     <div
-      className=" p-2 pb-8 flex flex-col items-center w-[90vw] min-h-screen"
+      className="m-4 px-4 pb-8 flex flex-col items-center min-h-screen"
       style={{
         fontFamily: theme.fonts.body,
       }}

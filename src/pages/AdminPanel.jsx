@@ -441,7 +441,7 @@ const AdminPanel = () => {
                     </span>
                   </p>
                   <p
-                    className="text-sm mt-1"
+                    className="text-sm font-bold mt-1"
                     style={{ color: theme.colors.neutralDark }}
                   >
                     Email:{" "}
