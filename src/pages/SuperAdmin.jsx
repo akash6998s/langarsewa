@@ -7,51 +7,67 @@ import Managemember from "../components/ManageMember";
 import { theme } from "../theme"; // Import the theme
 
 // ✅ MUI Icons
-import GroupIcon from "@mui/icons-material/Group";
-import FactCheckIcon from "@mui/icons-material/FactCheck";
-import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
-import MoneyOffIcon from "@mui/icons-material/MoneyOff";
-import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import AdminPanel from "./AdminPanel";
-import InsightsIcon from "@mui/icons-material/Insights";
-import LoadData from "../components/LoadData"; // Assuming this handles data loading for local storage
-import ActivityTracker from "../components/ActivityTracker";
+import LoadData from "../components/LoadData"; 
+import TeamPerformance from "../components/TeamPerformance";
+import MemberPerformance from "../components/MemberPerformance";
+
+
+import ChecklistIcon from "@mui/icons-material/Checklist"; // Attendance
+import FavoriteIcon from "@mui/icons-material/Favorite"; // Donations
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong"; // Expense
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt"; // Member
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet"; // Finance
+import LeaderboardIcon from "@mui/icons-material/Leaderboard"; // Member Performance
+import AssessmentIcon from "@mui/icons-material/Assessment"; // Team Performance
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts"; // Users
+
 
 // Updated navItems with components and new order
+
 const navItems = [
   {
     name: "Manage Attendance",
     key: "attendance",
-    icon: <FactCheckIcon fontSize="small" />,
+    icon: <ChecklistIcon fontSize="small" />,
   },
   {
     name: "Manage Donations",
     key: "donations",
-    icon: <VolunteerActivismIcon fontSize="small" />,
+    icon: <FavoriteIcon fontSize="small" />,
   },
   {
     name: "Manage Expense",
     key: "expense",
-    icon: <MoneyOffIcon fontSize="small" />,
+    icon: <ReceiptLongIcon fontSize="small" />,
   },
   {
     name: "Manage Member",
     key: "member",
-    icon: <GroupIcon fontSize="small" />,
+    icon: <PeopleAltIcon fontSize="small" />,
   },
   {
     name: "Manage Finance",
     key: "finance",
-    icon: <CurrencyExchangeIcon fontSize="small" />,
+    icon: <AccountBalanceWalletIcon fontSize="small" />,
   },
   {
-    name: "Activity Tracker",
-    key: "activityracker",
-    icon: <InsightsIcon fontSize="small" />,
+    name: "Member Performance",
+    key: "memberperformance",
+    icon: <LeaderboardIcon fontSize="small" />,
   },
-  { name: "Users", key: "users", icon: <GroupIcon fontSize="small" /> },
+  {
+    name: "Team Performance",
+    key: "teamperformance",
+    icon: <AssessmentIcon fontSize="small" />,
+  },
+  {
+    name: "Users",
+    key: "users",
+    icon: <ManageAccountsIcon fontSize="small" />,
+  },
 ];
 
 const SuperAdmin = () => {
@@ -73,8 +89,10 @@ const SuperAdmin = () => {
         return <ManageExpense />;
       case "finance":
         return <ManageFinance />;
-      case "activityracker":
-        return <ActivityTracker />;
+      case "memberperformance":
+        return <MemberPerformance />;
+        case "teamperformance":
+        return <TeamPerformance />;
       case "users":
         return <AdminPanel />;
       default:
@@ -97,7 +115,8 @@ const SuperAdmin = () => {
       <LoadData /> {/* This component seems to handle initial data loading */}
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 shadow-xl z-40 transform transition-transform duration-300 ease-in-out
+        className={`fixed top-0 left-0 h-full w-72
+           shadow-xl z-40 transform transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           md:relative md:translate-x-0 md:shadow-md md:z-auto
         `}

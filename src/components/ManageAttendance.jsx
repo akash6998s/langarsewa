@@ -13,6 +13,29 @@ import Loader from "./Loader";
 import Popup from "reactjs-popup";
 import { theme } from '../theme';
 
+// Fallback function to copy text to clipboard using a temporary element
+const copyToClipboardFallback = (text) => {
+  const tempElement = document.createElement('textarea');
+  tempElement.value = text;
+  tempElement.setAttribute('readonly', '');
+  tempElement.style.position = 'absolute';
+  tempElement.style.left = '-9999px';
+  document.body.appendChild(tempElement);
+  tempElement.select();
+
+  // For mobile devices, you may need this to ensure the text is selected
+  tempElement.setSelectionRange(0, 99999); 
+
+  try {
+    document.execCommand('copy');
+    console.log("Text copied using fallback method.");
+  } catch (err) {
+    console.error("Failed to copy with fallback method:", err);
+  }
+
+  document.body.removeChild(tempElement);
+};
+
 export default function ManageAttendance() {
   const [activeTab, setActiveTab] = useState("add");
   const [members, setMembers] = useState([]);
@@ -41,7 +64,7 @@ export default function ManageAttendance() {
 
   const years = Array.from(
     { length: 11 },
-    (_, i) => String(2025 + i)
+    (_, i) => String(new Date().getFullYear() + i)
   );
 
   useEffect(() => {
@@ -85,6 +108,7 @@ export default function ManageAttendance() {
     let successCount = 0;
     let skipCount = 0;
     let errorOccurred = false;
+    const rollsAdded = [];
 
     for (let roll of selectedRolls) {
       const memberRef = doc(db, "members", roll);
@@ -104,6 +128,7 @@ export default function ManageAttendance() {
           };
           await updateDoc(memberRef, { attendance: newAttendance });
           successCount++;
+          rollsAdded.push(roll); // Add the roll to our new array
         } else {
           skipCount++;
         }
@@ -125,6 +150,25 @@ export default function ManageAttendance() {
         `Attendance added for ${successCount} members.`
       );
       setPopupType("success");
+
+      // Copy the successfully added rolls to the clipboard
+      if (rollsAdded.length > 0) {
+        const formattedRolls = rollsAdded.sort((a, b) => Number(a) - Number(b)).join(',');
+        // Try the modern Clipboard API first
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(formattedRolls);
+            console.log("Roll numbers copied to clipboard successfully.");
+          } catch (err) {
+            console.error("Failed to copy using Clipboard API:", err);
+            // Fallback to the old method if the modern one fails
+            copyToClipboardFallback(formattedRolls);
+          }
+        } else {
+          // If Clipboard API is not supported at all, use the fallback
+          copyToClipboardFallback(formattedRolls);
+        }
+      }
     }
     setSelectedRolls([]);
   };

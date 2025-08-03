@@ -1,26 +1,33 @@
 import React, { useEffect, useState } from 'react';
-// No Firebase imports needed
-import Loader from './Loader'; // Import your Loader component
-import CustomPopup from './Popup'; // Import your custom Popup component
-import { theme } from '../theme'; // Import the theme
+import Loader from './Loader';
+import CustomPopup from './Popup';
+import { theme } from '../theme';
 import LoadData from './LoadData';
 
 const Members = () => {
   const [members, setMembers] = useState([]);
-  // States for custom Loader and Popup
-  const [isLoading, setIsLoading] = useState(true); // Set to true initially to show loader on first load
+  const [isLoading, setIsLoading] = useState(true);
   const [popupMessage, setPopupMessage] = useState(null);
-  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
-  const [searchQuery, setSearchQuery] = useState(""); // New state for search query
+  const [popupType, setPopupType] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Function to fetch members from Local Storage
+  // Function to check if an image URL is valid
+  const checkImageExists = async (url) => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok; // Returns true if the image exists and is accessible
+    } catch (error) {
+      console.log(error)
+      return false; // Returns false on network error or other issues
+    }
+  };
+
   const fetchMembersFromLocalStorage = async () => {
-    setIsLoading(true); // Start loading
-    setPopupMessage(null); // Clear any previous messages
+    setIsLoading(true);
+    setPopupMessage(null);
 
-    // Create a promise that resolves after 2 seconds
-    const minLoadPromise = new Promise(resolve => setTimeout(resolve, 2000)); // 2-second delay
-
+    const minLoadPromise = new Promise(resolve => setTimeout(resolve, 2000));
+    
     try {
       const storedMembers = localStorage.getItem("allMembers");
       let memberList = [];
@@ -28,7 +35,6 @@ const Members = () => {
       if (storedMembers) {
         try {
           memberList = JSON.parse(storedMembers);
-          // Ensure memberList is an array, if not, treat as empty
           if (!Array.isArray(memberList)) {
             console.warn("Data from 'allMembers' in localStorage is not an array. Resetting.");
             memberList = [];
@@ -37,44 +43,51 @@ const Members = () => {
           console.error("Error parsing members from localStorage:", parseError);
           setPopupMessage("Failed to parse member data from local storage.");
           setPopupType("error");
-          memberList = []; // Ensure it's an empty array on parse error
+          memberList = [];
         }
-      } else {
-        console.log("No 'allMembers' found in localStorage.");
-        // We might not want a popup for "no data found on first load" unless it's an error.
-        // setPopupMessage("No member data found in local storage.");
-        // setPopupType("info");
       }
 
-      // Process each member from the local storage data
-      const processedMembers = memberList.map((member) => {
-        // Ensure roll_no is present and use a fallback or default if needed
-        const rollNo = member.roll_no || member.id; // Use id if roll_no is missing
+      const processedMembers = await Promise.all(memberList.map(async (member) => {
+        const rollNo = member.roll_no || member.id;
+        const baseImageUrl = `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${rollNo}`;
+        const possibleExtensions = ['png', 'jpg', 'jpeg'];
+        let finalImageUrl = null;
 
-        // Construct the image URL.
-        // Assuming .png extension as per previous context.
-        // This path is static and doesn't rely on data from localStorage beyond roll_no.
-        const imageUrl = `https://raw.githubusercontent.com/akash6998s/Langar-App/main/src/assets/uploads/${rollNo}.png`;
+        // Check for existing 'img' field first
+        if (member.img && member.img.length > 0) {
+          finalImageUrl = member.img;
+        } else {
+          // If no 'img' field, try to find a valid image URL with different extensions
+          for (const ext of possibleExtensions) {
+            const testUrl = `${baseImageUrl}.${ext}`;
+            if (await checkImageExists(testUrl)) {
+              finalImageUrl = testUrl;
+              break; // Stop checking once a valid image is found
+            }
+          }
+        }
 
         return {
           ...member,
-          roll_no: rollNo, // Ensure roll_no is set
-          img: member.img || imageUrl, // Use existing img if available, otherwise default to generated URL
+          roll_no: rollNo,
+          img: finalImageUrl, // Use the found image URL or null if none found
         };
-      }).sort((a, b) => { // Sort members by roll_no
+      }));
+
+      const sortedMembers = processedMembers.sort((a, b) => {
         const rollA = parseInt(a.roll_no, 10);
         const rollB = parseInt(b.roll_no, 10);
         if (isNaN(rollA) && isNaN(rollB)) return 0;
-        if (isNaN(rollA)) return 1; // Put members with invalid roll_no at the end
-        if (isNaN(rollB)) return -1; // Put members with invalid roll_no at the end
+        if (isNaN(rollA)) return 1;
+        if (isNaN(rollB)) return -1;
         return rollA - rollB;
       });
 
-      setMembers(processedMembers);
+      setMembers(sortedMembers);
 
-      if (processedMembers.length === 0 && !popupMessage) {
+      if (sortedMembers.length === 0 && !popupMessage) {
         setPopupMessage("No members available.");
-        setPopupType("info"); // Use 'info' type for no members found
+        setPopupType("info");
       }
 
     } catch (err) {
@@ -82,17 +95,15 @@ const Members = () => {
       setPopupMessage("An unexpected error occurred while loading members.");
       setPopupType("error");
     } finally {
-      // Ensure the loader stays for at least 2 seconds
       await minLoadPromise;
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchMembersFromLocalStorage();
-  }, []); // Fetch members on component mount
+  }, []);
 
-  // Filter members based on the search query
   const filteredMembers = members.filter(member => {
     const query = searchQuery.toLowerCase();
     const rollNo = String(member.roll_no || '').toLowerCase();
@@ -107,37 +118,30 @@ const Members = () => {
   });
 
   return (
-    // Main container with themed background and body font
     <div
       className="pb-24 pt-6 px-4 sm:px-6 lg:px-8 font-[Inter,sans-serif]"
       style={{ background: theme.colors.background }}
     >
       <LoadData/>
-      {/* Conditionally render Loader */}
       {isLoading && <Loader />}
-
-      {/* Conditionally render Custom Popup */}
       {popupMessage && (
         <CustomPopup
           message={popupMessage}
           type={popupType}
-          onClose={() => setPopupMessage(null)} // Close popup by clearing message
+          onClose={() => setPopupMessage(null)}
         />
       )}
 
-      {/* Conditional rendering for the main content */}
       {!isLoading && (
         <>
-          {/* Page Title with themed heading font and color */}
           <h2
-            className="text-4xl font-extrabold text-center mb-8 drop-shadow-sm font-[EB_Garamond,serif]" // Reduced mb from 12 to 8 to accommodate search input
+            className="text-4xl font-extrabold text-center mb-8 drop-shadow-sm font-[EB_Garamond,serif]"
             style={{ color: theme.colors.neutralDark }}
           >
             Our Members
           </h2>
 
-          {/* Search Input */}
-          <div className="mb-12 flex justify-center"> {/* Added margin-bottom for spacing */}
+          <div className="mb-12 flex justify-center">
             <input
               type="text"
               placeholder="Search by roll no, name, or last name..."
@@ -150,16 +154,16 @@ const Members = () => {
                 borderWidth: "1px",
                 borderStyle: "solid",
                 backgroundColor: theme.colors.backgroundVariant,
-                '--tw-ring-color': theme.colors.primaryLight, // Tailwind ring color
+                '--tw-ring-color': theme.colors.primaryLight,
               }}
             />
           </div>
 
           {filteredMembers.length > 0 ? (
             <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 justify-center">
-              {filteredMembers.map((member) => ( // Use filteredMembers here
+              {filteredMembers.map((member) => (
                 <div
-                  key={member.id} // Use member.id as the key
+                  key={member.id}
                   className="rounded-xl shadow-lg p-6 text-center transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-2 border transform motion-safe:hover:scale-105"
                   style={{
                     backgroundColor: theme.colors.neutralLight,
@@ -175,22 +179,16 @@ const Members = () => {
                       borderColor: theme.colors.primary,
                     }}
                   >
-                    {/* Image will always attempt to load from the constructed URL, or use existing img if provided */}
                     {member.img ? (
                       <img
                         src={member.img}
                         alt={`${member.name}'s profile`}
                         className="w-full h-full object-cover rounded-full"
                         onError={(e) => {
-                          // If the image fails to load, replace with a default background/icon or hide
-                          e.target.style.display = 'none'; // Hide the broken image
-                          // Optionally, you could replace with a default image or initials
-                          // e.target.parentNode.style.backgroundColor = theme.colors.primaryLight;
-                          // e.target.parentNode.innerHTML = `<span class="text-white text-3xl font-bold">${(member.name || 'N/A').charAt(0)}</span>`;
+                          e.target.style.display = 'none';
                         }}
                       />
                     ) : (
-                      // Fallback for members without an 'img' field or if 'img' is an empty string
                       <span className="text-white text-3xl font-bold">
                         {(member.name || 'N/A').charAt(0).toUpperCase()}
                       </span>

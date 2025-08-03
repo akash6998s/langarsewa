@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-// Removed Firebase imports: db, collection, getDocs
+// No Firebase imports needed
 import Loader from './Loader'; // Import your Loader component
 import CustomPopup from './Popup'; // Import your custom Popup component
 import { theme } from '../theme'; // Import the theme
@@ -8,85 +8,89 @@ import LoadData from './LoadData';
 const Profile = () => {
     const [member, setMember] = useState(null);
     const [imageUrl, setImageUrl] = useState(null);
-    const [imgError, setImgError] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [popupMessage, setPopupMessage] = useState(null);
     const [popupType, setPopupType] = useState(null);
 
     // Supported image extensions for the profile picture URL
     const supportedExtensions = ['png', 'jpg', 'jpeg', 'webp', 'ico'];
+    
+    // Asynchronous function to check if an image URL is valid and accessible.
+    // Uses a HEAD request, which is faster than a GET as it doesn't download the body.
+    const checkImageExists = async (url) => {
+        try {
+            const response = await fetch(url, { method: 'HEAD' });
+            return response.ok; // Returns true if the image exists and is accessible
+        } catch (error) {
+            console.error(`Error checking image URL ${url}:`, error);
+            return false; // Returns false on network error or other issues
+        }
+    };
 
     useEffect(() => {
         const loadProfileData = async () => {
             setIsLoading(true); // Start loading state
             setPopupMessage(null); // Clear any previous popup messages
-            setImgError(false); // Reset image error state
-
-            // Create a promise that resolves after 3 seconds
-            const minLoadPromise = new Promise(resolve => setTimeout(resolve, 3000)); // 3-second delay
+            
+            // Create a promise that resolves after a minimum delay to show the loader
+            const minLoadPromise = new Promise(resolve => setTimeout(resolve, 3000));
 
             try {
-                const storedMember = localStorage.getItem('loggedInMember'); // Get data from localStorage
+                const storedMember = localStorage.getItem('loggedInMember');
 
                 if (storedMember) {
                     try {
-                        const parsedMember = JSON.parse(storedMember); // Parse the JSON string
-                        setMember(parsedMember); // Set the member state
+                        const parsedMember = JSON.parse(storedMember);
+                        setMember(parsedMember);
 
-                        // Attempt to load the profile image using the roll_no
-                        // This iterates through supported extensions until an image is found
-                        let imageFound = false;
-                        if (parsedMember.roll_no) { // Ensure roll_no exists before trying to load image
+                        // If member data exists, attempt to find their profile picture
+                        let foundImageUrl = null;
+                        if (parsedMember.roll_no) {
+                            // Iterate through the supported extensions and check for a valid image
                             for (let ext of supportedExtensions) {
-                                const url = `https://raw.githubusercontent.com/akash6998s/Langar-App/main/src/assets/uploads/${parsedMember.roll_no}.${ext}`;
-
-                                const img = new Image(); // Create a new Image object to check if URL is valid
-                                img.src = url;
-
-                                const loaded = await new Promise((resolve) => {
-                                    img.onload = () => resolve(true); // Resolve true if image loads successfully
-                                    img.onerror = () => resolve(false); // Resolve false if image fails to load
-                                });
-
-                                if (loaded) {
-                                    setImageUrl(url); // Set the URL if image is found
-                                    imageFound = true;
-                                    break; // Stop checking once an image is found
+                                const url = `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${parsedMember.roll_no}.${ext}`;
+                                if (await checkImageExists(url)) {
+                                    foundImageUrl = url; // Set the URL once a valid image is found
+                                    break; // Stop checking
                                 }
                             }
                         }
 
-                        if (!imageFound) {
-                            setImgError(true); // Set image error if no image was found
+                        // Update the imageUrl state based on whether an image was found
+                        if (foundImageUrl) {
+                            setImageUrl(foundImageUrl);
+                        } else {
+                            setImageUrl(null); // No valid image found
                             setPopupMessage("Profile image not found. Displaying placeholder.");
-                            setPopupType("info"); // Informational popup for missing image
+                            setPopupType("info");
                         }
 
                     } catch (error) {
-                        // Handle errors during JSON parsing from localStorage
                         console.error("Error parsing member data from localStorage:", error);
                         setPopupMessage("Failed to load profile data. Please try logging in again.");
                         setPopupType("error");
-                        setMember(null); // Clear member data on parse error
+                        setMember(null);
+                        setImageUrl(null); // Ensure no image is shown on error
                     }
                 } else {
-                    // If no 'loggedInMember' data is found in localStorage
+                    // No 'loggedInMember' data is found in localStorage
                     setPopupMessage("No profile data found. Please log in.");
                     setPopupType("error");
-                    setMember(null); // Ensure member is null if not found
+                    setMember(null);
+                    setImageUrl(null);
                 }
             } finally {
-                // Ensure the loader stays for at least 3 seconds
+                // Ensure the loader stays for the minimum delay before hiding
                 await minLoadPromise;
-                setIsLoading(false); // End loading state regardless of success or failure
+                setIsLoading(false);
             }
         };
 
         loadProfileData();
-    }, []); // Empty dependency array means this effect runs once on component mount
+    }, []); // Empty dependency array ensures this effect runs only once on mount
 
     // --- Conditional Rendering based on Loading and Member Data ---
-
+    
     // Show Loader while data is being fetched
     if (isLoading) {
         return (
@@ -127,7 +131,6 @@ const Profile = () => {
             style={{ background: theme.colors.background }}
         >
             <LoadData/>
-            {/* Custom Popup for messages */}
             {popupMessage && (
                 <CustomPopup
                     message={popupMessage}
@@ -147,7 +150,7 @@ const Profile = () => {
             >
                 <div className="flex flex-col items-center mb-8">
                     {/* Profile Image or Placeholder */}
-                    {imgError || !imageUrl ? (
+                    {!imageUrl ? (
                         <div
                             className="w-32 h-32 rounded-full flex items-center justify-center text-3xl font-bold mb-4 border-4 shadow-inner"
                             style={{
@@ -156,7 +159,9 @@ const Profile = () => {
                                 borderColor: theme.colors.primary,
                             }}
                         >
-                            IMG
+                            <span className="text-white text-3xl font-bold">
+                                {(member.name || 'N/A').charAt(0).toUpperCase()}
+                            </span>
                         </div>
                     ) : (
                         <img
