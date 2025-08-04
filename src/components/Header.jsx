@@ -8,22 +8,20 @@ import InsightsIcon from "@mui/icons-material/Insights";
 import GroupIcon from "@mui/icons-material/Group";
 import PersonIcon from "@mui/icons-material/Person";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz"; // Import the MoreHoriz icon
+import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 
 const navItems = [
   { name: "Home", path: "/home", icon: <HomeIcon /> },
   { name: "Activity", path: "/activity", icon: <InsightsIcon /> },
+  { name: "Rank", path: "/rank", icon: <MilitaryTechIcon /> },
   { name: "Members", path: "/members", icon: <GroupIcon /> },
   { name: "Profile", path: "/profile", icon: <PersonIcon /> },
-  { name: "More", path: "/more", icon: <MoreHorizIcon /> }, // Add the "More" link
 ];
 
 const Header = () => {
   const loggedInMember = JSON.parse(localStorage.getItem("loggedInMember"));
-  // Check if loggedInMember exists and has isAdmin property set to true
   const isSuperAdmin = loggedInMember?.isAdmin === true;
 
-  // Conditionally add the Admin link if the user is a super admin
   const fullNavItems = isSuperAdmin
     ? [...navItems, { name: "Admin", path: "/superadmin", icon: <AdminPanelSettingsIcon /> }]
     : navItems;
@@ -37,42 +35,38 @@ const Header = () => {
         fontFamily: theme.fonts.body,
       }}
     >
-      <div className="flex justify-around items-center h-[10vh] max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex justify-around items-center h-[9vh] max-w-full mx-auto px-2 sm:px-6">
         {fullNavItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex flex-col items-center p-2 sm:p-3 rounded-xl transition-all duration-300 ease-in-out
+              `flex flex-col items-center px-1 py-2 rounded-xl transition-all duration-300 ease-in-out
                 focus:outline-none focus:ring-2 focus:ring-offset-2 group
-                ${isActive ? 'active' : ''}` // Add 'active' class for easier targeting in onMouseEnter/onMouseLeave
+                ${isActive ? 'active' : ''}`
             }
             style={({ isActive }) => ({
-              // Active styles: change color, keep background transparent
               color: isActive ? theme.colors.tertiary : theme.colors.primary,
-              backgroundColor: "transparent", // Always transparent as requested
-              boxShadow: "none", // No shadow for active either
+              backgroundColor: "transparent",
+              boxShadow: "none",
               transform: isActive ? "scale(1.05)" : "none",
-              // Set the Tailwind ring color variable for focus state
               "--tw-ring-color": theme.colors.primaryLight,
             })}
             onMouseEnter={(e) => {
-              // Apply hover styles only if the link is NOT active
               if (!e.currentTarget.classList.contains("active")) {
-                e.currentTarget.style.color = theme.colors.neutralDark; // Darker text on hover for inactive
+                e.currentTarget.style.color = theme.colors.neutralDark;
               }
             }}
             onMouseLeave={(e) => {
-              // Revert hover styles only if the link is NOT active
               if (!e.currentTarget.classList.contains("active")) {
-                e.currentTarget.style.color = theme.colors.primary; // Revert to primary text color
+                e.currentTarget.style.color = theme.colors.primary;
               }
             }}
           >
-            <div className="text-2xl mb-1 group-hover:scale-110 transition-transform duration-200">
+            <div className="text-xl sm:text-2xl mb-1 group-hover:scale-110 transition-transform duration-200">
               {item.icon}
             </div>
-            <span className="text-xs font-medium tracking-wide">
+            <span className="text-[10px] sm:text-xs font-medium tracking-wide">
               {item.name}
             </span>
           </NavLink>

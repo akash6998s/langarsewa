@@ -11,15 +11,15 @@ import { AiOutlineClose } from "react-icons/ai";
 import CustomPopup from "./Popup";
 import Loader from "./Loader";
 import Popup from "reactjs-popup";
-import { theme } from '../theme';
+import { theme } from "../theme";
 
 // Fallback function to copy text to clipboard using a temporary element
 const copyToClipboardFallback = (text) => {
-  const tempElement = document.createElement('textarea');
+  const tempElement = document.createElement("textarea");
   tempElement.value = text;
-  tempElement.setAttribute('readonly', '');
-  tempElement.style.position = 'absolute';
-  tempElement.style.left = '-9999px';
+  tempElement.setAttribute("readonly", "");
+  tempElement.style.position = "absolute";
+  tempElement.style.left = "-9999px";
   document.body.appendChild(tempElement);
   tempElement.select();
 
@@ -27,7 +27,7 @@ const copyToClipboardFallback = (text) => {
   tempElement.setSelectionRange(0, 99999);
 
   try {
-    document.execCommand('copy');
+    document.execCommand("copy");
     console.log("Text copied using fallback method.");
   } catch (err) {
     console.error("Failed to copy with fallback method:", err);
@@ -42,8 +42,18 @@ export default function ManageAttendance() {
   const [year, setYear] = useState(String(new Date().getFullYear()));
 
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   // Dynamically set the default month to the current month
@@ -62,9 +72,8 @@ export default function ManageAttendance() {
   // State for the reactjs-popup modal (for selecting rolls)
   const [showRollSelectionPopup, setShowRollSelectionPopup] = useState(false);
 
-  const years = Array.from(
-    { length: 11 },
-    (_, i) => String(new Date().getFullYear() + i)
+  const years = Array.from({ length: 11 }, (_, i) =>
+    String(new Date().getFullYear() + i)
   );
 
   useEffect(() => {
@@ -108,6 +117,9 @@ export default function ManageAttendance() {
     let successCount = 0;
     let skipCount = 0;
     let errorOccurred = false;
+
+    // You can keep rollsAdded to track which ones were actually updated for your message,
+    // but the clipboard action will use selectedRolls.
     const rollsAdded = [];
 
     for (let roll of selectedRolls) {
@@ -128,7 +140,7 @@ export default function ManageAttendance() {
           };
           await updateDoc(memberRef, { attendance: newAttendance });
           successCount++;
-          rollsAdded.push(roll); // Add the roll to our new array
+          rollsAdded.push(roll); // Track the updated rolls
         } else {
           skipCount++;
         }
@@ -147,26 +159,29 @@ export default function ManageAttendance() {
       setPopupType("error");
     } else {
       setPopupMessage(
-        `Attendance added for ${successCount} members. The roll numbers have been copied to your clipboard.`
+        `Attendance added for ${successCount} members.`
       );
       setPopupType("success");
 
-      // Copy the successfully added rolls to the clipboard
-      if (rollsAdded.length > 0) {
-        const formattedRolls = rollsAdded.sort((a, b) => Number(a) - Number(b)).join(',');
+      // Copy all selected roll numbers to the clipboard
+      if (selectedRolls.length > 0) {
+        const formattedRolls = selectedRolls
+          .sort((a, b) => Number(a) - Number(b))
+          .join(",");
         try {
-          // Try the modern Clipboard API first
           if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(formattedRolls);
-            console.log("Roll numbers copied to clipboard successfully using Clipboard API.");
+            console.log(
+              "Selected roll numbers copied to clipboard successfully using Clipboard API."
+            );
           } else {
-            // If Clipboard API is not available, use the fallback
             copyToClipboardFallback(formattedRolls);
-            console.log("Roll numbers copied to clipboard successfully using fallback.");
+            console.log(
+              "Selected roll numbers copied to clipboard successfully using fallback."
+            );
           }
         } catch (err) {
           console.error("Failed to copy to clipboard:", err);
-          // Even if the Clipboard API fails unexpectedly, try the fallback
           copyToClipboardFallback(formattedRolls);
         }
       }
@@ -244,9 +259,8 @@ export default function ManageAttendance() {
     return new Date(Number(year), monthIndex + 1, 0).getDate();
   };
   const currentDaysInMonth = getDaysInMonth(year, month);
-  const daysArray = Array.from(
-    { length: currentDaysInMonth },
-    (_, i) => String(i + 1)
+  const daysArray = Array.from({ length: currentDaysInMonth }, (_, i) =>
+    String(i + 1)
   );
 
   return (
@@ -271,7 +285,10 @@ export default function ManageAttendance() {
 
       <h2
         className="text-3xl font-extrabold mb-8 text-center"
-        style={{ color: theme.colors.neutralDark, fontFamily: theme.fonts.heading }}
+        style={{
+          color: theme.colors.neutralDark,
+          fontFamily: theme.fonts.heading,
+        }}
       >
         Manage Member Attendance
       </h2>
@@ -363,8 +380,8 @@ export default function ManageAttendance() {
               backgroundColor: theme.colors.neutralLight,
               borderColor: theme.colors.primaryLight,
               color: theme.colors.primary,
-              borderWidth: '1px',
-              borderStyle: 'solid',
+              borderWidth: "1px",
+              borderStyle: "solid",
               outlineColor: theme.colors.primary,
             }}
             value={year}
@@ -405,8 +422,8 @@ export default function ManageAttendance() {
               backgroundColor: theme.colors.neutralLight,
               borderColor: theme.colors.primaryLight,
               color: theme.colors.primary,
-              borderWidth: '1px',
-              borderStyle: 'solid',
+              borderWidth: "1px",
+              borderStyle: "solid",
               outlineColor: theme.colors.primary,
             }}
             value={month}
@@ -445,8 +462,8 @@ export default function ManageAttendance() {
               backgroundColor: theme.colors.neutralLight,
               borderColor: theme.colors.primaryLight,
               color: theme.colors.primary,
-              borderWidth: '1px',
-              borderStyle: 'solid',
+              borderWidth: "1px",
+              borderStyle: "solid",
               outlineColor: theme.colors.primary,
             }}
             value={day}
@@ -485,8 +502,13 @@ export default function ManageAttendance() {
                 color: theme.colors.neutralLight,
                 "--tw-ring-color": theme.colors.primaryLight,
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.primaryLight}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor =
+                  theme.colors.primaryLight)
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = theme.colors.primary)
+              }
             >
               Select Roll Numbers ({selectedRolls.length} selected)
             </button>
@@ -587,15 +609,20 @@ export default function ManageAttendance() {
                         }}
                         onMouseEnter={(e) => {
                           if (!selectedRolls.includes(member.id)) {
-                            e.currentTarget.style.backgroundColor = theme.colors.primaryLight;
-                            e.currentTarget.style.borderColor = theme.colors.primary;
-                            e.currentTarget.style.color = theme.colors.neutralDark;
+                            e.currentTarget.style.backgroundColor =
+                              theme.colors.primaryLight;
+                            e.currentTarget.style.borderColor =
+                              theme.colors.primary;
+                            e.currentTarget.style.color =
+                              theme.colors.neutralDark;
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!selectedRolls.includes(member.id)) {
-                            e.currentTarget.style.backgroundColor = theme.colors.tertiaryLight;
-                            e.currentTarget.style.borderColor = theme.colors.primaryLight;
+                            e.currentTarget.style.backgroundColor =
+                              theme.colors.tertiaryLight;
+                            e.currentTarget.style.borderColor =
+                              theme.colors.primaryLight;
                             e.currentTarget.style.color = theme.colors.primary;
                           }
                         }}
@@ -621,11 +648,18 @@ export default function ManageAttendance() {
               color: theme.colors.neutralLight,
               "--tw-ring-color": theme.colors.primaryLight,
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.primaryLight}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor =
+                theme.colors.primaryLight)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = theme.colors.primary)
+            }
             disabled={isLoading}
           >
-            {isLoading && activeTab === "add" ? "Adding..." : "Submit Attendance"}
+            {isLoading && activeTab === "add"
+              ? "Adding..."
+              : "Submit Attendance"}
           </button>
         )}
 
@@ -638,8 +672,12 @@ export default function ManageAttendance() {
               color: theme.colors.neutralLight,
               "--tw-ring-color": theme.colors.dangerLight,
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.dangerLight}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.danger}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = theme.colors.dangerLight)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = theme.colors.danger)
+            }
             disabled={isLoading}
           >
             {isLoading && activeTab === "delete"
