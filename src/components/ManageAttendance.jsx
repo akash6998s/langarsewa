@@ -24,7 +24,7 @@ const copyToClipboardFallback = (text) => {
   tempElement.select();
 
   // For mobile devices, you may need this to ensure the text is selected
-  tempElement.setSelectionRange(0, 99999); 
+  tempElement.setSelectionRange(0, 99999);
 
   try {
     document.execCommand('copy');
@@ -40,12 +40,12 @@ export default function ManageAttendance() {
   const [activeTab, setActiveTab] = useState("add");
   const [members, setMembers] = useState([]);
   const [year, setYear] = useState(String(new Date().getFullYear()));
-  
+
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
   ];
-  
+
   // Dynamically set the default month to the current month
   const currentMonthIndex = new Date().getMonth();
   const currentMonthName = months[currentMonthIndex];
@@ -147,25 +147,26 @@ export default function ManageAttendance() {
       setPopupType("error");
     } else {
       setPopupMessage(
-        `Attendance added for ${successCount} members.`
+        `Attendance added for ${successCount} members. The roll numbers have been copied to your clipboard.`
       );
       setPopupType("success");
 
       // Copy the successfully added rolls to the clipboard
       if (rollsAdded.length > 0) {
         const formattedRolls = rollsAdded.sort((a, b) => Number(a) - Number(b)).join(',');
-        // Try the modern Clipboard API first
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          try {
+        try {
+          // Try the modern Clipboard API first
+          if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(formattedRolls);
-            console.log("Roll numbers copied to clipboard successfully.");
-          } catch (err) {
-            console.error("Failed to copy using Clipboard API:", err);
-            // Fallback to the old method if the modern one fails
+            console.log("Roll numbers copied to clipboard successfully using Clipboard API.");
+          } else {
+            // If Clipboard API is not available, use the fallback
             copyToClipboardFallback(formattedRolls);
+            console.log("Roll numbers copied to clipboard successfully using fallback.");
           }
-        } else {
-          // If Clipboard API is not supported at all, use the fallback
+        } catch (err) {
+          console.error("Failed to copy to clipboard:", err);
+          // Even if the Clipboard API fails unexpectedly, try the fallback
           copyToClipboardFallback(formattedRolls);
         }
       }

@@ -59,11 +59,6 @@ const navItems = [
     icon: <LeaderboardIcon fontSize="small" />,
   },
   {
-    name: "Team Performance",
-    key: "teamperformance",
-    icon: <AssessmentIcon fontSize="small" />,
-  },
-  {
     name: "Users",
     key: "users",
     icon: <ManageAccountsIcon fontSize="small" />,
@@ -91,8 +86,6 @@ const SuperAdmin = () => {
         return <ManageFinance />;
       case "memberperformance":
         return <MemberPerformance />;
-        case "teamperformance":
-        return <TeamPerformance />;
       case "users":
         return <AdminPanel />;
       default:

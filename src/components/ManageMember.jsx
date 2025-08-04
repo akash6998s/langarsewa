@@ -65,7 +65,7 @@ const Managemember = () => {
     const numRollNo = Number(rollNo);
     const isNew = numRollNo === getMaxRollNo() + 1;
 
-    if (selectedTab === "add") { // Only provide new member data if adding
+    if (selectedTab === "add") {
       if (isNew) {
         setMemberData({
           name: "",
@@ -83,7 +83,6 @@ const Managemember = () => {
           donation: {},
         });
       } else {
-        // If an existing roll number is selected in "Add Member" tab, load its data for editing
         const member = members.find((m) => Number(m.roll_no) === numRollNo);
         if (member) {
           setMemberData({ ...member
@@ -94,7 +93,7 @@ const Managemember = () => {
           setPopupType("error");
         }
       }
-    } else if (selectedTab === "delete") { // For delete tab, always load existing data
+    } else if (selectedTab === "delete") {
       const member = members.find((m) => Number(m.roll_no) === numRollNo);
       if (member) {
         setMemberData({ ...member
@@ -117,27 +116,6 @@ const Managemember = () => {
   const handleSave = async () => {
     if (!memberData?.roll_no) {
       setPopupMessage("❌ Please select a roll number first.");
-      setPopupType("error");
-      return;
-    }
-    if (
-      !memberData.name ||
-      !memberData.last_name ||
-      !memberData.email ||
-      !memberData.phone_no ||
-      !memberData.address
-    ) {
-      setPopupMessage("❌ All fields must be filled.");
-      setPopupType("error");
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(memberData.email)) {
-      setPopupMessage("❌ Please enter a valid email address.");
-      setPopupType("error");
-      return;
-    }
-    if (!/^\d{10}$/.test(memberData.phone_no)) {
-      setPopupMessage("❌ Phone number must be 10 digits.");
       setPopupType("error");
       return;
     }
@@ -177,13 +155,11 @@ const Managemember = () => {
       return;
     }
 
-    // --- NEW CHECK HERE ---
     if (Number(selectedRollNo) === 8) {
       setPopupMessage("❌ You can't delete this Roll Number.");
       setPopupType("error");
-      return; // Stop the function here
+      return;
     }
-    // --- END NEW CHECK ---
 
     setIsLoading(true);
     setPopupMessage(null);
@@ -216,14 +192,11 @@ const Managemember = () => {
           memberDataFromDb.donation &&
           typeof memberDataFromDb.donation === "object"
         ) {
-          // Iterate over each year in the donation object
           for (const yearKey in memberDataFromDb.donation) {
             if (Object.prototype.hasOwnProperty.call(memberDataFromDb.donation, yearKey)) {
               const yearDonations = memberDataFromDb.donation[yearKey];
 
-              // Ensure yearDonations is an object (containing months)
               if (typeof yearDonations === 'object' && yearDonations !== null) {
-                // Iterate over each month's donation within the year
                 for (const monthKey in yearDonations) {
                   if (Object.prototype.hasOwnProperty.call(yearDonations, monthKey)) {
                     const monthlyAmount = yearDonations[monthKey];
@@ -255,7 +228,6 @@ const Managemember = () => {
         console.warn("Member document does not exist for ID:", memberToDelete.id);
       }
 
-      // 2. Save total donation to a new collection if greater than 0
       if (totalDonation > 0) {
         const archivedDonationsRef = collection(db, "archivedDonations");
         const archivedDocRef = doc(archivedDonationsRef, memberToDelete.id);
@@ -283,7 +255,6 @@ const Managemember = () => {
         setPopupMessage("🗑️ Member details deleted (no donation archived).");
       }
 
-      // 3. Delete specific fields from the member's document
       const fieldsToClear = {
         name: deleteField(),
         last_name: deleteField(),
@@ -291,7 +262,7 @@ const Managemember = () => {
         phone_no: deleteField(),
         address: deleteField(),
         attendance: deleteField(),
-        donation: deleteField(), // This will delete the entire nested donation object
+        donation: deleteField(),
         approved: false,
         isAdmin: false,
         isSuperAdmin: false,
@@ -322,7 +293,6 @@ const Managemember = () => {
   );
   const deleteTabRolls = members.map((m) => Number(m.roll_no)).sort((a, b) => a - b);
 
-  // Determine if inputs should be read-only (only for 'delete' tab)
   const areInputsReadOnly = selectedTab === "delete";
 
 
@@ -523,7 +493,7 @@ const Managemember = () => {
                 }}
                 value={memberData.name || ""}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                readOnly={areInputsReadOnly} // Apply readOnly based on tab
+                readOnly={areInputsReadOnly}
                 disabled={isLoading}
               />
             </div>
@@ -556,7 +526,7 @@ const Managemember = () => {
                 }}
                 value={memberData.last_name || ""}
                 onChange={(e) => handleInputChange("last_name", e.target.value)}
-                readOnly={areInputsReadOnly} // Apply readOnly based on tab
+                readOnly={areInputsReadOnly}
                 disabled={isLoading}
               />
             </div>
@@ -589,7 +559,7 @@ const Managemember = () => {
                 }}
                 value={memberData.email || ""}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                readOnly={areInputsReadOnly} // Apply readOnly based on tab
+                readOnly={areInputsReadOnly}
                 disabled={isLoading}
               />
             </div>
@@ -622,7 +592,7 @@ const Managemember = () => {
                 }}
                 value={memberData.phone_no || ""}
                 onChange={(e) => handleInputChange("phone_no", e.target.value)}
-                readOnly={areInputsReadOnly} // Apply readOnly based on tab
+                readOnly={areInputsReadOnly}
                 disabled={isLoading}
               />
             </div>
@@ -655,7 +625,7 @@ const Managemember = () => {
                 }}
                 value={memberData.address || ""}
                 onChange={(e) => handleInputChange("address", e.target.value)}
-                readOnly={areInputsReadOnly} // Apply readOnly based on tab
+                readOnly={areInputsReadOnly}
                 disabled={isLoading}
               ></textarea>
             </div>

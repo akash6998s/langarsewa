@@ -26,7 +26,7 @@ import UploadExpenseData from "./components/databaseEditCode/UploadExpenseData";
 import LoadData from "./components/LoadData";
 import Splash from "./Splash";
 import WorkInProgress from "./components/WorkInProgress";
-import TeamPerformance from "./components/TeamPerformance";
+import MoreFeatures from "./components/MoreFeatures";
 
 // Global variables for Firebase config and app ID
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
@@ -156,7 +156,7 @@ function AppRoutes() {
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/superadmin" element={<SuperAdmin />} />
           <Route path="/load-data" element={<LoadData />} />
-          <Route path="/team-performance" element={<TeamPerformance />} />
+          <Route path="/more" element={<MoreFeatures />} />
 
           {/* These route are for upload and managing backup data */}
           <Route path="/upload-backup" element={<UploadAllData />} />

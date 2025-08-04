@@ -8,12 +8,14 @@ import InsightsIcon from "@mui/icons-material/Insights";
 import GroupIcon from "@mui/icons-material/Group";
 import PersonIcon from "@mui/icons-material/Person";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz"; // Import the MoreHoriz icon
 
 const navItems = [
   { name: "Home", path: "/home", icon: <HomeIcon /> },
   { name: "Activity", path: "/activity", icon: <InsightsIcon /> },
   { name: "Members", path: "/members", icon: <GroupIcon /> },
   { name: "Profile", path: "/profile", icon: <PersonIcon /> },
+  { name: "More", path: "/more", icon: <MoreHorizIcon /> }, // Add the "More" link
 ];
 
 const Header = () => {
@@ -42,8 +44,8 @@ const Header = () => {
             to={item.path}
             className={({ isActive }) =>
               `flex flex-col items-center p-2 sm:p-3 rounded-xl transition-all duration-300 ease-in-out
-               focus:outline-none focus:ring-2 focus:ring-offset-2 group
-               ${isActive ? 'active' : ''}` // Add 'active' class for easier targeting in onMouseEnter/onMouseLeave
+                focus:outline-none focus:ring-2 focus:ring-offset-2 group
+                ${isActive ? 'active' : ''}` // Add 'active' class for easier targeting in onMouseEnter/onMouseLeave
             }
             style={({ isActive }) => ({
               // Active styles: change color, keep background transparent

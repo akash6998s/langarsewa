@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-
-// =================================================================================================
-// NOTE: For this self-contained document, these components are defined here
-// and then imported to demonstrate the requested file structure.
-// In a real project, these would be in separate files.
-// =================================================================================================
-
-// Mock theme object - now imported from a non-existent file path for demonstration
 const theme = {
   colors: {
     primary: "#334155",
@@ -30,11 +22,10 @@ const Loader = () => (
     className="fixed inset-0 flex flex-col justify-center items-center z-500"
     style={{
       backdropFilter: "blur(6px)",
-      backgroundColor: `${theme.colors.neutralLight}`, // semi-transparent light background
+      backgroundColor: `${theme.colors.neutralLight}`,
     }}
   >
     <div className="flex flex-col items-center space-y-6">
-      {/* Spinner */}
       <div
         className="w-16 h-16 rounded-full border-8 border-solid animate-spin"
         style={{
@@ -45,8 +36,6 @@ const Loader = () => (
           borderRightColor: `${theme.colors.primaryLight}33`,
         }}
       ></div>
-
-      {/* Loading Text */}
       <div
         className="text-2xl font-semibold"
         style={{
@@ -130,13 +119,11 @@ const TeamPerformance = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [availableYears, setAvailableYears] = useState([]);
-  const [sortOrder, setSortOrder] = useState("none"); // 'none', 'asc', 'desc'
+  const [sortOrder, setSortOrder] = useState("none");
   const [isLoading, setIsLoading] = useState(true);
   const [popupMessage, setPopupMessage] = useState(null);
   const [popupType, setPopupType] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(""); // New state for search term
 
-  // Updated month names to match the user-provided data format
   const months = [
     "January",
     "February",
@@ -152,117 +139,14 @@ const TeamPerformance = () => {
     "December",
   ];
 
-  // Updated mock data to match the new format and key names
-  const mockMembers = [
-    {
-      id: "1",
-      last_name: "Pathak",
-      roll_no: 1,
-      email: "deepakpathak724@gmail.com",
-      attendance: {
-        2025: {
-          June: [
-            1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22,
-            23, 24, 25, 26, 27, 28, 29, 30,
-          ],
-          August: [1, 2],
-          May: [
-            1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-            21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-          ],
-          April: [
-            1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-            22, 23, 24, 25, 26, 27, 28, 29, 30,
-          ],
-          March: [1, 2, 4, 8, 9, 11, 13, 15, 16, 22, 23, 25, 29, 30],
-          July: [
-            1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 22, 24,
-            25, 26, 27, 28, 29, 30, 31,
-          ],
-          January: [4, 7, 11, 12, 18, 19, 21, 25, 26, 28],
-        },
-      },
-      address: "Sector -30, Faridabad",
-      isSuperAdmin: false,
-      approved: true,
-      donation: {
-        2025: { April: 500, March: 500, July: 500, May: 500, June: 500 },
-      },
-      name: "Deepak",
-      password: "Narayan@3911",
-      phone_no: "9818121311",
-      isAdmin: true,
-    },
-    {
-      id: "2",
-      donation: {
-        2025: { May: 1100, March: 100 },
-      },
-      isAdmin: false,
-      roll_no: 2,
-      name: "Bijender",
-      isSuperAdmin: false,
-      phone_no: "8860801938",
-      last_name: "Yadav",
-      attendance: {
-        2025: {
-          January: [11, 26],
-          June: [1, 5, 7, 8, 12, 14, 15, 21, 22, 28, 29],
-          May: [1, 2, 3, 4, 11, 18, 22, 23, 25, 27],
-          March: [2, 13, 15, 22, 29, 30],
-          April: [1, 6, 8, 12, 16, 20, 29, 30],
-          July: [1, 8, 10, 12, 13, 19, 20, 21, 22, 26, 27],
-        },
-      },
-      address: "Faridabad",
-    },
-    {
-      id: "3",
-      phone_no: "8010853551",
-      password: "Test@1234",
-      roll_no: 3,
-      donation: {
-        2025: {
-          July: 100,
-          March: 100,
-          May: 1100,
-          August: 100,
-          April: 100,
-          June: 100,
-        },
-      },
-      attendance: {
-        2025: {
-          June: [4, 7, 14, 21, 22, 28],
-          January: [4, 5, 11, 12, 18, 19],
-          July: [5, 10, 12, 19, 26, 1],
-          May: [3, 4, 10, 17, 18, 22, 24, 25, 27, 31],
-          August: [2],
-          April: [5, 6, 12, 13, 19, 22, 23, 27, 30],
-          March: [1, 8, 9, 13, 15, 16, 22, 23, 29, 30],
-        },
-      },
-      email: "v.kumar8997@gmail.com",
-      address: "Ghaziabad",
-      isAdmin: true,
-      name: "Vikas",
-      approved: true,
-      isSuperAdmin: false,
-      last_name: "Singh",
-    },
-  ];
-
-  // Effect to load data from local storage on component mount
   useEffect(() => {
     setIsLoading(true);
     try {
-      // Use the new local storage key "allMembers"
       const storedData = localStorage.getItem("allMembers");
       if (storedData) {
         const parsedMembers = JSON.parse(storedData);
         setMembers(parsedMembers);
 
-        // Extract available years from the attendance data
         const years = new Set();
         parsedMembers.forEach((member) => {
           if (member.attendance) {
@@ -272,13 +156,10 @@ const TeamPerformance = () => {
         const sortedYears = Array.from(years).sort();
         setAvailableYears(sortedYears);
 
-        // Get the current year and month for default selection
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear().toString();
-        // Convert month index to capitalized month name to match the data format
         const currentMonth = months[currentDate.getMonth()];
 
-        // Set the default year and month
         if (sortedYears.includes(currentYear)) {
           setSelectedYear(currentYear);
         } else if (sortedYears.length > 0) {
@@ -286,33 +167,10 @@ const TeamPerformance = () => {
         }
         setSelectedMonth(currentMonth);
       } else {
-        // If no data exists, use the new mock data and save to local storage
-        setMembers(mockMembers);
-        localStorage.setItem("allMembers", JSON.stringify(mockMembers));
-        setPopupMessage(
-          "No member data found under key 'allMembers'. Using and saving new mock data to local storage."
-        );
-        setPopupType("success");
-
-        const years = new Set();
-        mockMembers.forEach((member) => {
-          if (member.attendance) {
-            Object.keys(member.attendance).forEach((year) => years.add(year));
-          }
-        });
-        const sortedYears = Array.from(years).sort();
-        setAvailableYears(sortedYears);
-
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear().toString();
-        const currentMonth = months[currentDate.getMonth()];
-
-        if (sortedYears.includes(currentYear)) {
-          setSelectedYear(currentYear);
-        } else if (sortedYears.length > 0) {
-          setSelectedYear(sortedYears[0]);
-        }
-        setSelectedMonth(currentMonth);
+        setMembers([]);
+        setAvailableYears([]);
+        setPopupMessage("No member data found in local storage under key 'allMembers'.");
+        setPopupType("error");
       }
     } catch (error) {
       console.error("Error loading from local storage:", error);
@@ -323,13 +181,7 @@ const TeamPerformance = () => {
     }
   }, []);
 
-  // Effect to reset sort order when search term changes
-  useEffect(() => {
-    setSortOrder("none");
-  }, [searchTerm]);
-
   const getDaysInMonth = (year, month) => {
-    // Correctly get month index from the capitalized month names
     const monthIndex = months.indexOf(month);
     if (monthIndex === -1) return 0;
     return new Date(year, monthIndex + 1, 0).getDate();
@@ -346,7 +198,6 @@ const TeamPerformance = () => {
       return { presentDays: 0, percentage: 0 };
     }
 
-    // Access month data using the capitalized selectedMonth
     const monthData = yearAttendance[selectedMonth];
     const presentDays = monthData ? monthData.length : 0;
     const totalDaysInMonth = getDaysInMonth(selectedYear, selectedMonth);
@@ -371,20 +222,7 @@ const TeamPerformance = () => {
     ...calculateAttendance(member),
   }));
 
-  // Filter members based on search term
-  const filteredMembers = membersWithAttendance.filter((member) => {
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    const nameMatch = `${member.name} ${member.last_name}`
-      .toLowerCase()
-      .includes(lowerCaseSearchTerm);
-    // Convert roll_no to a string for searching
-    const rollNoMatch = String(member.roll_no)
-      .toLowerCase()
-      .includes(lowerCaseSearchTerm);
-    return nameMatch || rollNoMatch;
-  });
-
-  let sortedMembers = [...filteredMembers];
+  let sortedMembers = [...membersWithAttendance];
   if (sortOrder === "desc") {
     sortedMembers.sort((a, b) => b.percentage - a.percentage);
   } else if (sortOrder === "asc") {
@@ -393,7 +231,7 @@ const TeamPerformance = () => {
 
   return (
     <div
-      className="container pb-8 mx-auto p-4 min-h-screen font-sans"
+      className="container pb-24 mx-auto p-4 min-h-screen font-sans"
       style={{ backgroundColor: theme.colors.background }}
     >
       <LoadData />
@@ -458,30 +296,6 @@ const TeamPerformance = () => {
         </div>
       </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row items-center gap-2 w-full">
-        <label
-          htmlFor="search"
-          className="font-medium sr-only"
-          style={{ color: theme.colors.neutralDark }}
-        >
-          Search Members:
-        </label>
-        <input
-          type="text"
-          id="search"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search by name or roll number..."
-          className="w-full p-2 border rounded-md focus:outline-none focus:ring-2"
-          style={{
-            borderColor: theme.colors.tertiaryLight,
-            backgroundColor: theme.colors.neutralLight,
-            color: theme.colors.neutralDark,
-            "--tw-ring-color": theme.colors.primaryLight,
-          }}
-        />
-      </div>
-
       {!isLoading && selectedYear && selectedMonth && members.length > 0 ? (
         <div
           className="overflow-x-auto rounded-lg shadow-md"
@@ -498,7 +312,14 @@ const TeamPerformance = () => {
                   className="px-2 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
                   style={{ color: theme.colors.neutralDark }}
                 >
-                  Member
+                  S.no
+                </th>
+                <th
+                  scope="col"
+                  className="px-2 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                  style={{ color: theme.colors.neutralDark }}
+                >
+                  Name
                 </th>
                 <th
                   scope="col"
@@ -543,14 +364,14 @@ const TeamPerformance = () => {
                         : theme.colors.tertiaryLight,
                   }}
                 >
+                  <td
+                    className="px-2 sm:px-6 py-4 text-sm font-medium"
+                    style={{ color: theme.colors.neutralDark }}
+                  >
+                    {index + 1}
+                  </td>
                   <td className="px-2 sm:px-6 py-4">
                     <div className="flex flex-col">
-                      <strong
-                        className="text-sm font-medium"
-                        style={{ color: theme.colors.neutralDark }}
-                      >
-                        {member.roll_no}
-                      </strong>
                       <span
                         className="text-sm"
                         style={{ color: theme.colors.neutralDark }}
@@ -587,7 +408,7 @@ const TeamPerformance = () => {
           >
             {members.length > 0
               ? "Please select a year and a month to view team performance."
-              : "No member data found in local storage."}
+              : "No member data found in local storage. Make sure you have member data available to load."}
           </p>
         )
       )}
