@@ -102,6 +102,18 @@ const TeamPerformance = () => {
 
   const sortedMembers = [...membersWithAttendance].sort((a, b) => b.percentage - a.percentage);
 
+  // Dense ranking logic
+  const rankedMembers = sortedMembers.reduce((acc, member, index) => {
+    if (index === 0) {
+      acc.push({ ...member, rank: 1 });
+    } else {
+      const prevMember = acc[acc.length - 1];
+      const rank = member.percentage === prevMember.percentage ? prevMember.rank : prevMember.rank + 1;
+      acc.push({ ...member, rank });
+    }
+    return acc;
+  }, []);
+
   return (
     <div
       className="container pb-24 mx-auto p-4 min-h-screen"
@@ -173,57 +185,78 @@ const TeamPerformance = () => {
               style={{ backgroundColor: colors.neutralLight }}
             >
               <table
-                className="w-full divide-y"
-                style={{ borderColor: colors.tertiaryLight }}
+                className="min-w-full table-auto border-collapse border border-gray-300 shadow-md rounded-lg"
+                style={{ borderColor: colors.primaryLight }}
               >
-                <thead style={{ backgroundColor: colors.tertiaryLight }}>
+                <thead
+                  className="sticky top-0 z-50"
+                  style={{ backgroundColor: colors.tertiaryLight }}
+                >
                   <tr>
                     <th
                       scope="col"
-                      className="px-2 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{ color: colors.neutralDark }}
+                      className="p-1.5 text-left text-xs font-bold uppercase tracking-wider sticky left-0 z-40 w-12 sm:w-16 border border-gray-300"
+                      style={{
+                        backgroundColor: colors.tertiaryLight,
+                        color: colors.primary,
+                      }}
                     >
                       Rank
                     </th>
                     <th
                       scope="col"
-                      className="px-2 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{ color: colors.neutralDark }}
+                      className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
+                      style={{
+                        backgroundColor: colors.tertiaryLight,
+                        color: colors.primary,
+                      }}
                     >
                       Name
                     </th>
                     <th
                       scope="col"
-                      className="px-2 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{ color: colors.neutralDark }}
+                      className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 w-20"
+                      style={{
+                        backgroundColor: colors.tertiaryLight,
+                        color: colors.primary,
+                      }}
                     >
                       Days Present
                     </th>
                     <th
                       scope="col"
-                      className="px-2 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{ color: colors.neutralDark }}
+                      className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 w-20"
+                      style={{
+                        backgroundColor: colors.tertiaryLight,
+                        color: colors.primary,
+                      }}
                     >
                       Percentage
                     </th>
                   </tr>
                 </thead>
-                <tbody>
-                  {sortedMembers.map((member, index) => (
+                <tbody className="bg-white">
+                  {rankedMembers.map((member) => (
                     <tr
                       key={member.id}
-                      style={{
-                        backgroundColor:
-                          index % 2 === 0 ? colors.neutralLight : colors.tertiaryLight,
-                      }}
+                      className="transition-colors duration-150 ease-in-out hover:bg-gray-100"
                     >
                       <td
-                        className="px-2 sm:px-6 py-4 text-sm font-medium"
-                        style={{ color: colors.neutralDark }}
+                        className="p-1.5 whitespace-nowrap text-sm font-medium sticky left-0 z-10 w-12 sm:w-16 border border-gray-300 bg-white"
+                        style={{
+                          color: colors.neutralDark,
+                          backgroundColor: colors.neutralLight,
+                        }}
                       >
-                        {index + 1}
+                        {member.rank}
                       </td>
-                      <td className="px-2 sm:px-6 py-4">
+                      <td
+                        className="p-1.5 text-sm border border-gray-300 whitespace-normal break-words"
+                        style={{
+                          color: colors.neutralDark,
+                          backgroundColor: colors.neutralLight,
+                        }}
+                      >
                         <div className="flex flex-col">
                           <span
                             className="text-sm"
@@ -234,14 +267,20 @@ const TeamPerformance = () => {
                         </div>
                       </td>
                       <td
-                        className="px-2 sm:px-6 py-4 text-sm"
-                        style={{ color: colors.neutralDark }}
+                        className="p-1.5 whitespace-nowrap text-sm border border-gray-300 w-20"
+                        style={{
+                          color: colors.neutralDark,
+                          backgroundColor: colors.neutralLight,
+                        }}
                       >
                         {member.presentDays}
                       </td>
                       <td
-                        className="px-2 sm:px-6 py-4 text-sm"
-                        style={{ color: colors.neutralDark }}
+                        className="p-1.5 whitespace-nowrap text-sm border border-gray-300 w-20"
+                        style={{
+                          color: colors.neutralDark,
+                          backgroundColor: colors.neutralLight,
+                        }}
                       >
                         {member.percentage.toFixed(2)}%
                       </td>

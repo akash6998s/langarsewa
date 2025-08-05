@@ -36,7 +36,7 @@ const DownloadBackupFiles = () => {
       const membersCol = collection(db, 'members');
       const membersSnapshot = await getDocs(membersCol);
       let membersData = [];
-      membersSnapshot.forEach((d) => { // Use 'd' instead of 'doc' to avoid conflict with imported 'doc'
+      membersSnapshot.forEach((d) => {
         membersData.push({ id: d.id, ...d.data() });
       });
 
@@ -61,7 +61,8 @@ const DownloadBackupFiles = () => {
       }
 
       // --- 2. Fetch Expenses Data ---
-      const expenseRef = doc(db, 'expenses', 'XR807MiRlgOmffPbCosQ');
+      // This is the line that has been updated with your document ID.
+      const expenseRef = doc(db, 'expenses', '0uyGTdo1jZ3M9KzL6SXo');
       const expenseSnap = await getDoc(expenseRef);
       const expenseData = expenseSnap.exists() ? expenseSnap.data() : {};
 
@@ -76,7 +77,7 @@ const DownloadBackupFiles = () => {
       const archivedDonationsCol = collection(db, 'archivedDonations');
       const archivedDonationsSnapshot = await getDocs(archivedDonationsCol);
       const archivedDonationsData = [];
-      archivedDonationsSnapshot.forEach((d) => { // Use 'd' instead of 'doc'
+      archivedDonationsSnapshot.forEach((d) => {
         archivedDonationsData.push({ id: d.id, ...d.data() });
       });
 
@@ -88,7 +89,7 @@ const DownloadBackupFiles = () => {
       }
 
       // --- Generate and Download ZIP ---
-      const dateTimeString = getFormattedDateTime(); // Use the new function
+      const dateTimeString = getFormattedDateTime();
       const zipFileName = `Firestore_Backup_${dateTimeString}.zip`;
 
       setMessage('Generating ZIP file...');
@@ -161,7 +162,7 @@ const styles = {
     transition: 'background-color 0.3s ease, transform 0.2s ease',
     outline: 'none',
   },
-  buttonHover: { // Note: for actual hover, you'd use CSS or a state for dynamic styles
+  buttonHover: {
     backgroundColor: '#45a049',
     transform: 'scale(1.02)',
   },
@@ -175,6 +176,5 @@ const styles = {
     fontSize: '0.9em',
   },
 };
-
 
 export default DownloadBackupFiles;

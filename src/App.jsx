@@ -28,6 +28,7 @@ import Splash from "./Splash";
 import WorkInProgress from "./components/WorkInProgress";
 import MoreFeatures from "./components/MoreFeatures";
 import TeamPerformance from "./components/TeamPerformance";
+import DownloadBackupFiles from "./components/DownloadBackupFiles";
 
 // Global variables for Firebase config and app ID
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
@@ -165,6 +166,7 @@ function AppRoutes() {
           <Route path="/edit-database" element={<EditDatabase />} />
           <Route path="/remove-img" element={<RemoveImgFromMembers />} />
           <Route path="/upload-expense" element={<UploadExpenseData />} />
+          <Route path="/download-backup" element={<DownloadBackupFiles />} />
         </Routes>
       </div>
 
