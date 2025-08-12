@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Loader from './Loader';
+import Loader from "./Loader";
 import { theme } from "../theme";
 
 const { colors, fonts } = theme;
@@ -10,27 +10,28 @@ const TeamPerformance = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [availableYears, setAvailableYears] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filterZero, setFilterZero] = useState(false);
+  
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
 
   const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
   ];
+
+  const showCopyPopup = (message) => {
+    setPopupMessage(message);
+    setShowPopup(true);
+    setTimeout(() => {
+      setShowPopup(false);
+    }, 3000);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 2000));
-
         const storedData = localStorage.getItem("allMembers");
         if (storedData) {
           const parsedMembers = JSON.parse(storedData);
@@ -81,7 +82,6 @@ const TeamPerformance = () => {
     }
 
     const yearAttendance = member.attendance[selectedYear];
-
     if (!yearAttendance) {
       return { presentDays: 0, percentage: 0 };
     }
@@ -100,19 +100,27 @@ const TeamPerformance = () => {
     ...calculateAttendance(member),
   }));
 
-  const sortedMembers = [...membersWithAttendance].sort((a, b) => b.percentage - a.percentage);
+  const sortedMembers = [...membersWithAttendance].sort(
+    (a, b) => b.percentage - a.percentage
+  );
 
-  // Dense ranking logic
   const rankedMembers = sortedMembers.reduce((acc, member, index) => {
     if (index === 0) {
       acc.push({ ...member, rank: 1 });
     } else {
       const prevMember = acc[acc.length - 1];
-      const rank = member.percentage === prevMember.percentage ? prevMember.rank : prevMember.rank + 1;
+      const rank =
+        member.percentage === prevMember.percentage
+          ? prevMember.rank
+          : prevMember.rank + 1;
       acc.push({ ...member, rank });
     }
     return acc;
   }, []);
+
+  const displayedMembers = filterZero
+    ? rankedMembers.filter((m) => m.presentDays === 0)
+    : rankedMembers;
 
   return (
     <div
@@ -205,14 +213,29 @@ const TeamPerformance = () => {
                     </th>
                     <th
                       scope="col"
-                      className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
+                      className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 cursor-pointer"
                       style={{
                         backgroundColor: colors.tertiaryLight,
                         color: colors.primary,
                       }}
+                      onDoubleClick={() => {
+                        const namesText = displayedMembers
+                          .map((m) => `${m.name} ${m.last_name || ""}`.trim())
+                          .join(",\n");
+
+                        navigator.clipboard
+                          .writeText(namesText)
+                          .then(() => {
+                            showCopyPopup("Names copied to clipboard!");
+                          })
+                          .catch((err) =>
+                            console.error("Clipboard error:", err)
+                          );
+                      }}
                     >
                       Name
                     </th>
+
                     <th
                       scope="col"
                       className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 w-20"
@@ -225,7 +248,8 @@ const TeamPerformance = () => {
                     </th>
                     <th
                       scope="col"
-                      className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 w-20"
+                      className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 w-20 cursor-pointer"
+                      onClick={() => setFilterZero((prev) => !prev)}
                       style={{
                         backgroundColor: colors.tertiaryLight,
                         color: colors.primary,
@@ -236,7 +260,7 @@ const TeamPerformance = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white">
-                  {rankedMembers.map((member) => (
+                  {displayedMembers.map((member) => (
                     <tr
                       key={member.id}
                       className="transition-colors duration-150 ease-in-out hover:bg-gray-100"
@@ -257,14 +281,7 @@ const TeamPerformance = () => {
                           backgroundColor: colors.neutralLight,
                         }}
                       >
-                        <div className="flex flex-col">
-                          <span
-                            className="text-sm"
-                            style={{ color: colors.neutralDark }}
-                          >
-                            {member.name} {member.last_name}
-                          </span>
-                        </div>
+                        {member.name} {member.last_name}
                       </td>
                       <td
                         className="p-1.5 whitespace-nowrap text-sm border border-gray-300 w-20"
@@ -303,6 +320,18 @@ const TeamPerformance = () => {
             </p>
           )}
         </>
+      )}
+
+      {/* Pop-up component - Centered */}
+      {showPopup && (
+        <div
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-4 rounded-lg shadow-xl text-center z-50 transition-opacity duration-300 ease-in-out"
+          style={{
+            opacity: showPopup ? 1 : 0,
+          }}
+        >
+          {popupMessage}
+        </div>
       )}
     </div>
   );
