@@ -68,29 +68,31 @@ function Topbar() {
   }, []);
 
   return (
-    <div className="w-full flex justify-end items-center px-2">
+    <div
+      className="w-full flex justify-end items-center px-6 mb-8"
+      style={{
+        background: theme.colors.white,
+        borderBottom: `1px solid ${theme.colors.border}`,
+      }}
+    >
       {/* Reload Icon Button */}
-      <button
-        onClick={() => window.location.reload()}
-        className="px-4 py-2 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform duration-200 transform hover:scale-105"
-        style={{
-          backgroundColor: theme.colors.primary,
-          borderColor: theme.colors.primary,
-          boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`,
-        }}
-      >
-        Reload
-      </button>
+       <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform duration-200 transform hover:scale-105"
+          style={{
+            backgroundColor: theme.colors.primary,
+            borderColor: theme.colors.primary,
+            boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`,
+          }}
+        >
+          Reload
+        </button>
 
       {/* Profile Dropdown */}
-      <div ref={dropdownRef} className="ml-4 relative">
+      <div ref={dropdownRef} className="ml-4">
         <button
           onClick={toggleDropdown}
           className="flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full transition-all duration-200 hover:shadow-md focus:outline-none"
-          style={{
-            background: theme.colors.neutralLight,
-            border: `1px solid ${theme.colors.border}`,
-          }}
         >
           <img
             src={profileImageUrl}
@@ -121,9 +123,9 @@ function Topbar() {
 
         {isDropdownOpen && (
           <div
-            className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-50"
+            className="mt-2 w-48 rounded-lg shadow-lg"
             style={{
-              background: theme.colors.neutralLight,
+              background: theme.colors.white,
               border: `1px solid ${theme.colors.border}`,
             }}
           >

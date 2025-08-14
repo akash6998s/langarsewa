@@ -325,7 +325,7 @@ const SuperAdmin = () => {
                   }}
                   onClick={() => setIsDropdownOpen(false)}
                 >
-                  Member
+                  All Members
                 </NavLink>
                 <NavLink
                   to="/"
