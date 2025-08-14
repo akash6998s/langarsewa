@@ -119,7 +119,7 @@ const Profile = () => {
         />
       )}
 
-      <div className="flex justify-center px-4 py-10">
+      <div className="flex justify-center px-4 py-2">
         <div
           className="w-full max-w-md bg-white rounded-2xl shadow-lg border transform transition-all duration-500 hover:shadow-xl animate-fadeIn"
           style={{ borderColor: theme.colors.primaryLight }}

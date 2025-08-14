@@ -68,10 +68,7 @@ function Topbar() {
 
   return (
     <div
-      className="w-full flex justify-end items-center px-6 mb-8"
-      style={{
-        borderBottom: `1px solid ${theme.colors.tertiaryLight}`, // Using a light border color
-      }}
+      className="w-full flex justify-end items-center  mb-8"
     >
       {/* Reload Icon Button */}
       <button

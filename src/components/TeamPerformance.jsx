@@ -138,7 +138,7 @@ const TeamPerformance = () => {
       ) : (
         <>
           <h2
-            className="text-3xl font-extrabold pt-6 mb-4 text-center"
+            className="text-3xl font-extrabold  mb-4 text-center"
             style={{ fontFamily: fonts.heading, color: colors.primary }}
           >
             Team Performance
