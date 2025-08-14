@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { FiRefreshCcw } from "react-icons/fi";
 import { theme } from "../theme";
 
 function Topbar() {
@@ -71,25 +70,24 @@ function Topbar() {
     <div
       className="w-full flex justify-end items-center px-6 mb-8"
       style={{
-        background: theme.colors.white,
-        borderBottom: `1px solid ${theme.colors.border}`,
+        borderBottom: `1px solid ${theme.colors.tertiaryLight}`, // Using a light border color
       }}
     >
       {/* Reload Icon Button */}
-       <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform duration-200 transform hover:scale-105"
-          style={{
-            backgroundColor: theme.colors.primary,
-            borderColor: theme.colors.primary,
-            boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`,
-          }}
-        >
-          Reload
-        </button>
+      <button
+        onClick={() => window.location.reload()}
+        className="px-4 py-2 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform duration-200 transform hover:scale-105"
+        style={{
+          backgroundColor: theme.colors.primary,
+          borderColor: theme.colors.primary,
+          boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`,
+        }}
+      >
+        Reload
+      </button>
 
       {/* Profile Dropdown */}
-      <div ref={dropdownRef} className="ml-4">
+      <div ref={dropdownRef} className="ml-4 relative">
         <button
           onClick={toggleDropdown}
           className="flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full transition-all duration-200 hover:shadow-md focus:outline-none"
@@ -99,14 +97,14 @@ function Topbar() {
             alt="User Profile"
             className="w-8 h-8 rounded-full object-cover"
             style={{
-              border: `1px solid ${theme.colors.borderLight}`,
+              border: `1px solid ${theme.colors.tertiaryLight}`,
             }}
           />
           <svg
             className="w-4 h-4 transition-transform duration-200"
             style={{
               transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
-              color: theme.colors.iconLight,
+              color: theme.colors.primary,
             }}
             fill="none"
             stroke="currentColor"
@@ -123,17 +121,17 @@ function Topbar() {
 
         {isDropdownOpen && (
           <div
-            className="mt-2 w-48 rounded-lg shadow-lg"
+            className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-10"
             style={{
-              background: theme.colors.white,
-              border: `1px solid ${theme.colors.border}`,
+              background: theme.colors.neutralLight,
+              border: `1px solid ${theme.colors.tertiaryLight}`,
             }}
           >
             <NavLink
               to="/members"
               className="block px-4 py-2 text-sm hover:bg-opacity-10"
               style={{
-                color: theme.colors.text,
+                color: theme.colors.primary,
                 backgroundColor: "transparent",
               }}
               onClick={() => setIsDropdownOpen(false)}
@@ -144,7 +142,7 @@ function Topbar() {
               to="/"
               className="block w-full text-left px-4 py-2 text-sm hover:bg-opacity-10"
               style={{
-                color: theme.colors.text,
+                color: theme.colors.primary, // Using danger for the Sign Out button
                 backgroundColor: "transparent",
               }}
             >

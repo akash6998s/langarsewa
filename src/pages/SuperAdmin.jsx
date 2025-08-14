@@ -88,7 +88,6 @@ const SuperAdmin = () => {
     []
   );
 
-
   const checkImageExists = async (url) => {
     try {
       const response = await fetch(url, { method: "HEAD" });
@@ -310,28 +309,28 @@ const SuperAdmin = () => {
 
             {isDropdownOpen && (
               <div
-                className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-50"
+                className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-10"
                 style={{
                   background: theme.colors.neutralLight,
-                  border: `1px solid ${theme.colors.border}`,
+                  border: `1px solid ${theme.colors.tertiaryLight}`,
                 }}
               >
                 <NavLink
                   to="/members"
                   className="block px-4 py-2 text-sm hover:bg-opacity-10"
                   style={{
-                    color: theme.colors.text,
+                    color: theme.colors.primary,
                     backgroundColor: "transparent",
                   }}
                   onClick={() => setIsDropdownOpen(false)}
                 >
-                  All Members
+                  Member
                 </NavLink>
                 <NavLink
                   to="/"
-                  className="block   w-full text-left px-4 py-2 text-sm hover:bg-opacity-10"
+                  className="block w-full text-left px-4 py-2 text-sm hover:bg-opacity-10"
                   style={{
-                    color: theme.colors.text,
+                    color: theme.colors.primary, // Using danger for the Sign Out button
                     backgroundColor: "transparent",
                   }}
                 >
