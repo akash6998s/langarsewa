@@ -3,6 +3,7 @@ import Loader from './Loader';
 import CustomPopup from './Popup';
 import { theme } from '../theme';
 import LoadData from './LoadData';
+import Topbar from './Topbar';
 
 const Members = () => {
   const [members, setMembers] = useState([]);
@@ -119,9 +120,10 @@ const Members = () => {
 
   return (
     <div
-      className="pb-24 pt-6 px-4 sm:px-6 lg:px-8 font-[Inter,sans-serif]"
+      className="pb-24 pt-4 px-4 sm:px-6 lg:px-8 font-[Inter,sans-serif]"
       style={{ background: theme.colors.background }}
     >
+      <Topbar />
       <LoadData/>
       {isLoading && <Loader />}
       {popupMessage && (
@@ -134,14 +136,8 @@ const Members = () => {
 
       {!isLoading && (
         <>
-          <h2
-            className="text-4xl font-extrabold text-center mb-8 drop-shadow-sm font-[EB_Garamond,serif]"
-            style={{ color: theme.colors.neutralDark }}
-          >
-            Our Members
-          </h2>
 
-          <div className="mb-12 flex justify-center">
+          <div className="my-6 flex justify-center">
             <input
               type="text"
               placeholder="Search by roll no, name, or last name..."

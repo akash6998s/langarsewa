@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Loader from "./Loader";
 import { theme } from "../theme";
+import Topbar from "./Topbar";
 
 const { colors, fonts } = theme;
 
@@ -131,6 +132,7 @@ const TeamPerformance = () => {
         color: colors.neutralDark,
       }}
     >
+      <Topbar />
       {isLoading ? (
         <Loader />
       ) : (

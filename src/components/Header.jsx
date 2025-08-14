@@ -14,7 +14,6 @@ const navItems = [
   { name: "Home", path: "/home", icon: <HomeIcon /> },
   { name: "Activity", path: "/activity", icon: <InsightsIcon /> },
   { name: "Rank", path: "/rank", icon: <MilitaryTechIcon /> },
-  { name: "Members", path: "/members", icon: <GroupIcon /> },
   { name: "Profile", path: "/profile", icon: <PersonIcon /> },
 ];
 

@@ -1,118 +1,169 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { NavLink } from "react-router-dom";
 import ManageAttendance from "../components/ManageAttendance";
 import ManageDonation from "../components/ManageDonation";
 import ManageExpense from "../components/ManageExpense";
-import ManageFinance from "../components/ManageFinance"; // Ensure this is the updated one
+import ManageFinance from "../components/ManageFinance";
 import Managemember from "../components/ManageMember";
-import { theme } from "../theme"; // Import the theme
+import { theme } from "../theme";
+import AdminPanel from "./AdminPanel";
+import LoadData from "../components/LoadData";
+import MemberPerformance from "../components/MemberPerformance";
 
 // ✅ MUI Icons
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import AdminPanel from "./AdminPanel";
-import LoadData from "../components/LoadData"; 
-import TeamPerformance from "../components/TeamPerformance";
-import MemberPerformance from "../components/MemberPerformance";
+import ChecklistIcon from "@mui/icons-material/Checklist";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import LeaderboardIcon from "@mui/icons-material/Leaderboard";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 
-
-import ChecklistIcon from "@mui/icons-material/Checklist"; // Attendance
-import FavoriteIcon from "@mui/icons-material/Favorite"; // Donations
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong"; // Expense
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt"; // Member
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet"; // Finance
-import LeaderboardIcon from "@mui/icons-material/Leaderboard"; // Member Performance
-import AssessmentIcon from "@mui/icons-material/Assessment"; // Team Performance
-import ManageAccountsIcon from "@mui/icons-material/ManageAccounts"; // Users
-
-
-// Updated navItems with components and new order
-
-const navItems = [
-  {
+// ✅ Centralize and refine nav items.
+// Using an object for component mapping makes the switch statement unnecessary.
+const navItems = {
+  attendance: {
     name: "Manage Attendance",
-    key: "attendance",
+    component: <ManageAttendance />,
     icon: <ChecklistIcon fontSize="small" />,
   },
-  {
+  donations: {
     name: "Manage Donations",
-    key: "donations",
+    component: <ManageDonation />,
     icon: <FavoriteIcon fontSize="small" />,
   },
-  {
+  expense: {
     name: "Manage Expense",
-    key: "expense",
+    component: <ManageExpense />,
     icon: <ReceiptLongIcon fontSize="small" />,
   },
-  {
+  member: {
     name: "Manage Member",
-    key: "member",
+    component: <Managemember />,
     icon: <PeopleAltIcon fontSize="small" />,
   },
-  {
+  finance: {
     name: "Manage Finance",
-    key: "finance",
+    component: <ManageFinance />,
     icon: <AccountBalanceWalletIcon fontSize="small" />,
   },
-  {
+  memberperformance: {
     name: "Member Performance",
-    key: "memberperformance",
+    component: <MemberPerformance />,
     icon: <LeaderboardIcon fontSize="small" />,
   },
-  {
+  users: {
     name: "Users",
-    key: "users",
+    component: <AdminPanel />,
     icon: <ManageAccountsIcon fontSize="small" />,
   },
+};
+
+// You can define a single array for rendering the sidebar to maintain order
+const navItemsOrder = [
+  "attendance",
+  "donations",
+  "expense",
+  "member",
+  "finance",
+  "memberperformance",
+  "users",
 ];
 
 const SuperAdmin = () => {
   const [isOpen, setIsOpen] = useState(false);
-  // Set default active tab to 'attendance'
   const [activeTab, setActiveTab] = useState("attendance");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState(
+    "https://placehold.co/24x24/CCCCCC/333333?text=User"
+  );
 
-  const toggleSidebar = () => setIsOpen(!isOpen);
+  const dropdownRef = useRef(null);
 
-  const renderActiveComponent = () => {
-    switch (activeTab) {
-      case "member":
-        return <Managemember />;
-      case "attendance":
-        return <ManageAttendance />;
-      case "donations":
-        return <ManageDonation />;
-      case "expense":
-        return <ManageExpense />;
-      case "finance":
-        return <ManageFinance />;
-      case "memberperformance":
-        return <MemberPerformance />;
-      case "users":
-        return <AdminPanel />;
-      default:
-        return (
-          <div
-            className="flex items-center justify-center h-full text-xl font-medium p-8 text-center"
-            style={{ color: theme.colors.primary }}
-          >
-            Please select a section from the sidebar to view content.
-          </div>
-        );
+  const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);
+  const toggleDropdown = useCallback(
+    () => setIsDropdownOpen((prev) => !prev),
+    []
+  );
+
+
+  const checkImageExists = async (url) => {
+    try {
+      const response = await fetch(url, { method: "HEAD" });
+      return response.ok;
+    } catch {
+      return false;
     }
   };
 
+  useEffect(() => {
+    const loadImage = async () => {
+      const loggedInMemberString = localStorage.getItem("loggedInMember");
+      let memberRollNo = null;
+
+      if (loggedInMemberString) {
+        try {
+          const parsedMember = JSON.parse(loggedInMemberString);
+          memberRollNo = parsedMember?.roll_no;
+        } catch (err) {
+          console.error(
+            "Failed to parse loggedInMember from localStorage:",
+            err
+          );
+        }
+      }
+
+      if (memberRollNo) {
+        const extensions = ["png", "jpg", "jpeg", "webp", "ico"];
+        for (const ext of extensions) {
+          const url = `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${memberRollNo}.${ext}`;
+          if (await checkImageExists(url)) {
+            setProfileImageUrl(url);
+            return;
+          }
+        }
+      }
+
+      setProfileImageUrl("https://placehold.co/24x24/CCCCCC/333333?text=User");
+    };
+
+    loadImage();
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // ✅ Simplified and more declarative rendering logic
+  const ActiveComponent = navItems[activeTab]?.component || (
+    <div
+      className="flex items-center justify-center h-full text-xl font-medium p-8 text-center"
+      style={{ color: theme.colors.primary }}
+    >
+      Please select a section from the sidebar to view content.
+    </div>
+  );
+
   return (
     <div
-      className="min-h-screen flex font-[Inter,sans-serif] antialiased" // Added antialiased for smoother fonts
+      className="min-h-screen flex font-[Inter,sans-serif] antialiased"
       style={{ background: theme.colors.background }}
     >
-      <LoadData /> {/* This component seems to handle initial data loading */}
-      {/* Sidebar */}
+      <LoadData />
       <aside
-        className={`fixed top-0 left-0 h-full w-72
-           shadow-xl z-40 transform transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-          md:relative md:translate-x-0 md:shadow-md md:z-auto
-        `}
+        className={`fixed top-0 left-0 h-full w-72 shadow-xl z-40 transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:relative md:translate-x-0 md:shadow-md md:z-auto`}
         style={{ backgroundColor: theme.colors.neutralLight }}
       >
         <div
@@ -144,57 +195,58 @@ const SuperAdmin = () => {
         </div>
 
         <nav className="flex flex-col p-4 space-y-2">
-          {navItems.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => {
-                setActiveTab(item.key);
-                setIsOpen(false); // Close sidebar on mobile
-              }}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ease-in-out
-                focus:outline-none focus:ring-2 focus:ring-opacity-75 border-b-2 border-transparent
-                ${activeTab === item.key ? "shadow-md" : ""}
-              `}
-              style={{
-                backgroundColor:
-                  activeTab === item.key ? theme.colors.primary : "transparent",
-                color:
-                  activeTab === item.key
-                    ? theme.colors.neutralLight
-                    : theme.colors.primary,
-                fontWeight: activeTab === item.key ? "semibold" : "normal",
-                boxShadow:
-                  activeTab === item.key
-                    ? "0 4px 6px rgba(0, 0, 0, 0.1)"
-                    : "none",
-                "--tw-ring-color": theme.colors.primaryLight, // Tailwind ring color
-                borderColor:
-                  activeTab === item.key
-                    ? theme.colors.primaryLight
-                    : "transparent",
-              }}
-              onMouseEnter={(e) => {
-                if (activeTab !== item.key) {
-                  e.currentTarget.style.backgroundColor =
-                    theme.colors.primaryLight;
-                  e.currentTarget.style.color = theme.colors.neutralDark;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== item.key) {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = theme.colors.primary;
-                }
-              }}
-              aria-current={activeTab === item.key ? "page" : undefined}
-            >
-              {item.icon}
-              <span className="text-base">{item.name}</span>
-            </button>
-          ))}
+          {navItemsOrder.map((key) => {
+            const item = navItems[key];
+            return (
+              <button
+                key={key}
+                onClick={() => {
+                  setActiveTab(key);
+                  setIsOpen(false);
+                }}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ease-in-out
+                  focus:outline-none focus:ring-2 focus:ring-opacity-75 border-b-2 border-transparent
+                  ${activeTab === key ? "shadow-md" : ""}`}
+                style={{
+                  backgroundColor:
+                    activeTab === key ? theme.colors.primary : "transparent",
+                  color:
+                    activeTab === key
+                      ? theme.colors.neutralLight
+                      : theme.colors.primary,
+                  fontWeight: activeTab === key ? "semibold" : "normal",
+                  boxShadow:
+                    activeTab === key ? "0 4px 6px rgba(0, 0, 0, 0.1)" : "none",
+                  "--tw-ring-color": theme.colors.primaryLight,
+                  borderColor:
+                    activeTab === key
+                      ? theme.colors.primaryLight
+                      : "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== key) {
+                    e.currentTarget.style.backgroundColor =
+                      theme.colors.primaryLight;
+                    e.currentTarget.style.color = theme.colors.neutralDark;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== key) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = theme.colors.primary;
+                  }
+                }}
+                aria-current={activeTab === key ? "page" : undefined}
+                aria-label={item.name}
+              >
+                {item.icon}
+                <span className="text-base">{item.name}</span>
+              </button>
+            );
+          })}
         </nav>
       </aside>
-      {/* Main Content Area */}
+
       <div className="flex-1 flex flex-col">
         {/* Mobile Header */}
         <header
@@ -218,9 +270,76 @@ const SuperAdmin = () => {
             className="text-xl font-bold font-[EB_Garamond,serif]"
             style={{ color: theme.colors.primary }}
           >
+            <span className="sr-only">Super Admin Dashboard</span>
             Super Admin
           </h1>
-          <div className="w-8" /> {/* Placeholder for alignment */}
+          <div ref={dropdownRef} className="relative">
+            <button
+              onClick={toggleDropdown}
+              className="flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full transition-all duration-200 hover:shadow-md focus:outline-none"
+              style={{
+                background: theme.colors.neutralLight,
+                border: `1px solid ${theme.colors.border}`,
+              }}
+              aria-label="User profile menu"
+            >
+              <img
+                src={profileImageUrl}
+                alt="User Profile"
+                className="w-8 h-8 rounded-full object-cover"
+                style={{ border: `1px solid ${theme.colors.borderLight}` }}
+              />
+              <svg
+                className="w-4 h-4 transition-transform duration-200"
+                style={{
+                  transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  color: theme.colors.iconLight,
+                }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+
+            {isDropdownOpen && (
+              <div
+                className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-50"
+                style={{
+                  background: theme.colors.neutralLight,
+                  border: `1px solid ${theme.colors.border}`,
+                }}
+              >
+                <NavLink
+                  to="/members"
+                  className="block px-4 py-2 text-sm hover:bg-opacity-10"
+                  style={{
+                    color: theme.colors.text,
+                    backgroundColor: "transparent",
+                  }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  Member
+                </NavLink>
+                <NavLink
+                  to="/"
+                  className="block   w-full text-left px-4 py-2 text-sm hover:bg-opacity-10"
+                  style={{
+                    color: theme.colors.text,
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  Sign Out
+                </NavLink>
+              </div>
+            )}
+          </div>
         </header>
 
         {/* Desktop Header */}
@@ -242,12 +361,11 @@ const SuperAdmin = () => {
           </p>
         </header>
 
-        {/* Dynamic Component Area */}
         <main
           className="mt-16 pb-12 md:mt-0 overflow-auto"
           style={{ width: "100vw" }}
         >
-          {renderActiveComponent()}
+          {ActiveComponent}
         </main>
       </div>
     </div>

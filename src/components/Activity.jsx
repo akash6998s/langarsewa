@@ -3,6 +3,7 @@ import Loader from "./Loader";
 import CustomPopup from "./Popup";
 import { theme } from '../theme';
 import LoadData from "./LoadData";
+import Topbar from "./Topbar";
 
 const months = [
   "January",
@@ -123,6 +124,7 @@ const Activity = () => {
     >
       <LoadData />
       {isLoading && <Loader />}
+      <Topbar />
 
       {popupMessage && (
         <CustomPopup
@@ -132,16 +134,10 @@ const Activity = () => {
         />
       )}
 
-      <h2
-        className="text-3xl font-extrabold pt-6 mb-4 text-center font-[EB_Garamond,serif]"
-        style={{ color: theme.colors.neutralDark }}
-      >
-        Your Activity Sheet
-      </h2>
 
       {!isLoading && (
         <div
-          className="rounded-lg shadow-md p-6 mx-6 md:mx-10 mb-6 flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-4"
+          className="rounded-lg mt-4 shadow-md p-6 mx-6 md:mx-10 mb-6 flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-4"
           style={{ backgroundColor: theme.colors.neutralLight }}
         >
           <div className="text-center">

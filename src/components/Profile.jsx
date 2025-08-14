@@ -1,267 +1,195 @@
-import React, { useEffect, useState } from 'react';
-// No Firebase imports needed
-import Loader from './Loader'; // Import your Loader component
-import CustomPopup from './Popup'; // Import your custom Popup component
-import { theme } from '../theme'; // Import the theme
-import LoadData from './LoadData';
+import React, { useEffect, useState } from "react";
+import Loader from "./Loader";
+import CustomPopup from "./Popup";
+import { theme } from "../theme";
+import LoadData from "./LoadData";
+import Topbar from "./Topbar";
 
 const Profile = () => {
-    const [member, setMember] = useState(null);
-    const [imageUrl, setImageUrl] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [popupMessage, setPopupMessage] = useState(null);
-    const [popupType, setPopupType] = useState(null);
+  const [member, setMember] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState(null);
 
-    // Supported image extensions for the profile picture URL
-    const supportedExtensions = ['png', 'jpg', 'jpeg', 'webp', 'ico'];
-    
-    // Asynchronous function to check if an image URL is valid and accessible.
-    // Uses a HEAD request, which is faster than a GET as it doesn't download the body.
-    const checkImageExists = async (url) => {
-        try {
-            const response = await fetch(url, { method: 'HEAD' });
-            return response.ok; // Returns true if the image exists and is accessible
-        } catch (error) {
-            console.error(`Error checking image URL ${url}:`, error);
-            return false; // Returns false on network error or other issues
+  const supportedExtensions = ["png", "jpg", "jpeg", "webp", "ico"];
+
+  const checkImageExists = async (url) => {
+    try {
+      const response = await fetch(url, { method: "HEAD" });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    const loadProfileData = async () => {
+      setIsLoading(true);
+      setPopupMessage(null);
+
+      const minLoadPromise = new Promise((resolve) => setTimeout(resolve, 1500));
+
+      try {
+        const storedMember = localStorage.getItem("loggedInMember");
+
+        if (storedMember) {
+          try {
+            const parsedMember = JSON.parse(storedMember);
+            setMember(parsedMember);
+
+            let foundImageUrl = null;
+            if (parsedMember.roll_no) {
+              for (let ext of supportedExtensions) {
+                const url = `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${parsedMember.roll_no}.${ext}`;
+                if (await checkImageExists(url)) {
+                  foundImageUrl = url;
+                  break;
+                }
+              }
+            }
+
+            setImageUrl(foundImageUrl || null);
+            if (!foundImageUrl) {
+              setPopupMessage("Profile image not found. Displaying placeholder.");
+              setPopupType("info");
+            }
+          } catch (error) {
+            console.error("Error parsing member data:", error);
+            setPopupMessage("Failed to load profile data. Please log in again.");
+            setPopupType("error");
+          }
+        } else {
+          setPopupMessage("No profile data found. Please log in.");
+          setPopupType("error");
         }
+      } finally {
+        await minLoadPromise;
+        setIsLoading(false);
+      }
     };
 
-    useEffect(() => {
-        const loadProfileData = async () => {
-            setIsLoading(true); // Start loading state
-            setPopupMessage(null); // Clear any previous popup messages
-            
-            // Create a promise that resolves after a minimum delay to show the loader
-            const minLoadPromise = new Promise(resolve => setTimeout(resolve, 3000));
+    loadProfileData();
+  }, []);
 
-            try {
-                const storedMember = localStorage.getItem('loggedInMember');
-
-                if (storedMember) {
-                    try {
-                        const parsedMember = JSON.parse(storedMember);
-                        setMember(parsedMember);
-
-                        // If member data exists, attempt to find their profile picture
-                        let foundImageUrl = null;
-                        if (parsedMember.roll_no) {
-                            // Iterate through the supported extensions and check for a valid image
-                            for (let ext of supportedExtensions) {
-                                const url = `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${parsedMember.roll_no}.${ext}`;
-                                if (await checkImageExists(url)) {
-                                    foundImageUrl = url; // Set the URL once a valid image is found
-                                    break; // Stop checking
-                                }
-                            }
-                        }
-
-                        // Update the imageUrl state based on whether an image was found
-                        if (foundImageUrl) {
-                            setImageUrl(foundImageUrl);
-                        } else {
-                            setImageUrl(null); // No valid image found
-                            setPopupMessage("Profile image not found. Displaying placeholder.");
-                            setPopupType("info");
-                        }
-
-                    } catch (error) {
-                        console.error("Error parsing member data from localStorage:", error);
-                        setPopupMessage("Failed to load profile data. Please try logging in again.");
-                        setPopupType("error");
-                        setMember(null);
-                        setImageUrl(null); // Ensure no image is shown on error
-                    }
-                } else {
-                    // No 'loggedInMember' data is found in localStorage
-                    setPopupMessage("No profile data found. Please log in.");
-                    setPopupType("error");
-                    setMember(null);
-                    setImageUrl(null);
-                }
-            } finally {
-                // Ensure the loader stays for the minimum delay before hiding
-                await minLoadPromise;
-                setIsLoading(false);
-            }
-        };
-
-        loadProfileData();
-    }, []); // Empty dependency array ensures this effect runs only once on mount
-
-    // --- Conditional Rendering based on Loading and Member Data ---
-    
-    // Show Loader while data is being fetched
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: theme.colors.background }}>
-                <Loader />
-            </div>
-        );
-    }
-
-    // Show an error message if no member data is found after loading
-    if (!member) {
-        return (
-            <div
-                className="min-h-screen flex flex-col items-center justify-center p-4 font-[Inter,sans-serif]"
-                style={{ background: theme.colors.background }}
-            >
-                {popupMessage && (
-                    <CustomPopup
-                        message={popupMessage}
-                        type={popupType}
-                        onClose={() => setPopupMessage(null)}
-                    />
-                )}
-                <p
-                    className="text-xl font-medium mt-4"
-                    style={{ color: theme.colors.primary }}
-                >
-                    No profile data found. Please log in.
-                </p>
-            </div>
-        );
-    }
-
-    // --- Render Profile Details if member data is available ---
+  if (isLoading) {
     return (
-        <div
-            className="min-h-screen flex items-center justify-center p-4 font-[Inter,sans-serif]"
-            style={{ background: theme.colors.background }}
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: theme.colors.background }}
+      >
+        <Loader />
+      </div>
+    );
+  }
+
+  if (!member) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-4 font-[Inter,sans-serif]"
+        style={{ background: theme.colors.background }}
+      >
+        {popupMessage && (
+          <CustomPopup
+            message={popupMessage}
+            type={popupType}
+            onClose={() => setPopupMessage(null)}
+          />
+        )}
+        <p
+          className="text-xl font-semibold mt-4"
+          style={{ color: theme.colors.primary }}
         >
-            <LoadData/>
-            {popupMessage && (
-                <CustomPopup
-                    message={popupMessage}
-                    type={popupType}
-                    onClose={() => setPopupMessage(null)}
-                />
+          No profile data found. Please log in.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen font-[Inter,sans-serif] pt-4" style={{ background: theme.colors.background }}>
+      <Topbar />
+      <LoadData />
+
+      {popupMessage && (
+        <CustomPopup
+          message={popupMessage}
+          type={popupType}
+          onClose={() => setPopupMessage(null)}
+        />
+      )}
+
+      <div className="flex justify-center px-4 py-10">
+        <div
+          className="w-full max-w-md bg-white rounded-2xl shadow-lg border transform transition-all duration-500 hover:shadow-xl animate-fadeIn"
+          style={{ borderColor: theme.colors.primaryLight }}
+        >
+          <div className="flex flex-col items-center py-8 px-6">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover border-4 shadow-md transition-transform duration-300 hover:scale-105"
+                style={{ borderColor: theme.colors.primary }}
+              />
+            ) : (
+              <div
+                className="w-32 h-32 rounded-full flex items-center justify-center border-4 shadow-inner text-white text-3xl font-bold"
+                style={{
+                  backgroundColor: theme.colors.primaryLight,
+                  borderColor: theme.colors.primary,
+                }}
+              >
+                {(member.name || "N/A").charAt(0).toUpperCase()}
+              </div>
             )}
 
-            <div
-                className="max-w-md w-full shadow-2xl rounded-2xl p-8 transform transition-all duration-300 hover:scale-[1.01] hover:shadow-3xl border"
-                style={{
-                    backgroundColor: theme.colors.neutralLight,
-                    borderColor: theme.colors.primaryLight,
-                    borderWidth: '1px',
-                    borderStyle: 'solid',
-                }}
-            >
-                <div className="flex flex-col items-center mb-8">
-                    {/* Profile Image or Placeholder */}
-                    {!imageUrl ? (
-                        <div
-                            className="w-32 h-32 rounded-full flex items-center justify-center text-3xl font-bold mb-4 border-4 shadow-inner"
-                            style={{
-                                backgroundColor: theme.colors.primaryLight,
-                                color: theme.colors.primary,
-                                borderColor: theme.colors.primary,
-                            }}
-                        >
-                            <span className="text-white text-3xl font-bold">
-                                {(member.name || 'N/A').charAt(0).toUpperCase()}
-                            </span>
-                        </div>
-                    ) : (
-                        <img
-                            src={imageUrl}
-                            alt="Profile"
-                            className="w-32 h-32 rounded-full object-cover mb-4 border-4 shadow-md transform transition-transform duration-300 hover:scale-105"
-                            style={{ borderColor: theme.colors.primary }}
-                        />
-                    )}
+            <p className="mt-4 text-sm font-medium" style={{ color: theme.colors.primary }}>
+              Roll No:
+              <span className="ml-1 font-semibold" style={{ color: theme.colors.neutralDark }}>
+                {member.roll_no}
+              </span>
+            </p>
+          </div>
 
-                    {/* Roll Number */}
-                    <p
-                        className="text-base font-medium"
-                        style={{ color: theme.colors.primary }}
-                    >
-                        Roll No:{" "}
-                        <span
-                            className="font-semibold"
-                            style={{ color: theme.colors.neutralDark }}
-                        >
-                            {member.roll_no}
-                        </span>
-                    </p>
-                </div>
-
-                {/* User Details */}
-                <div className="space-y-5">
-                    <div
-                        className="border-b pb-3"
-                        style={{ borderColor: theme.colors.primaryLight }}
-                    >
-                        <span
-                            className="font-semibold text-sm block mb-1"
-                            style={{ color: theme.colors.primary }}
-                        >
-                            Name:
-                        </span>
-                        <p
-                            className="text-lg font-medium"
-                            style={{ color: theme.colors.neutralDark }}
-                        >
-                            {member.name} {member.last_name}
-                        </p>
-                    </div>
-
-                    <div
-                        className="border-b pb-3"
-                        style={{ borderColor: theme.colors.primaryLight }}
-                    >
-                        <span
-                            className="font-semibold text-sm block mb-1"
-                            style={{ color: theme.colors.primary }}
-                        >
-                            Email:
-                        </span>
-                        <p
-                            className="text-lg font-medium"
-                            style={{ color: theme.colors.neutralDark }}
-                        >
-                            {member.email}
-                        </p>
-                    </div>
-
-                    <div
-                        className="border-b pb-3"
-                        style={{ borderColor: theme.colors.primaryLight }}
-                    >
-                        <span
-                            className="font-semibold text-sm block mb-1"
-                            style={{ color: theme.colors.primary }}
-                        >
-                            Phone:
-                        </span>
-                        <p
-                            className="text-lg font-medium"
-                            style={{ color: theme.colors.neutralDark }}
-                        >
-                            {member.phone_no}
-                        </p>
-                    </div>
-
-                    <div>
-                        {/* No bottom border for the last item */}
-                        <span
-                            className="font-semibold text-sm block mb-1"
-                            style={{ color: theme.colors.primary }}
-                        >
-                            Address:
-                        </span>
-                        <p
-                            className="text-lg font-medium"
-                            style={{ color: theme.colors.neutralDark }}
-                        >
-                            {member.address}
-                        </p>
-                    </div>
-                </div>
-            </div>
+          <div className="px-6 pb-8 space-y-4">
+            {[
+              { label: "Name", value: `${member.name} ${member.last_name}` },
+              { label: "Email", value: member.email },
+              { label: "Phone", value: member.phone_no },
+              { label: "Address", value: member.address },
+            ].map((item, idx, arr) => (
+              <div
+                key={item.label}
+                className={idx !== arr.length - 1 ? "pb-3 border-b" : ""}
+                style={{ borderColor: theme.colors.primaryLight }}
+              >
+                <span className="block text-sm font-semibold mb-1" style={{ color: theme.colors.primary }}>
+                  {item.label}:
+                </span>
+                <p className="text-lg font-medium" style={{ color: theme.colors.neutralDark }}>
+                  {item.value}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-    );
+      </div>
+
+      {/* Fade In Animation */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+          }
+        `}
+      </style>
+    </div>
+  );
 };
 
 export default Profile;
