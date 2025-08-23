@@ -78,7 +78,7 @@ function Topbar() {
   >      {/* Left: Logo */}
       <div className="flex items-center gap-2">
         <img
-          src="/logo.png"
+          src="/favicon.png"
           alt="Logo"
           className="h-13 w-auto object-contain"
         />
