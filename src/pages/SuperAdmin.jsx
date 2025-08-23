@@ -9,6 +9,8 @@ import { theme } from "../theme";
 import AdminPanel from "./AdminPanel";
 import LoadData from "../components/LoadData";
 import MemberPerformance from "../components/MemberPerformance";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import LogoutIcon from "@mui/icons-material/Logout";                                        
 
 // ✅ MUI Icons
 import MenuIcon from "@mui/icons-material/Menu";
@@ -315,27 +317,42 @@ const SuperAdmin = () => {
                   border: `1px solid ${theme.colors.tertiaryLight}`,
                 }}
               >
-                <NavLink
-                  to="/members"
-                  className="block px-4 py-2 text-sm hover:bg-opacity-10"
-                  style={{
-                    color: theme.colors.primary,
-                    backgroundColor: "transparent",
-                  }}
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  Member
-                </NavLink>
-                <NavLink
-                  to="/"
-                  className="block w-full text-left px-4 py-2 text-sm hover:bg-opacity-10"
-                  style={{
-                    color: theme.colors.primary, // Using danger for the Sign Out button
-                    backgroundColor: "transparent",
-                  }}
-                >
-                  Sign Out
-                </NavLink>
+                {/* My Profile */}
+              <NavLink
+                to="/members"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                style={{ color: theme.colors.primary }}
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                <PersonOutlineIcon fontSize="small" />
+                My Profile
+              </NavLink>
+
+              {/* All Members */}
+              <NavLink
+                to="/members"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                style={{ color: theme.colors.primary }}
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                👥 All Members
+              </NavLink>
+
+              <div className="border-t border-gray-200 my-2"></div>
+
+              {/* Sign Out */}
+              <NavLink
+                to="/"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-red-100 hover:pl-5"
+                style={{ color: theme.colors.danger }}
+                onClick={() => {
+                  localStorage.removeItem("loggedInMember");
+                  setIsDropdownOpen(false);
+                }}
+              >
+                <LogoutIcon fontSize="small" />
+                Sign Out
+              </NavLink>
               </div>
             )}
           </div>

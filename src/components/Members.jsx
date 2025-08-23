@@ -119,11 +119,12 @@ const Members = () => {
   });
 
   return (
-    <div
-      className="pb-24 pt-4 px-4 sm:px-6 lg:px-8 font-[Inter,sans-serif]"
+    <>
+    <Topbar />
+<div
+      className="pb-24 pt-16 px-4 sm:px-6 lg:px-8 font-[Inter,sans-serif]"
       style={{ background: theme.colors.background }}
     >
-      <Topbar />
       <LoadData/>
       {isLoading && <Loader />}
       {popupMessage && (
@@ -266,6 +267,9 @@ const Members = () => {
         </>
       )}
     </div>
+</>
+
+    
   );
 };
 

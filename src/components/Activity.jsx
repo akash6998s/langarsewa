@@ -118,13 +118,15 @@ const Activity = () => {
   }, [currentYearAttendance, selectedYear, selectedMonth]);
 
   return (
+
+    <>
+    <Topbar />
     <div
-      className="flex py-4 flex-col font-[Inter,sans-serif]"
+      className="flex py-4 flex-col pt-16 font-[Inter,sans-serif]"
       style={{ background: theme.colors.background }}
     >
       <LoadData />
       {isLoading && <Loader />}
-      <Topbar />
 
       {popupMessage && (
         <CustomPopup
@@ -536,6 +538,8 @@ const Activity = () => {
         </>
       )}
     </div>
+    </>
+    
   );
 };
 

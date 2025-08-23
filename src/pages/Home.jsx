@@ -6,7 +6,7 @@ import Topbar from "../components/Topbar";
 function Home() {
   return (
     <div
-      className="min-h-screen py-4"
+      className="min-h-screen pt-16"
       style={{ background: theme.colors.background }}
     >
       <Topbar />

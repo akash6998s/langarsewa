@@ -28,7 +28,9 @@ const Profile = () => {
       setIsLoading(true);
       setPopupMessage(null);
 
-      const minLoadPromise = new Promise((resolve) => setTimeout(resolve, 1500));
+      const minLoadPromise = new Promise((resolve) =>
+        setTimeout(resolve, 1500)
+      );
 
       try {
         const storedMember = localStorage.getItem("loggedInMember");
@@ -51,12 +53,16 @@ const Profile = () => {
 
             setImageUrl(foundImageUrl || null);
             if (!foundImageUrl) {
-              setPopupMessage("Profile image not found. Displaying placeholder.");
+              setPopupMessage(
+                "Profile image not found. Displaying placeholder."
+              );
               setPopupType("info");
             }
           } catch (error) {
             console.error("Error parsing member data:", error);
-            setPopupMessage("Failed to load profile data. Please log in again.");
+            setPopupMessage(
+              "Failed to load profile data. Please log in again."
+            );
             setPopupType("error");
           }
         } else {
@@ -107,78 +113,94 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen font-[Inter,sans-serif] pt-4" style={{ background: theme.colors.background }}>
+    <>
       <Topbar />
-      <LoadData />
+      <div
+        className="min-h-screen pt-24 font-[Inter,sans-serif] pt-4"
+        style={{ background: theme.colors.background }}
+      >
+        <LoadData />
 
-      {popupMessage && (
-        <CustomPopup
-          message={popupMessage}
-          type={popupType}
-          onClose={() => setPopupMessage(null)}
-        />
-      )}
+        {popupMessage && (
+          <CustomPopup
+            message={popupMessage}
+            type={popupType}
+            onClose={() => setPopupMessage(null)}
+          />
+        )}
 
-      <div className="flex justify-center px-4 py-2">
-        <div
-          className="w-full max-w-md bg-white rounded-2xl shadow-lg border transform transition-all duration-500 hover:shadow-xl animate-fadeIn"
-          style={{ borderColor: theme.colors.primaryLight }}
-        >
-          <div className="flex flex-col items-center py-8 px-6">
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt="Profile"
-                className="w-32 h-32 rounded-full object-cover border-4 shadow-md transition-transform duration-300 hover:scale-105"
-                style={{ borderColor: theme.colors.primary }}
-              />
-            ) : (
-              <div
-                className="w-32 h-32 rounded-full flex items-center justify-center border-4 shadow-inner text-white text-3xl font-bold"
-                style={{
-                  backgroundColor: theme.colors.primaryLight,
-                  borderColor: theme.colors.primary,
-                }}
+        <div className="flex justify-center px-4 py-2">
+          <div
+            className="w-full max-w-md bg-white rounded-2xl shadow-lg border transform transition-all duration-500 hover:shadow-xl animate-fadeIn"
+            style={{ borderColor: theme.colors.primaryLight }}
+          >
+            <div className="flex flex-col items-center py-8 px-6">
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt="Profile"
+                  className="w-32 h-32 rounded-full object-cover border-4 shadow-md transition-transform duration-300 hover:scale-105"
+                  style={{ borderColor: theme.colors.primary }}
+                />
+              ) : (
+                <div
+                  className="w-32 h-32 rounded-full flex items-center justify-center border-4 shadow-inner text-white text-3xl font-bold"
+                  style={{
+                    backgroundColor: theme.colors.primaryLight,
+                    borderColor: theme.colors.primary,
+                  }}
+                >
+                  {(member.name || "N/A").charAt(0).toUpperCase()}
+                </div>
+              )}
+
+              <p
+                className="mt-4 text-sm font-medium"
+                style={{ color: theme.colors.primary }}
               >
-                {(member.name || "N/A").charAt(0).toUpperCase()}
-              </div>
-            )}
-
-            <p className="mt-4 text-sm font-medium" style={{ color: theme.colors.primary }}>
-              Roll No:
-              <span className="ml-1 font-semibold" style={{ color: theme.colors.neutralDark }}>
-                {member.roll_no}
-              </span>
-            </p>
-          </div>
-
-          <div className="px-6 pb-8 space-y-4">
-            {[
-              { label: "Name", value: `${member.name} ${member.last_name}` },
-              { label: "Email", value: member.email },
-              { label: "Phone", value: member.phone_no },
-              { label: "Address", value: member.address },
-            ].map((item, idx, arr) => (
-              <div
-                key={item.label}
-                className={idx !== arr.length - 1 ? "pb-3 border-b" : ""}
-                style={{ borderColor: theme.colors.primaryLight }}
-              >
-                <span className="block text-sm font-semibold mb-1" style={{ color: theme.colors.primary }}>
-                  {item.label}:
+                Roll No:
+                <span
+                  className="ml-1 font-semibold"
+                  style={{ color: theme.colors.neutralDark }}
+                >
+                  {member.roll_no}
                 </span>
-                <p className="text-lg font-medium" style={{ color: theme.colors.neutralDark }}>
-                  {item.value}
-                </p>
-              </div>
-            ))}
+              </p>
+            </div>
+
+            <div className="px-6 pb-8 space-y-4">
+              {[
+                { label: "Name", value: `${member.name} ${member.last_name}` },
+                { label: "Email", value: member.email },
+                { label: "Phone", value: member.phone_no },
+                { label: "Address", value: member.address },
+              ].map((item, idx, arr) => (
+                <div
+                  key={item.label}
+                  className={idx !== arr.length - 1 ? "pb-3 border-b" : ""}
+                  style={{ borderColor: theme.colors.primaryLight }}
+                >
+                  <span
+                    className="block text-sm font-semibold mb-1"
+                    style={{ color: theme.colors.primary }}
+                  >
+                    {item.label}:
+                  </span>
+                  <p
+                    className="text-lg font-medium"
+                    style={{ color: theme.colors.neutralDark }}
+                  >
+                    {item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Fade In Animation */}
-      <style>
-        {`
+        {/* Fade In Animation */}
+        <style>
+          {`
           @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -187,8 +209,9 @@ const Profile = () => {
             animation: fadeIn 0.5s ease-out;
           }
         `}
-      </style>
-    </div>
+        </style>
+      </div>
+    </>
   );
 };
 

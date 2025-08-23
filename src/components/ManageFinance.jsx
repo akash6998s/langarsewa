@@ -134,6 +134,14 @@ export default function ManageFinance() {
           }
         }
       }
+
+      // Add this sorting logic here
+      allExpensesList.sort((a, b) => {
+        const dateA = new Date(`${a.month} 1, ${a.year}`);
+        const dateB = new Date(`${b.month} 1, ${b.year}`);
+        return dateB - dateA; // Sort descending (newest first)
+      });
+
       setExpenses(allExpensesList);
     } catch (err) {
       console.error("Error fetching expenses:", err);
@@ -177,11 +185,11 @@ export default function ManageFinance() {
   }, [donations, searchTerm, donationFilter]);
 
   const totalDonationAmount = useMemo(() => {
-    return filteredDonations.reduce(
-      (sum, donation) => sum + donation.amount,
-      0
-    );
-  }, [filteredDonations]);
+  return donations.reduce(
+    (sum, donation) => sum + donation.amount,
+    0
+  );
+}, [donations]);
 
   const filteredExpenses = expenses.filter((e) => {
     const searchTermLower = searchTerm.toLowerCase();
@@ -202,27 +210,26 @@ export default function ManageFinance() {
   };
 
   const handleCopyNames = () => {
-    const namesToCopy = filteredDonations
-      .map((d) => `${d.name} ${d.lastName}`)
-      .join(", ");
+    const namesAndAmountsToCopy = filteredDonations
+      .map((d) => `${d.name} ${d.lastName} - ${d.amount}`)
+      .join("\n");
 
-    // Check for clipboard support and use the deprecated execCommand if not available
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard
-        .writeText(namesToCopy)
+        .writeText(namesAndAmountsToCopy)
         .then(() => {
-          setPopupMessage("Names copied to clipboard!");
+          setPopupMessage("Names and amounts copied to clipboard!");
           setPopupType("success");
         })
         .catch((err) => {
-          console.error("Failed to copy names:", err);
-          setPopupMessage("Failed to copy names. Please try again.");
+          console.error("Failed to copy names and amounts:", err);
+          setPopupMessage("Failed to copy names and amounts. Please try again.");
           setPopupType("error");
         });
     } else {
       // Fallback for browsers that don't support the Clipboard API
       const el = document.createElement("textarea");
-      el.value = namesToCopy;
+      el.value = namesAndAmountsToCopy;
       el.setAttribute("readonly", "");
       el.style.position = "absolute";
       el.style.left = "-9999px";
@@ -230,11 +237,11 @@ export default function ManageFinance() {
       el.select();
       try {
         document.execCommand("copy");
-        setPopupMessage("Names copied to clipboard!");
+        setPopupMessage("Names and amounts copied to clipboard!");
         setPopupType("success");
       } catch (err) {
-        console.error("Fallback failed to copy names:", err);
-        setPopupMessage("Failed to copy names. Please try again.");
+        console.error("Fallback failed to copy names and amounts:", err);
+        setPopupMessage("Failed to copy names and amounts. Please try again.");
         setPopupType("error");
       } finally {
         document.body.removeChild(el);

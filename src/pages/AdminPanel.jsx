@@ -26,39 +26,32 @@ const AdminPanel = () => {
   const [userToConfirm, setUserToConfirm] = useState(null);
   const [confirmationAction, setConfirmationAction] = useState(null);
 
-  const fetchPendingUsers = async () => {
+  // Consolidated function to fetch all data
+  const fetchAllUsers = async () => {
     setIsLoading(true);
     setPopupMessage(null);
     try {
-      const q = query(collection(db, "users"));
-      const snapshot = await getDocs(q);
-      const usersList = snapshot.docs.map((doc) => ({
+      // Fetch pending users
+      const pendingQuery = query(collection(db, "users"));
+      const pendingSnapshot = await getDocs(pendingQuery);
+      const pendingList = pendingSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setPendingUsers(usersList);
-    } catch (err) {
-      console.error("Error fetching pending users:", err);
-      setPopupMessage("Failed to load pending users.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      setPendingUsers(pendingList);
 
-  const fetchApprovedUsers = async () => {
-    setIsLoading(true);
-    setPopupMessage(null);
-    try {
-      const q = query(collection(db, "members"), where("approved", "==", true));
-      const snapshot = await getDocs(q);
-      const approvedList = snapshot.docs.map((doc) => ({
+      // Fetch approved users
+      const approvedQuery = query(collection(db, "members"), where("approved", "==", true));
+      const approvedSnapshot = await getDocs(approvedQuery);
+      const approvedList = approvedSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setApprovedUsers(approvedList);
+
     } catch (err) {
-      console.error("Error fetching approved users:", err);
-      setPopupMessage("Failed to load approved users.");
+      console.error("Error fetching all users:", err);
+      setPopupMessage("Failed to load users.");
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +124,7 @@ const AdminPanel = () => {
       setPopupMessage(
         `✅ User with roll no ${rollNo} has been successfully approved!`
       );
-      fetchPendingUsers();
+      fetchAllUsers(); // Call the consolidated function to refresh both lists
     } catch (err) {
       console.error("Error approving user:", err);
       setPopupMessage(`Failed to approve user: ${err.message}`);
@@ -149,7 +142,7 @@ const AdminPanel = () => {
       setPopupMessage(
         `🗑️ User with roll no ${user.roll_no} has been successfully removed from pending requests.`
       );
-      fetchPendingUsers();
+      fetchAllUsers(); // Call the consolidated function to refresh both lists
     } catch (err) {
       console.error("Error removing user:", err);
       setPopupMessage(`Failed to remove user: ${err.message}`);
@@ -173,7 +166,7 @@ const AdminPanel = () => {
       setPopupMessage(
         `🗑️ Member with roll no ${user.roll_no} has been successfully removed from the approved list.`
       );
-      fetchApprovedUsers();
+      fetchAllUsers(); // Call the consolidated function to refresh both lists
     } catch (err) {
       console.error("Error removing approved user:", err);
       setPopupMessage(`Failed to remove approved user: ${err.message}`);
@@ -209,12 +202,15 @@ const AdminPanel = () => {
     }
   };
 
+  // Initial data fetch on component mount
   useEffect(() => {
-    if (activeTab === "pending") {
-      fetchPendingUsers();
-    } else {
-      fetchApprovedUsers();
-    }
+    fetchAllUsers();
+  }, []); // Empty dependency array means this runs only once on mount
+
+  // Now, the activeTab useEffect only controls the loading state
+  // as the data is already available.
+  useEffect(() => {
+    // This part is no longer needed for data fetching as it's handled by fetchAllUsers()
   }, [activeTab]);
 
   return (
@@ -299,7 +295,7 @@ const AdminPanel = () => {
       >
         <button
           onClick={() => setActiveTab("pending")}
-          className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
+          className={`flex-1 flex flex-col items-center justify-center px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
             focus:outline-none focus:ring-2 focus:ring-opacity-50
           `}
           style={{
@@ -326,11 +322,14 @@ const AdminPanel = () => {
             }
           }}
         >
-          Pending
+          <span>Pending</span>
+          <span className="text-sm font-bold mt-1">
+            ({pendingUsers.length})
+          </span>
         </button>
         <button
           onClick={() => setActiveTab("approved")}
-          className={`flex-1 px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
+          className={`flex-1 flex flex-col items-center justify-center px-6 py-3 text-center font-semibold rounded-lg transition-all duration-300 ease-in-out
             focus:outline-none focus:ring-2 focus:ring-opacity-50
           `}
           style={{
@@ -359,7 +358,10 @@ const AdminPanel = () => {
             }
           }}
         >
-          Approved
+          <span>Approved</span>
+          <span className="text-sm font-bold mt-1">
+            ({approvedUsers.length})
+          </span>
         </button>
       </div>
 
