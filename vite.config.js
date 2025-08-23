@@ -37,12 +37,27 @@ export default defineConfig({
           },
         ],
       },
+      // ✅ Fix: allow larger bundles to be cached
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+      },
     }),
   ],
 
-  // ✅ Add this server configuration to access on mobile
+  // ✅ Optimize build chunks (helps reduce huge bundle size)
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+        },
+      },
+    },
+  },
+
+  // ✅ Allows testing on mobile devices in local network
   server: {
-    host: '0.0.0.0',  // Allows connections from any IP in the local network
-    port: 5173,       // Or any port you prefer
+    host: '0.0.0.0',
+    port: 5173,
   },
 });
