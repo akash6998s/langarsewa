@@ -12,6 +12,15 @@ const firebaseConfig = {
   appId: "1:38445222334:web:60abe27ff87fa86c25d1ef"
 };
 
+/*const firebaseConfig = {
+  apiKey: "AIzaSyAiBTo7wTX2x7DrN5vJLYVsp5UteAP_9HA",
+  authDomain: "langar-app.firebaseapp.com",
+  projectId: "langar-app",
+  storageBucket: "langar-app.firebasestorage.app",
+  messagingSenderId: "510669891989",
+  appId: "1:510669891989:web:5e20fb13c4a8697357ee9c"
+};*/
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);

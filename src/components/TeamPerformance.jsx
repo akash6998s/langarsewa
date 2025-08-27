@@ -458,47 +458,37 @@ const TeamPerformance = () => {
                     {displayedMembers.map((member) => (
                       <tr
                         key={member.id}
-                        className="transition-colors duration-150 ease-in-out hover:bg-gray-100"
+                        className="transition-colors duration-150 ease-in-out"
+                        style={{
+                          backgroundColor: member.rank === 1 && !allMembersRankOne ? '#FFD700' : colors.neutralLight,
+                          color: colors.neutralDark,
+                        }}
                       >
                         <td
-                          className="p-1.5 whitespace-nowrap text-sm font-medium sticky left-0 z-10 w-12 sm:w-16 border border-gray-300 bg-white"
-                          style={{
-                            color: colors.neutralDark,
-                            backgroundColor: colors.neutralLight,
-                          }}
+                          className="p-1.5 whitespace-nowrap text-sm font-medium sticky left-0 z-10 w-12 sm:w-16 border border-gray-300"
                         >
-                          {member.rank}
-                        </td>
-                        <td
-                          className="p-1.5 text-sm border border-gray-300 whitespace-normal break-words"
-                          style={{
-                            color: colors.neutralDark,
-                            backgroundColor: colors.neutralLight,
-                          }}
-                        >
-                          {member.name} {member.last_name}{" "}
+                          <span style={{ color: member.rank === 1 && !allMembersRankOne ? 'black' : colors.neutralDark }}>
+                            {member.rank}
+                          </span>
                           {!allMembersRankOne && member.rank === 1 && (
                             <FaTrophy
-                              className="inline-block text-yellow-500 ml-1"
+                              className="inline-block text-yellow-700 ml-1"
                               title="Top Performer"
                             />
                           )}
                         </td>
                         <td
+                          className="p-1.5 text-sm border border-gray-300 whitespace-normal break-words"
+                        >
+                          {member.name} {member.last_name}{" "}
+                        </td>
+                        <td
                           className="p-1.5 whitespace-nowrap text-sm border border-gray-300 w-20"
-                          style={{
-                            color: colors.neutralDark,
-                            backgroundColor: colors.neutralLight,
-                          }}
                         >
                           {member.presentDays}
                         </td>
                         <td
                           className="p-1.5 whitespace-nowrap text-sm border border-gray-300 w-20"
-                          style={{
-                            color: colors.neutralDark,
-                            backgroundColor: colors.neutralLight,
-                          }}
                         >
                           {member.percentage.toFixed(2)}%
                         </td>

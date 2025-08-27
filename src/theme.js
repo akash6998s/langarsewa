@@ -1,34 +1,35 @@
 export const theme = {
   colors: {
-    // Background – calm and spiritual
-    background: "linear-gradient(180deg, #F5F6F4, #ECEBE4)",
+    // Background – calm, divine glow
+    background: "linear-gradient(180deg, #FAF9F6, #F5F3EC)", 
+    // light parchment → subtle warmth
 
-    // Primary – Devotional Indigo Blue
-    primary: "#354A66",           // Muted Indigo
-    primaryLight: "#A3B3CC",      // Soft Blue Gray
+    // Primary – Deep Spiritual Blue (trust, devotion)
+    primary: "#3B4C7A",          // Royal deep blue
+    primaryLight: "#A9B7D9",     // Gentle blue-gray
 
-    // Secondary – Olive Sage (peaceful, grounded)
-    secondary: "#5A6752",         // Deep olive green
-    secondaryLight: "#C9D2C0",    // Light sage wash
+    // Secondary – Sacred Green (balance, sewa, nature)
+    secondary: "#4F6B56",        // Spiritual sage green
+    secondaryLight: "#CFE2D2",   // Misty green
 
-    // Tertiary – Sand / Clay (temple earth tone)
-    tertiary: "#BFA98C",          // Muted clay beige
-    tertiaryLight: "#EFE8DC",     // Dusty white/beige
+    // Tertiary – Golden Sand (temple earth & diyas)
+    tertiary: "#D2A75D",         // Muted golden clay
+    tertiaryLight: "#F6E9D2",    // Warm parchment gold
 
-    // Neutrals – Clean and calm
-    neutralLight: "#FDFCFB",      // Softest white
-    neutralDark: "#2C2C2C",       // Sacred dark text
+    // Neutrals – pure and grounded
+    neutralLight: "#FFFFFF",     // Pure divine white
+    neutralDark: "#2B2B2B",      // Sacred ink dark
 
-    // Alerts – Warm but subdued
-    success: "#447A4C",           // Tulsi leaf green
-    successLight: "#D6EFD9",
+    // Alerts – based on dharmic tones
+    success: "#3F7C4E",          // Tulsi green (prosperity)
+    successLight: "#D6F2DC",     // Light tulsi wash
 
-    danger: "#8B3C3C",            // Muted earthy red
-    dangerLight: "#F4DCDC",
+    danger: "#9B2E2E",           // Kumkum red (warning/serious)
+    dangerLight: "#FADADA",      // Soft kumkum wash
   },
 
   fonts: {
-    heading: "'EB Garamond', serif",     // Elegant, scriptural
-    body: "'Inter', sans-serif",         // Clean, readable for UI
+    heading: "'Merriweather', serif",   // Elegant, spiritual readability
+    body: "'Inter', sans-serif",        // Clean UI
   },
 };

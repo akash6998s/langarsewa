@@ -80,13 +80,13 @@ function Topbar() {
         <img
           src="/favicon.png"
           alt="Logo"
-          className="h-13 w-auto object-contain"
+          className="h-15 w-auto object-contain"
         />
         <span
           className="font-bold text-lg hidden sm:inline"
           style={{ color: theme.colors.primary }}
         >
-          Langar Sewa
+          LangarSewa
         </span>
       </div>
 
