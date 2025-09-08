@@ -10,7 +10,14 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import DownloadDoneIcon from "@mui/icons-material/DownloadDone";
 
-const collections = ["expenses", "members", "users", "archivedDonations", "working"];
+const collections = [
+  "expenses",
+  "members",
+  "images",
+  "users",
+  "archivedDonations",
+  "working",
+];
 
 const DownloadBackup = () => {
   const [downloading, setDownloading] = useState(false);
@@ -90,14 +97,14 @@ const DownloadBackup = () => {
       style={{ backgroundColor: theme.colors.background }}
     >
       <div
-        className="w-full max-w-4xl p-10 rounded-3xl shadow-2xl flex flex-col items-center animate-fade-in"
+        className="w-full max-w-4xl p-5 rounded-3xl shadow-2xl flex flex-col items-center animate-fade-in"
         style={{
           backgroundColor: theme.colors.neutralLight,
           border: `2px solid ${theme.colors.border}`,
         }}
       >
         <h1
-          className="text-3xl font-extrabold mb-8 text-center tracking-tight"
+          className="text-2xl font-extrabold mb-8 text-center tracking-tight"
           style={{ color: theme.colors.primary }}
         >
           Database Backup
@@ -107,15 +114,22 @@ const DownloadBackup = () => {
         {downloading && (
           <div
             className="flex items-center justify-center w-full mb-4 gap-3 text-lg font-medium p-3 rounded-lg"
-            style={{ backgroundColor: theme.colors.secondaryLight, color: theme.colors.primary }}
+            style={{
+              backgroundColor: theme.colors.secondaryLight,
+              color: theme.colors.primary,
+            }}
           >
-            <CloudDownloadIcon className="animate-bounce" /> Downloading... Please wait.
+            <CloudDownloadIcon className="animate-bounce" /> Downloading...
+            Please wait.
           </div>
         )}
         {error && (
           <div
             className="flex items-center justify-center w-full mb-4 gap-3 text-lg font-medium p-3 rounded-lg"
-            style={{ backgroundColor: theme.colors.dangerLight, color: theme.colors.danger }}
+            style={{
+              backgroundColor: theme.colors.dangerLight,
+              color: theme.colors.danger,
+            }}
           >
             <ErrorOutlineIcon /> {error}
           </div>
@@ -123,9 +137,13 @@ const DownloadBackup = () => {
         {lastDownload && !downloading && !error && (
           <div
             className="flex items-center justify-center w-full mb-4 gap-3 text-lg font-medium p-3 rounded-lg"
-            style={{ backgroundColor: theme.colors.successLight, color: theme.colors.success }}
+            style={{
+              backgroundColor: theme.colors.successLight,
+              color: theme.colors.success,
+            }}
           >
-            <CheckCircleOutlineIcon /> Last download successful: {lastDownload.toLocaleString()}
+            <CheckCircleOutlineIcon /> Last download successful:{" "}
+            {lastDownload.toLocaleString()}
           </div>
         )}
 
@@ -136,7 +154,7 @@ const DownloadBackup = () => {
               key={col}
               onClick={() => downloadCollection(col)}
               disabled={downloading}
-              className="flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-semibold text-lg shadow-lg transition-all duration-300 ease-in-out transform
+              className="flex items-start justify-start gap-3 px-6 py-4 rounded-xl font-semibold text-lg shadow-lg transition-all duration-300 ease-in-out transform
                          hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-1 min-w-0"
               style={{
                 backgroundColor: theme.colors.secondary,
@@ -152,20 +170,29 @@ const DownloadBackup = () => {
 
         {/* Divider */}
         <div className="relative flex py-5 items-center w-full">
-          <div className="flex-grow border-t" style={{ borderColor: theme.colors.border }}></div>
-          <span className="flex-shrink mx-4 text-lg font-medium" style={{ color: theme.colors.textSecondary }}>
+          <div
+            className="flex-grow border-t"
+            style={{ borderColor: theme.colors.border }}
+          ></div>
+          <span
+            className="flex-shrink mx-4 text-lg font-medium"
+            style={{ color: theme.colors.textSecondary }}
+          >
             OR
           </span>
-          <div className="flex-grow border-t" style={{ borderColor: theme.colors.border }}></div>
+          <div
+            className="flex-grow border-t"
+            style={{ borderColor: theme.colors.border }}
+          ></div>
         </div>
 
         {/* Download All */}
-        <div className="w-full">
+        <div>
           <button
             onClick={downloadAllCollections}
             disabled={downloading}
-            className="flex items-center justify-center gap-3 w-full px-8 py-5 rounded-xl font-bold text-xl shadow-xl transition-all duration-300 ease-in-out transform
-                       hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-lg shadow-xl transition-all duration-300 ease-in-out transform
+               hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             style={{
               backgroundColor: theme.colors.success,
               color: theme.colors.neutralLight,
@@ -173,7 +200,7 @@ const DownloadBackup = () => {
               "--tw-ring-color": theme.colors.successLight,
             }}
           >
-            <DownloadDoneIcon sx={{ fontSize: 28 }} /> Download All Database
+            Download All Database
           </button>
         </div>
       </div>

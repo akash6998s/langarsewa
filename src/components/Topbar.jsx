@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { theme } from "../theme";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import LogoutIcon from "@mui/icons-material/Logout";
 import GroupIcon from "@mui/icons-material/Group";
+import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 
 function Topbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -13,6 +13,7 @@ function Topbar() {
     "https://placehold.co/40x40/CCCCCC/333333?text=User"
   );
   const [userName, setUserName] = useState("Member");
+  const navigate = useNavigate();
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -82,7 +83,7 @@ function Topbar() {
         <img
           src="/favicon.png"
           alt="Logo"
-          className="h-15 w-auto object-contain"
+          className="h-12 w-auto object-contain"
         />
         <span
           className="font-bold text-lg hidden sm:inline"
@@ -92,9 +93,20 @@ function Topbar() {
         </span>
       </div>
 
-      {/* Right: Profile Section */}
-      <div className="flex items-center">
-        <div ref={dropdownRef} className="ml-4 relative">
+      {/* Right: Gallery + Profile */}
+      <div className="flex items-center gap-3">
+        {/* Gallery Button */}
+        <button
+          onClick={() => navigate("/gallery")}
+          className="flex items-center justify-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200"
+          style={{ color: theme.colors.primary }}
+        >
+          <PhotoLibraryIcon fontSize="medium" />
+          <span className=" sm:inline text-sm font-medium">Gallery</span>
+        </button>
+
+        {/* Profile Section */}
+        <div ref={dropdownRef} className="relative">
           <button
             onClick={toggleDropdown}
             className="flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full transition-all duration-200 hover:bg-gray-100 focus:outline-none"
@@ -106,7 +118,6 @@ function Topbar() {
                 className="w-10 h-10 rounded-full object-cover border-2 transition-transform duration-300 hover:scale-105"
                 style={{ borderColor: theme.colors.tertiaryLight }}
               />
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
             </div>
 
             <span
@@ -152,17 +163,6 @@ function Topbar() {
                 <RefreshIcon fontSize="small" />
                 Reload
               </button>
-
-              {/* My Profile */}
-              <NavLink
-                to="/members"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                style={{ color: theme.colors.primary }}
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <PersonOutlineIcon fontSize="small" />
-                My Profile
-              </NavLink>
 
               {/* All Members */}
               <NavLink

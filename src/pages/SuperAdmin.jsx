@@ -10,9 +10,9 @@ import AdminPanel from "./AdminPanel";
 import LoadData from "../components/LoadData";
 import MemberPerformance from "../components/MemberPerformance";
 import DownloadBackup from "../components/DownloadBackup";
+import UploadImages from "../components/UploadImages";
 
 // ✅ MUI Icons
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -25,6 +25,8 @@ import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import LeaderboardIcon from "@mui/icons-material/Leaderboard";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import GroupIcon from "@mui/icons-material/Group";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 
 // ✅ Centralize and refine nav items
 const navItems = {
@@ -68,6 +70,11 @@ const navItems = {
     component: <DownloadBackup />,
     icon: <CloudDownloadIcon fontSize="small" />,
   },
+  uploadImages: {
+    name: "Upload Images",
+    component: <UploadImages />,
+    icon: <AddPhotoAlternateIcon  fontSize="small" />,
+  },
 };
 
 // ✅ Maintain sidebar order
@@ -79,7 +86,8 @@ const navItemsOrder = [
   "finance",
   "memberperformance",
   "users",
-  "downloadbackup"
+  "downloadbackup",
+  "uploadImages"
 ];
 
 const SuperAdmin = () => {
@@ -326,52 +334,41 @@ const SuperAdmin = () => {
                 }}
               >
                 {/* Reload */}
-                <button
-                  onClick={() => window.location.reload()}
-                  className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-gray-100"
-                  style={{ color: theme.colors.primary }}
-                >
-                  <RefreshIcon fontSize="small" />
-                  <span>Reload</span>
-                </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                style={{ color: theme.colors.primary }}
+              >
+                <RefreshIcon fontSize="small" />
+                Reload
+              </button>
 
-                {/* My Profile */}
-                <NavLink
-                  to="/members"
-                  className="flex items-center gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-gray-100"
-                  style={{ color: theme.colors.primary }}
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  <PersonOutlineIcon fontSize="small" />
-                  <span>My Profile</span>
-                </NavLink>
+              {/* All Members */}
+              <NavLink
+                to="/members"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                style={{ color: theme.colors.primary }}
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                <GroupIcon fontSize="small" />
+                All Members
+              </NavLink>
 
-                {/* All Members */}
-                <NavLink
-                  to="/members"
-                  className="flex items-center gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-gray-100"
-                  style={{ color: theme.colors.primary }}
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  <span className="text-lg">👥</span>
-                  <span>All Members</span>
-                </NavLink>
+              <div className="border-t border-gray-200 my-2"></div>
 
-                <div className="border-t border-gray-200 my-2"></div>
-
-                {/* Sign Out */}
-                <NavLink
-                  to="/"
-                  className="flex items-center gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-red-100"
-                  style={{ color: theme.colors.danger }}
-                  onClick={() => {
-                    localStorage.removeItem("loggedInMember");
-                    setIsDropdownOpen(false);
-                  }}
-                >
-                  <LogoutIcon fontSize="small" />
-                  <span>Sign Out</span>
-                </NavLink>
+              {/* Sign Out */}
+              <NavLink
+                to="/"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-red-100 hover:pl-5"
+                style={{ color: theme.colors.danger }}
+                onClick={() => {
+                  localStorage.removeItem("loggedInMember");
+                  setIsDropdownOpen(false);
+                }}
+              >
+                <LogoutIcon fontSize="small" />
+                Sign Out
+              </NavLink>
               </div>
             )}
           </div>

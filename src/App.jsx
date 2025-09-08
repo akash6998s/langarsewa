@@ -5,9 +5,14 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import { initializeApp, getApps, getApp } from 'firebase/app'; // Import getApps and getApp
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
+import { initializeApp, getApps, getApp } from "firebase/app"; // Import getApps and getApp
+import {
+  getAuth,
+  signInAnonymously,
+  signInWithCustomToken,
+  onAuthStateChanged,
+} from "firebase/auth";
+import { getFirestore, doc, onSnapshot } from "firebase/firestore";
 
 // Import your components
 import Header from "./components/Header";
@@ -23,11 +28,15 @@ import LoadData from "./components/LoadData";
 import Splash from "./Splash";
 import WorkInProgress from "./components/WorkInProgress";
 import TeamPerformance from "./components/TeamPerformance";
+import UploadImages from "./components/UploadImages";
+import Gallery from "./components/Gallery";
 
 // Global variables for Firebase config and app ID
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const firebaseConfig =
+  typeof __firebase_config !== "undefined" ? JSON.parse(__firebase_config) : {};
+const initialAuthToken =
+  typeof __initial_auth_token !== "undefined" ? __initial_auth_token : null;
+const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
 
 function AppRoutes() {
   const [showSplash, setShowSplash] = useState(true);
@@ -90,20 +99,24 @@ function AppRoutes() {
     if (!db || !isAuthReady) return; // Wait for Firestore and Auth to be ready
 
     const docRef = doc(db, "working", "qCmBh8gyStEyQgjQuoQV");
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setIsWorking(data.working === true); // Set isWorking based on the 'working' field
-      } else {
-        console.log("No such document for 'working' status!");
-        setIsWorking(false); // Default to false if document doesn't exist
+    const unsubscribe = onSnapshot(
+      docRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setIsWorking(data.working === true); // Set isWorking based on the 'working' field
+        } else {
+          console.log("No such document for 'working' status!");
+          setIsWorking(false); // Default to false if document doesn't exist
+        }
+        setLoadingFirestore(false);
+      },
+      (error) => {
+        console.error("Error fetching 'working' status:", error);
+        setIsWorking(false); // Default to false on error
+        setLoadingFirestore(false);
       }
-      setLoadingFirestore(false);
-    }, (error) => {
-      console.error("Error fetching 'working' status:", error);
-      setIsWorking(false); // Default to false on error
-      setLoadingFirestore(false);
-    });
+    );
 
     return () => unsubscribe(); // Clean up the listener on component unmount
   }, [db, isAuthReady]); // Re-run when db or auth state changes
@@ -141,7 +154,7 @@ function AppRoutes() {
         {/* LoadData component should be rendered here if it's meant to be global,
             otherwise it should be part of specific routes if it's loading data for them.
             For now, keeping it as is based on original code. */}
-        <LoadData/>
+        <LoadData />
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<Home />} />
@@ -153,7 +166,8 @@ function AppRoutes() {
           <Route path="/superadmin" element={<SuperAdmin />} />
           <Route path="/load-data" element={<LoadData />} />
           <Route path="/rank" element={<TeamPerformance />} />
-
+          <Route path="/uploadimages" element={<UploadImages />} />
+          <Route path="/gallery" element={<Gallery />} />
         </Routes>
       </div>
 
