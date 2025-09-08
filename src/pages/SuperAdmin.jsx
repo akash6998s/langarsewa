@@ -9,10 +9,12 @@ import { theme } from "../theme";
 import AdminPanel from "./AdminPanel";
 import LoadData from "../components/LoadData";
 import MemberPerformance from "../components/MemberPerformance";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
-import LogoutIcon from "@mui/icons-material/Logout";                                        
+import DownloadBackup from "../components/DownloadBackup";
 
 // ✅ MUI Icons
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import ChecklistIcon from "@mui/icons-material/Checklist";
@@ -22,9 +24,9 @@ import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import LeaderboardIcon from "@mui/icons-material/Leaderboard";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 
-// ✅ Centralize and refine nav items.
-// Using an object for component mapping makes the switch statement unnecessary.
+// ✅ Centralize and refine nav items
 const navItems = {
   attendance: {
     name: "Manage Attendance",
@@ -61,9 +63,14 @@ const navItems = {
     component: <AdminPanel />,
     icon: <ManageAccountsIcon fontSize="small" />,
   },
+  downloadbackup: {
+    name: "Download Backup",
+    component: <DownloadBackup />,
+    icon: <CloudDownloadIcon fontSize="small" />,
+  },
 };
 
-// You can define a single array for rendering the sidebar to maintain order
+// ✅ Maintain sidebar order
 const navItemsOrder = [
   "attendance",
   "donations",
@@ -72,6 +79,7 @@ const navItemsOrder = [
   "finance",
   "memberperformance",
   "users",
+  "downloadbackup"
 ];
 
 const SuperAdmin = () => {
@@ -162,7 +170,7 @@ const SuperAdmin = () => {
     >
       <LoadData />
       <aside
-        className={`fixed top-0 left-0 h-full w-72 shadow-xl z-40 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full w-72 shadow-xl z-1000 transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } md:relative md:translate-x-0 md:shadow-md md:z-auto`}
         style={{ backgroundColor: theme.colors.neutralLight }}
@@ -311,48 +319,59 @@ const SuperAdmin = () => {
 
             {isDropdownOpen && (
               <div
-                className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-10"
+                className="absolute right-0 mt-2 w-52 rounded-xl shadow-lg z-10 overflow-hidden"
                 style={{
                   background: theme.colors.neutralLight,
                   border: `1px solid ${theme.colors.tertiaryLight}`,
                 }}
               >
+                {/* Reload */}
+                <button
+                  onClick={() => window.location.reload()}
+                  className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-gray-100"
+                  style={{ color: theme.colors.primary }}
+                >
+                  <RefreshIcon fontSize="small" />
+                  <span>Reload</span>
+                </button>
+
                 {/* My Profile */}
-              <NavLink
-                to="/members"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                style={{ color: theme.colors.primary }}
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <PersonOutlineIcon fontSize="small" />
-                My Profile
-              </NavLink>
+                <NavLink
+                  to="/members"
+                  className="flex items-center gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-gray-100"
+                  style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <PersonOutlineIcon fontSize="small" />
+                  <span>My Profile</span>
+                </NavLink>
 
-              {/* All Members */}
-              <NavLink
-                to="/members"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                style={{ color: theme.colors.primary }}
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                👥 All Members
-              </NavLink>
+                {/* All Members */}
+                <NavLink
+                  to="/members"
+                  className="flex items-center gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-gray-100"
+                  style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <span className="text-lg">👥</span>
+                  <span>All Members</span>
+                </NavLink>
 
-              <div className="border-t border-gray-200 my-2"></div>
+                <div className="border-t border-gray-200 my-2"></div>
 
-              {/* Sign Out */}
-              <NavLink
-                to="/"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-red-100 hover:pl-5"
-                style={{ color: theme.colors.danger }}
-                onClick={() => {
-                  localStorage.removeItem("loggedInMember");
-                  setIsDropdownOpen(false);
-                }}
-              >
-                <LogoutIcon fontSize="small" />
-                Sign Out
-              </NavLink>
+                {/* Sign Out */}
+                <NavLink
+                  to="/"
+                  className="flex items-center gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-red-100"
+                  style={{ color: theme.colors.danger }}
+                  onClick={() => {
+                    localStorage.removeItem("loggedInMember");
+                    setIsDropdownOpen(false);
+                  }}
+                >
+                  <LogoutIcon fontSize="small" />
+                  <span>Sign Out</span>
+                </NavLink>
               </div>
             )}
           </div>

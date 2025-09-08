@@ -18,17 +18,11 @@ import Profile from "./components/Profile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import AdminPanel from "./pages/AdminPanel";
-import UploadAllData from "./components/databaseEditCode/UploadAllData";
 import SuperAdmin from "./pages/SuperAdmin";
-import EditDatabase from "./components/databaseEditCode/EditDatabase";
-import RemoveImgFromMembers from "./components/databaseEditCode/removeImgFromAllMembers";
-import UploadExpenseData from "./components/databaseEditCode/UploadExpenseData";
 import LoadData from "./components/LoadData";
 import Splash from "./Splash";
 import WorkInProgress from "./components/WorkInProgress";
-import MoreFeatures from "./components/MoreFeatures";
 import TeamPerformance from "./components/TeamPerformance";
-import DownloadBackupFiles from "./components/DownloadBackupFiles";
 
 // Global variables for Firebase config and app ID
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
@@ -159,14 +153,7 @@ function AppRoutes() {
           <Route path="/superadmin" element={<SuperAdmin />} />
           <Route path="/load-data" element={<LoadData />} />
           <Route path="/rank" element={<TeamPerformance />} />
-          {/* <Route path="/more" element={<MoreFeatures />} /> */}
 
-          {/* These route are for upload and managing backup data */}
-          <Route path="/upload-backup" element={<UploadAllData />} />
-          <Route path="/edit-database" element={<EditDatabase />} />
-          <Route path="/remove-img" element={<RemoveImgFromMembers />} />
-          <Route path="/upload-expense" element={<UploadExpenseData />} />
-          <Route path="/download-backup" element={<DownloadBackupFiles />} />
         </Routes>
       </div>
 

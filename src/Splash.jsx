@@ -2,7 +2,7 @@ import splashImg from './assets/splash.png';
 
 function Splash() {
   return (
-    <div className="w-screen h-screen overflow-hidden bg-white">
+    <div className="fixed inset-0 w-screen h-screen">
       <img
         src={splashImg}
         alt="Splash"

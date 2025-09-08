@@ -12,7 +12,7 @@ function Home() {
       <Topbar />
 
       <h2
-        className="text-3xl mt-8 font-extrabold text-center tracking-tight leading-tight px-4 font-[EB_Garamond,serif]"
+        className="text-3xl mt-5 font-extrabold text-center tracking-tight leading-tight px-4 font-[EB_Garamond,serif]"
         style={{ color: theme.colors.neutralDark }}
       >
         सुदर्शन सेना भोजन वितरण

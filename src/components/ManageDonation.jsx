@@ -33,7 +33,6 @@ function ManageDonation() {
     "December",
   ];
   
-  // Dynamically set the default month to the current month name
   const currentMonthIndex = new Date().getMonth();
   const currentMonthName = months[currentMonthIndex];
   const [month, setMonth] = useState(currentMonthName);
@@ -41,21 +40,21 @@ function ManageDonation() {
   const [amount, setAmount] = useState("");
   const [rollNumbers, setRollNumbers] = useState([]);
   const [selectedRoll, setSelectedRoll] = useState(null);
+  const [memberName, setMemberName] = useState("");
 
-  // States for custom Loader and Popup
-  const [isLoading, setIsLoading] = useState(true); // Renamed from 'loading' for clarity
+  const [isLoading, setIsLoading] = useState(true);
   const [popupMessage, setPopupMessage] = useState(null);
-  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
+  const [popupType, setPopupType] = useState(null);
 
   const years = Array.from(
-    { length: 11 }, // Generates 11 years
-    (_, i) => String(new Date().getFullYear() + i) // Starting from the current year
+    { length: 11 },
+    (_, i) => String(new Date().getFullYear() + i)
   );
 
   useEffect(() => {
     const fetchRolls = async () => {
-      setIsLoading(true); // Start loading
-      setPopupMessage(null); // Clear any previous messages
+      setIsLoading(true);
+      setPopupMessage(null);
       try {
         const querySnapshot = await getDocs(collection(db, "members"));
         const rolls = [];
@@ -68,12 +67,38 @@ function ManageDonation() {
         setPopupMessage("Failed to load roll numbers. Please try again.");
         setPopupType("error");
       } finally {
-        setIsLoading(false); // End loading
+        setIsLoading(false);
       }
     };
 
     fetchRolls();
   }, []);
+
+  useEffect(() => {
+    const fetchMemberName = async () => {
+      if (!selectedRoll) {
+        setMemberName("");
+        return;
+      }
+      try {
+        const memberRef = doc(db, "members", selectedRoll);
+        const memberSnap = await getDoc(memberRef);
+        if (memberSnap.exists()) {
+          const data = memberSnap.data();
+          const firstName = data.name || '';
+          const lastName = data.last_name || '';
+          // Combine name and last_name with a space in between
+          setMemberName(`${firstName} ${lastName}`.trim()); 
+        } else {
+          setMemberName("Name not found");
+        }
+      } catch (err) {
+        console.error("Error fetching member name:", err);
+        setMemberName("Error loading name");
+      }
+    };
+    fetchMemberName();
+  }, [selectedRoll]);
 
   const handleDonation = async () => {
     if (!selectedRoll || !year || !month || amount === "" || isNaN(parseInt(amount))) {
@@ -82,8 +107,8 @@ function ManageDonation() {
       return;
     }
 
-    setIsLoading(true); // Start loading for submission
-    setPopupMessage(null); // Clear previous popup messages
+    setIsLoading(true);
+    setPopupMessage(null);
     const memberRef = doc(db, "members", selectedRoll);
 
     try {
@@ -116,12 +141,13 @@ function ManageDonation() {
       setPopupType("success");
       setAmount("");
       setSelectedRoll(null);
+      setMemberName("");
     } catch (e) {
       console.error("Error adding donation:", e);
       setPopupMessage("Failed to add donation. Please try again.");
       setPopupType("error");
     } finally {
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
   };
 
@@ -132,8 +158,8 @@ function ManageDonation() {
       return;
     }
 
-    setIsLoading(true); // Start loading for deletion
-    setPopupMessage(null); // Clear previous popup messages
+    setIsLoading(true);
+    setPopupMessage(null);
     const memberRef = doc(db, "members", selectedRoll);
 
     try {
@@ -172,6 +198,7 @@ function ManageDonation() {
         setPopupMessage("Donation updated successfully.");
         setPopupType("success");
         setSelectedRoll(null);
+        setMemberName("");
         setAmount("");
       } else {
         setPopupMessage("No donation found for the selected date.");
@@ -182,7 +209,7 @@ function ManageDonation() {
       setPopupMessage("Failed to delete donation. Please try again.");
       setPopupType("error");
     } finally {
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
   };
 
@@ -194,15 +221,13 @@ function ManageDonation() {
         fontFamily: theme.fonts.body,
       }}
     >
-      {/* Conditionally render Loader */}
       {isLoading && <Loader />}
 
-      {/* Conditionally render Custom Popup */}
       {popupMessage && (
         <CustomPopup
           message={popupMessage}
           type={popupType}
-          onClose={() => setPopupMessage(null)} // Close popup by clearing message
+          onClose={() => setPopupMessage(null)}
         />
       )}
 
@@ -365,6 +390,32 @@ function ManageDonation() {
             </svg>
           </div>
         </div>
+        
+        <div className="md:col-span-2">
+          <label
+            htmlFor="name-input"
+            className="block text-sm font-medium mb-1"
+            style={{ color: theme.colors.primary }}
+          >
+            Member Name
+          </label>
+          <input
+            id="name-input"
+            type="text"
+            placeholder="Select a roll number to see the name"
+            value={memberName}
+            readOnly
+            className="block w-full py-3 px-4 rounded-lg leading-tight shadow-sm"
+            style={{
+              backgroundColor: theme.colors.neutralLight,
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              cursor: 'not-allowed',
+            }}
+          />
+        </div>
 
         <div className="md:col-span-2">
           <label
@@ -473,7 +524,7 @@ function ManageDonation() {
               ) : (
                 <div className="grid grid-cols-5 gap-2 p-6 overflow-y-auto flex-grow">
                   {rollNumbers
-                    .sort((a, b) => Number(a) - Number(b)) // Sort roll numbers numerically
+                    .sort((a, b) => Number(a) - Number(b))
                     .map((roll) => (
                       <button
                         key={roll}
@@ -541,7 +592,7 @@ function ManageDonation() {
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.primaryLight}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
-            disabled={isLoading} // Disable button when loading
+            disabled={isLoading}
           >
             {isLoading && activeTab === "add" ? "Adding..." : "Add Donation"}
           </button>
@@ -558,7 +609,7 @@ function ManageDonation() {
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.dangerLight}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.danger}
-            disabled={isLoading} // Disable button when loading
+            disabled={isLoading}
           >
             {isLoading && activeTab === "delete"
               ? "Deleting..."

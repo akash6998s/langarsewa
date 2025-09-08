@@ -4,6 +4,7 @@ import { theme } from "../theme";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import LogoutIcon from "@mui/icons-material/Logout";
+import GroupIcon from "@mui/icons-material/Group";
 
 function Topbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -72,10 +73,11 @@ function Topbar() {
   }, []);
 
   return (
- <div
-    className="w-full flex justify-between items-center h-16 px-4 py-2 bg-white/80 backdrop-blur-md shadow-lg rounded-xl border border-gray-200 relative z-[9999]"
-    style={{ position: 'fixed', top: 0, left: 0, right: 0 }}
-  >      {/* Left: Logo */}
+    <div
+      className="w-full flex justify-between items-center h-16 px-4 py-2 bg-white/80 backdrop-blur-md shadow-lg rounded-xl border border-gray-200 relative z-[9999]"
+      style={{ position: "fixed", top: 0, left: 0, right: 0 }}
+    >
+      {/* Left: Logo */}
       <div className="flex items-center gap-2">
         <img
           src="/favicon.png"
@@ -90,19 +92,8 @@ function Topbar() {
         </span>
       </div>
 
-      {/* Right: Controls */}
+      {/* Right: Profile Section */}
       <div className="flex items-center">
-        {/* Reload Icon */}
-        <button
-          onClick={() => window.location.reload()}
-          className="p-2 rounded-full transition-all duration-300 transform hover:rotate-180 hover:scale-110"
-          style={{ backgroundColor: theme.colors.primary }}
-          title="Reload Page"
-        >
-          <RefreshIcon style={{ color: theme.colors.neutralLight }} />
-        </button>
-
-        {/* Profile Section */}
         <div ref={dropdownRef} className="ml-4 relative">
           <button
             onClick={toggleDropdown}
@@ -152,6 +143,16 @@ function Topbar() {
                 border: `1px solid ${theme.colors.tertiaryLight}`,
               }}
             >
+              {/* Reload */}
+              <button
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                style={{ color: theme.colors.primary }}
+              >
+                <RefreshIcon fontSize="small" />
+                Reload
+              </button>
+
               {/* My Profile */}
               <NavLink
                 to="/members"
@@ -170,7 +171,8 @@ function Topbar() {
                 style={{ color: theme.colors.primary }}
                 onClick={() => setIsDropdownOpen(false)}
               >
-                👥 All Members
+                <GroupIcon fontSize="small" />
+                All Members
               </NavLink>
 
               <div className="border-t border-gray-200 my-2"></div>
