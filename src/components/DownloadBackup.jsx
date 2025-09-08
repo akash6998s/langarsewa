@@ -8,7 +8,8 @@ import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
-import DownloadDoneIcon from "@mui/icons-material/DownloadDone";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 const collections = [
   "expenses",
@@ -36,22 +37,22 @@ const DownloadBackup = () => {
     return `${day}-${month}-${year}_${hours}-${minutes}-${seconds}`;
   };
 
-  const downloadCollection = async (collectionName) => {
+  const downloadCollection = async (collectionName, returnDataOnly = false) => {
     setError(null);
     try {
-      setDownloading(true);
       const querySnapshot = await getDocs(collection(db, collectionName));
       const data = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
 
-      if (data.length === 0) {
-        alert(`No data found in collection: ${collectionName}`);
-        setDownloading(false);
-        return;
+      if (data.length === 0) return null;
+
+      if (returnDataOnly) {
+        return { name: collectionName, data };
       }
 
+      // Normal single download
       const jsonStr = JSON.stringify(data, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -69,8 +70,6 @@ const DownloadBackup = () => {
     } catch (err) {
       console.error("Error downloading collection:", err);
       setError(`Failed to download ${collectionName}: ${err.message}`);
-    } finally {
-      setDownloading(false);
     }
   };
 
@@ -78,10 +77,22 @@ const DownloadBackup = () => {
     setError(null);
     setDownloading(true);
     try {
+      const zip = new JSZip();
+
       for (const col of collections) {
-        await downloadCollection(col);
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        const result = await downloadCollection(col, true);
+        if (result) {
+          const timestamp = getTimestamp();
+          zip.file(
+            `${result.name}-${timestamp}.json`,
+            JSON.stringify(result.data, null, 2)
+          );
+        }
       }
+
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, `database-backup-${getTimestamp()}.zip`);
+
       setLastDownload(new Date());
     } catch (err) {
       console.error("Error downloading all collections:", err);

@@ -14,6 +14,15 @@ const Gallery = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [sortOrder, setSortOrder] = useState("desc"); // desc = newest first
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Check admin from localStorage
+    const loggedInMember = JSON.parse(localStorage.getItem("loggedInMember"));
+    if (loggedInMember?.isAdmin) {
+      setIsAdmin(true);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -119,41 +128,46 @@ const Gallery = () => {
               <FilterListIcon />
             </button>
 
-            {!selectionMode ? (
-              <button
-                onClick={() => setSelectionMode(true)}
-                className="px-4 py-2 rounded-full font-semibold text-white shadow-sm"
-                style={{ background: theme.colors.primary }}
-                disabled={deleting}
-              >
-                Select
-              </button>
-            ) : (
-              <div className="flex gap-2 w-full justify-between">
-                <button
-                  onClick={handleDeleteSelected}
-                  disabled={selectedImages.length === 0 || deleting}
-                  className={`flex-1 px-4 py-2 rounded-full font-semibold text-white shadow-sm transition ${
-                    selectedImages.length === 0
-                      ? "cursor-not-allowed opacity-50"
-                      : "hover:scale-105"
-                  }`}
-                  style={{ background: theme.colors.danger }}
-                >
-                  Delete ({selectedImages.length})
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectionMode(false);
-                    setSelectedImages([]);
-                  }}
-                  className="flex-1 px-4 py-2 rounded-full font-semibold text-white shadow-sm hover:scale-105 transition"
-                  style={{ background: theme.colors.neutralDark }}
-                  disabled={deleting}
-                >
-                  Cancel
-                </button>
-              </div>
+            {/* Only show Select/Delete if Admin */}
+            {isAdmin && (
+              <>
+                {!selectionMode ? (
+                  <button
+                    onClick={() => setSelectionMode(true)}
+                    className="px-4 py-2 rounded-full font-semibold text-white shadow-sm"
+                    style={{ background: theme.colors.primary }}
+                    disabled={deleting}
+                  >
+                    Select
+                  </button>
+                ) : (
+                  <div className="flex gap-2 w-full justify-between">
+                    <button
+                      onClick={handleDeleteSelected}
+                      disabled={selectedImages.length === 0 || deleting}
+                      className={`flex-1 px-4 py-2 rounded-full font-semibold text-white shadow-sm transition ${
+                        selectedImages.length === 0
+                          ? "cursor-not-allowed opacity-50"
+                          : "hover:scale-105"
+                      }`}
+                      style={{ background: theme.colors.danger }}
+                    >
+                      Delete ({selectedImages.length})
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectionMode(false);
+                        setSelectedImages([]);
+                      }}
+                      className="flex-1 px-4 py-2 rounded-full font-semibold text-white shadow-sm hover:scale-105 transition"
+                      style={{ background: theme.colors.neutralDark }}
+                      disabled={deleting}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -178,7 +192,7 @@ const Gallery = () => {
                       else setZoomImage(img.url);
                     }}
                   />
-                  {selectionMode && (
+                  {selectionMode && isAdmin && (
                     <input
                       type="checkbox"
                       checked={selectedImages.includes(img.id)}
