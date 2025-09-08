@@ -2,12 +2,11 @@ import React, { useState } from "react";
 import { db } from "../firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { theme } from "../theme";
-import Loader from "./Loader";
+import Loader from "./Loader"; // Import the Loader component
 
 const UploadImages = () => {
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [selectionMode, setSelectionMode] = useState(false);
 
   const IMGBB_API_KEY = "e148d01d1cec46756d464136ea36ca3e"; // 🔑 Replace with your key
 
@@ -52,163 +51,110 @@ const UploadImages = () => {
     try {
       await Promise.all(uploadPromises);
       alert("Images uploaded successfully!");
-      setImages([]);
     } catch (error) {
       console.error("Upload error:", error);
       alert("An error occurred during upload. Please try again.");
     } finally {
       setUploading(false);
+      setImages([]);
     }
   };
 
   return (
     <>
       {uploading && <Loader />}
-
       <div
-        className="pt-24 p-6 min-h-screen"
+        className="flex items-center justify-center pt-12"
         style={{
           background: theme.colors.background,
           fontFamily: theme.fonts.body,
         }}
       >
-        <div className="max-w-4xl mx-auto">
-          {/* Top action bar */}
-          <div className="flex justify-between items-center mb-6">
-            {/* Left side: Filter icon */}
-            <button
-              className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition"
-              style={{ background: theme.colors.neutralLight, color: theme.colors.primary }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2l-7 8v5l-4 2v-7L3 6V4z" />
-              </svg>
-              Filter
-            </button>
-
-            {/* Right side: Select, Delete, Cancel */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setSelectionMode(!selectionMode)}
-                className="px-4 py-2 rounded-lg shadow-sm font-semibold transition hover:shadow-md"
-                style={{
-                  background: theme.colors.primary,
-                  color: theme.colors.neutralLight,
-                }}
-              >
-                {selectionMode ? "Cancel" : "Select"}
-              </button>
-
-              {selectionMode && (
-                <button
-                  className="px-4 py-2 rounded-lg shadow-sm font-semibold transition hover:shadow-md"
-                  style={{
-                    background: theme.colors.secondary,
-                    color: theme.colors.neutralLight,
-                  }}
-                >
-                  Delete
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Upload Card */}
-          <div
-            className="w-full shadow-2xl rounded-2xl p-8 border"
+        <div
+          className="w-full max-w-xl shadow-2xl rounded-2xl p-8 border"
+          style={{
+            background: theme.colors.neutralLight,
+            borderColor: theme.colors.tertiaryLight,
+          }}
+        >
+          <h2
+            className="text-2xl font-extrabold mb-6 text-center"
             style={{
-              background: theme.colors.neutralLight,
-              borderColor: theme.colors.tertiaryLight,
+              color: theme.colors.neutralDark,
+              fontFamily: theme.fonts.heading,
             }}
           >
-            <h2
-              className="text-2xl font-extrabold mb-6 text-center"
-              style={{
-                color: theme.colors.neutralDark,
-                fontFamily: theme.fonts.heading,
-              }}
-            >
-              Upload Your Images
-            </h2>
+            Upload Your Images
+          </h2>
 
-            {/* Custom select button */}
-            <label
-              className="flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-xl cursor-pointer transition hover:bg-primaryLight"
-              style={{
-                borderColor: theme.colors.primaryLight,
-                color: theme.colors.primary,
-              }}
+          <label
+            className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-xl cursor-pointer transition"
+            style={{
+              borderColor: theme.colors.primaryLight,
+              color: theme.colors.primary,
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-10 h-10 mb-3"
+              style={{ color: theme.colors.secondary }}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-12 h-12 mb-3"
-                style={{ color: theme.colors.secondary }}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9"
-                />
-              </svg>
-              <span className="font-medium text-lg">Click to select images</span>
-              <input
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                className="hidden"
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9"
               />
-            </label>
+            </svg>
+            <span className="font-medium">Click to select images</span>
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </label>
 
-            {/* Image previews */}
-            {images.length > 0 && (
-              <div
-                className="mt-6 max-h-40 overflow-x-auto overflow-y-hidden whitespace-nowrap border rounded-lg p-3 flex gap-3"
-                style={{
-                  borderColor: theme.colors.tertiaryLight,
-                }}
-              >
-                {images.map((img, index) => (
-                  <div
-                    key={index}
-                    className="relative w-28 flex-shrink-0 rounded-lg overflow-hidden border shadow-sm"
-                    style={{
-                      borderColor: theme.colors.secondaryLight,
-                      background: theme.colors.tertiaryLight,
-                    }}
-                  >
-                    <img
-                      src={URL.createObjectURL(img)}
-                      alt="preview"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <button
-              onClick={handleUpload}
-              disabled={uploading || images.length === 0}
-              className="mt-6 w-full py-3 px-6 text-white font-semibold rounded-xl shadow-lg transform hover:scale-[1.02] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          {images.length > 0 && (
+            <div
+              className="mt-6 max-h-40 overflow-x-auto overflow-y-hidden whitespace-nowrap border rounded-lg p-3 flex gap-3"
               style={{
-                background: theme.colors.primary,
-                fontFamily: theme.fonts.body,
+                borderColor: theme.colors.tertiaryLight,
               }}
             >
-              {uploading ? "Uploading..." : "Upload"}
-            </button>
-          </div>
+              {images.map((img, index) => (
+                <div
+                  key={index}
+                  className="relative w-28 flex-shrink-0 rounded-lg overflow-hidden border shadow-sm"
+                  style={{
+                    borderColor: theme.colors.secondaryLight,
+                    background: theme.colors.tertiaryLight,
+                  }}
+                >
+                  <img
+                    src={URL.createObjectURL(img)}
+                    alt="preview"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={handleUpload}
+            disabled={uploading || images.length === 0}
+            className="mt-6 w-full py-3 px-6 text-white font-semibold rounded-xl shadow-lg transform hover:scale-[1.02] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{
+              background: theme.colors.primary,
+              fontFamily: theme.fonts.body,
+            }}
+          >
+            {uploading ? "Uploading..." : "Upload"}
+          </button>
         </div>
       </div>
     </>
