@@ -11,7 +11,16 @@ const UploadImages = () => {
   const IMGBB_API_KEY = "e148d01d1cec46756d464136ea36ca3e"; // 🔑 Replace with your key
 
   const handleFileChange = (e) => {
-    setImages((prev) => [...prev, ...Array.from(e.target.files)]);
+    const validTypes = ["image/png", "image/jpeg", "image/jpg"];
+    const selectedFiles = Array.from(e.target.files).filter((file) =>
+      validTypes.includes(file.type)
+    );
+
+    if (selectedFiles.length !== e.target.files.length) {
+      alert("Only PNG, JPG, and JPEG files are allowed!");
+    }
+
+    setImages((prev) => [...prev, ...selectedFiles]);
   };
 
   const handleUpload = async () => {
@@ -113,6 +122,7 @@ const UploadImages = () => {
             <input
               type="file"
               multiple
+              accept=".png,.jpg,.jpeg"
               onChange={handleFileChange}
               className="hidden"
             />
