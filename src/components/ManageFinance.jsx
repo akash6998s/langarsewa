@@ -858,18 +858,19 @@ export default function ManageFinance() {
                   </th>
                   <th
                     scope="col"
-                    className="px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider overflow-hidden min-w-[250px] w-full"
-                    style={{ color: theme.colors.primary }}
-                  >
-                    Description
-                  </th>
-                  <th
-                    scope="col"
                     className="px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider overflow-hidden min-w-[100px] w-[100px]"
                     style={{ color: theme.colors.primary }}
                   >
                     Amount (₹)
                   </th>
+                  <th
+                    scope="col"
+                    className="px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider overflow-hidden min-w-[250px] w-full"
+                    style={{ color: theme.colors.primary }}
+                  >
+                    Description
+                  </th>
+                  
                 </tr>
               </thead>
               <tbody
@@ -907,6 +908,12 @@ export default function ManageFinance() {
                         {e.month}
                       </td>
                       <td
+                        className="px-2 py-2 font-bold overflow-hidden whitespace-nowrap align-top"
+                        style={{ color: theme.colors.danger }}
+                      >
+                        {e.amount}
+                      </td>
+                      <td
                         className="px-2 py-2 font-medium overflow-hidden align-top"
                         style={{
                           color: theme.colors.primary,
@@ -915,12 +922,7 @@ export default function ManageFinance() {
                       >
                         {e.description}
                       </td>
-                      <td
-                        className="px-2 py-2 font-bold overflow-hidden whitespace-nowrap align-top"
-                        style={{ color: theme.colors.danger }}
-                      >
-                        {e.amount}
-                      </td>
+                      
                     </tr>
                   ))
                 ) : (

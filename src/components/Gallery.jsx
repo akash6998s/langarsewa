@@ -1,27 +1,35 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { db } from "../firebase";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import Topbar from "./Topbar";
 import Loader from "./Loader";
 import { theme } from "../theme";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import CloseIcon from "@mui/icons-material/Close";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 const Gallery = () => {
   const [uploadedData, setUploadedData] = useState([]);
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectionMode, setSelectionMode] = useState(false);
-  const [zoomImage, setZoomImage] = useState(null);
+  const [zoomIndex, setZoomIndex] = useState(null); // use index for navigation
   const [isLoading, setIsLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
-  const [sortOrder, setSortOrder] = useState("desc"); // desc = newest first
+  const [sortOrder, setSortOrder] = useState("desc");
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // State for touch events
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  const zoomImage = zoomIndex !== null ? uploadedData[zoomIndex]?.url : null;
+
   useEffect(() => {
-    // Check admin from localStorage
     const loggedInMember = JSON.parse(localStorage.getItem("loggedInMember"));
-    if (loggedInMember?.isAdmin) {
-      setIsAdmin(true);
-    }
+    if (loggedInMember?.isAdmin) setIsAdmin(true);
   }, []);
 
   useEffect(() => {
@@ -38,9 +46,10 @@ const Gallery = () => {
       }
     };
 
+    // Ensure loader is shown for a minimum of 3 seconds
     Promise.all([
       fetchImages(),
-      new Promise((resolve) => setTimeout(resolve, 1000)),
+      new Promise((resolve) => setTimeout(resolve, 3000)), // 3-second delay
     ]).then(() => setIsLoading(false));
   }, [sortOrder]);
 
@@ -87,28 +96,84 @@ const Gallery = () => {
     }
   };
 
-  useEffect(() => {
-    const handleBackButton = (event) => {
-      if (zoomImage) {
-        event.preventDefault();
-        setZoomImage(null);
+  const handleDownload = async () => {
+    if (!zoomImage) return;
+    try {
+      const response = await fetch(zoomImage);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "image.jpg");
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      console.error("Download error:", error);
+    }
+  };
+
+  const handleShare = async () => {
+    if (navigator.share && zoomImage) {
+      try {
+        await navigator.share({
+          title: "Image from Gallery",
+          text: "Check out this image from the gallery!",
+          url: zoomImage,
+        });
+      } catch (error) {
+        console.error("Share error:", error);
       }
-    };
-    window.addEventListener("popstate", handleBackButton);
-    return () => window.removeEventListener("popstate", handleBackButton);
-  }, [zoomImage]);
+    } else {
+      alert("Share functionality not supported in this browser.");
+    }
+  };
+
+  // Navigation: Left / Right keys + scroll/swipe
+  const showPrevImage = useCallback(() => {
+    setZoomIndex((prev) => (prev > 0 ? prev - 1 : uploadedData.length - 1));
+  }, [uploadedData.length]);
+
+  const showNextImage = useCallback(() => {
+    setZoomIndex((prev) => (prev < uploadedData.length - 1 ? prev + 1 : 0));
+  }, [uploadedData.length]);
 
   useEffect(() => {
-    if (zoomImage) {
-      window.history.pushState({ zoom: true }, "");
+    const handleKeyDown = (e) => {
+      if (!zoomImage) return;
+      if (e.key === "ArrowLeft") showPrevImage();
+      if (e.key === "ArrowRight") showNextImage();
+      if (e.key === "Escape") setZoomIndex(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [zoomImage, showPrevImage, showNextImage]);
+
+  // Touch handlers for swipe navigation
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    // Check if the swipe is significant
+    if (touchStart - touchEnd > 50) {
+      // Swiped left
+      showNextImage();
     }
-  }, [zoomImage]);
+    if (touchStart - touchEnd < -50) {
+      // Swiped right
+      showPrevImage();
+    }
+  };
 
   return (
     <>
       {(isLoading || deleting) && <Loader />}
       <Topbar />
-
       <div
         className="flex flex-col py-12 font-[Inter,sans-serif]"
         style={{
@@ -119,7 +184,6 @@ const Gallery = () => {
         <div className="max-w-md mx-auto w-full">
           {/* Action Bar */}
           <div className="flex justify-between items-center px-4 py-2">
-            {/* Filter Icon */}
             <button
               onClick={toggleSortOrder}
               className="p-2 rounded-full hover:bg-gray-200 transition"
@@ -127,8 +191,6 @@ const Gallery = () => {
             >
               <FilterListIcon />
             </button>
-
-            {/* Only show Select/Delete if Admin */}
             {isAdmin && (
               <>
                 {!selectionMode ? (
@@ -174,7 +236,7 @@ const Gallery = () => {
           {/* Gallery Grid */}
           {uploadedData.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 p-2 mt-2">
-              {uploadedData.map((img) => (
+              {uploadedData.map((img, index) => (
                 <div
                   key={img.id}
                   className={`relative rounded-xl overflow-hidden transition-all shadow-md ${
@@ -189,7 +251,7 @@ const Gallery = () => {
                     className="w-full h-40 object-cover rounded-xl cursor-pointer"
                     onClick={() => {
                       if (selectionMode) handleSelect(img.id);
-                      else setZoomImage(img.url);
+                      else setZoomIndex(index);
                     }}
                   />
                   {selectionMode && isAdmin && (
@@ -213,18 +275,62 @@ const Gallery = () => {
           {zoomImage && (
             <div
               className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[10000] p-2"
-              onClick={() => setZoomImage(null)}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
-              <button
-                className="absolute top-4 right-4 text-white text-3xl font-bold rounded-full w-12 h-12 flex items-center justify-center bg-gray-900 bg-opacity-80 hover:bg-opacity-100 transition"
-              >
-                ✕
-              </button>
-              <img
-                src={zoomImage}
-                alt="Zoomed"
-                className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
-              />
+              <div className="relative w-full h-full flex items-center justify-center">
+                {/* Left (Download & Share) */}
+                <div className="absolute top-4 left-4 flex items-center gap-3">
+                  <button
+                    onClick={handleDownload}
+                    className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition-transform"
+                    title="Download"
+                  >
+                    <FileDownloadOutlinedIcon />
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition-transform"
+                    title="Share"
+                  >
+                    <ShareOutlinedIcon />
+                  </button>
+                </div>
+
+                {/* Right (Close) */}
+                <div className="absolute top-4 right-4">
+                  <button
+                    onClick={() => setZoomIndex(null)}
+                    className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition-transform"
+                    title="Close"
+                  >
+                    <CloseIcon />
+                  </button>
+                </div>
+
+                {/* Navigation Arrows (visible on desktop) */}
+                <button
+                  onClick={showPrevImage}
+                  className="absolute left-4 text-white bg-black bg-opacity-40 p-2 rounded-full hover:bg-opacity-70 hidden md:block"
+                >
+                  <ArrowBackIosNewIcon />
+                </button>
+                <button
+                  onClick={showNextImage}
+                  className="absolute right-4 text-white bg-black bg-opacity-40 p-2 rounded-full hover:bg-opacity-70 hidden md:block"
+                >
+                  <ArrowForwardIosIcon />
+                </button>
+
+                {/* The Image */}
+                <img
+                  src={zoomImage}
+                  alt="Zoomed"
+                  className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl transition-all"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
             </div>
           )}
         </div>
