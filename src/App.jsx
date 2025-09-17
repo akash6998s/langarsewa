@@ -53,6 +53,19 @@ function AppRoutes() {
 
   const location = useLocation();
 
+  useEffect(() => {
+    // Check if the page has been reloaded in this session
+    const hasReloaded = sessionStorage.getItem("hasReloaded");
+
+    if (!hasReloaded) {
+      // Set the flag in sessionStorage to prevent an infinite loop
+      sessionStorage.setItem("hasReloaded", "true");
+
+      // Reload the page
+      window.location.reload();
+    }
+  }, []); // The empty dependency array ensures this runs only once on mount
+
   // Effect for splash screen timeout
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 3000);
