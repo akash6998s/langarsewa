@@ -4,6 +4,7 @@ import { theme } from "../theme";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import LogoutIcon from "@mui/icons-material/Logout";
 import GroupIcon from "@mui/icons-material/Group";
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 
 function Topbar() {
@@ -174,6 +175,17 @@ function Topbar() {
                 <GroupIcon fontSize="small" />
                 All Members
               </NavLink>
+
+              {/* All Members */}
+              <NavLink
+  to="/updatedlist"
+  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+  style={{ color: theme.colors.primary }}
+  onClick={() => setIsDropdownOpen(false)}
+>
+  <PersonAddAltIcon fontSize="small" />
+  Updated Details
+</NavLink>
 
               <div className="border-t border-gray-200 my-2"></div>
 

@@ -15,15 +15,15 @@ const Gallery = () => {
   const [uploadedData, setUploadedData] = useState([]);
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectionMode, setSelectionMode] = useState(false);
-  const [zoomIndex, setZoomIndex] = useState(null); // use index for navigation
+  const [zoomIndex, setZoomIndex] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [sortOrder, setSortOrder] = useState("desc");
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // State for touch events
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  // States for enhanced touch-based sliding
+  const [initialTouchX, setInitialTouchX] = useState(0);
+  const [slideOffset, setSlideOffset] = useState(0);
 
   const zoomImage = zoomIndex !== null ? uploadedData[zoomIndex]?.url : null;
 
@@ -46,10 +46,9 @@ const Gallery = () => {
       }
     };
 
-    // Ensure loader is shown for a minimum of 3 seconds
     Promise.all([
       fetchImages(),
-      new Promise((resolve) => setTimeout(resolve, 3000)), // 3-second delay
+      new Promise((resolve) => setTimeout(resolve, 2000)),
     ]).then(() => setIsLoading(false));
   }, [sortOrder]);
 
@@ -104,7 +103,18 @@ const Gallery = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "image.jpg");
+
+      // Create a timestamp for the filename
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = String(now.getFullYear()).slice(-2);
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const timestamp = `${day}-${month}-${year}-${seconds}`;
+      
+      // Set the filename
+      link.setAttribute("download", `image-${timestamp}.jpg`);
+      
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
@@ -129,7 +139,6 @@ const Gallery = () => {
     }
   };
 
-  // Navigation: Left / Right keys + scroll/swipe
   const showPrevImage = useCallback(() => {
     setZoomIndex((prev) => (prev > 0 ? prev - 1 : uploadedData.length - 1));
   }, [uploadedData.length]);
@@ -149,25 +158,22 @@ const Gallery = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [zoomImage, showPrevImage, showNextImage]);
 
-  // Touch handlers for swipe navigation
   const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
+    setInitialTouchX(e.targetTouches[0].clientX);
   };
 
   const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    const currentTouchX = e.targetTouches[0].clientX;
+    setSlideOffset(currentTouchX - initialTouchX);
   };
 
   const handleTouchEnd = () => {
-    // Check if the swipe is significant
-    if (touchStart - touchEnd > 50) {
-      // Swiped left
+    if (slideOffset > 50) {
+      showPrevImage();
+    } else if (slideOffset < -50) {
       showNextImage();
     }
-    if (touchStart - touchEnd < -50) {
-      // Swiped right
-      showPrevImage();
-    }
+    setSlideOffset(0);
   };
 
   return (
@@ -323,12 +329,16 @@ const Gallery = () => {
                   <ArrowForwardIosIcon />
                 </button>
 
-                {/* The Image */}
+                {/* The Image with zoom and touch-only slide */}
                 <img
+                  key={zoomIndex}
                   src={zoomImage}
                   alt="Zoomed"
-                  className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl transition-all"
-                  onClick={(e) => e.stopPropagation()}
+                  className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-in-out cursor-zoom-in"
+                  style={{ transform: `translateX(${slideOffset}px)` }}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevents click from triggering slide
+                  }}
                 />
               </div>
             </div>

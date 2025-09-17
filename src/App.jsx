@@ -31,6 +31,7 @@ import TeamPerformance from "./components/TeamPerformance";
 import UploadImages from "./components/UploadImages";
 import Gallery from "./components/Gallery";
 import LastUpdate from "./components/LastUpdate";
+import UpdatedList from "./components/UpdatedList";
 
 // Global variables for Firebase config and app ID
 const firebaseConfig =
@@ -170,6 +171,7 @@ function AppRoutes() {
           <Route path="/uploadimages" element={<UploadImages />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/lastupdate" element={<LastUpdate />} />
+          <Route path="/updatedlist" element={<UpdatedList />} />
         </Routes>
       </div>
 
