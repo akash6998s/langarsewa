@@ -21,7 +21,7 @@ const Gallery = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // States for enhanced touch-based sliding
+  // Touch slide states
   const [initialTouchX, setInitialTouchX] = useState(0);
   const [slideOffset, setSlideOffset] = useState(0);
 
@@ -104,17 +104,14 @@ const Gallery = () => {
       const link = document.createElement("a");
       link.href = url;
 
-      // Create a timestamp for the filename
       const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, "0");
+      const month = String(now.getMonth() + 1).padStart(2, "0");
       const year = String(now.getFullYear()).slice(-2);
-      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, "0");
       const timestamp = `${day}-${month}-${year}-${seconds}`;
-      
-      // Set the filename
+
       link.setAttribute("download", `image-${timestamp}.jpg`);
-      
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
@@ -126,16 +123,21 @@ const Gallery = () => {
   const handleShare = async () => {
     if (navigator.share && zoomImage) {
       try {
+        const response = await fetch(zoomImage);
+        const blob = await response.blob();
+        const file = new File([blob], "image.jpg", { type: blob.type });
+
         await navigator.share({
+          files: [file],
           title: "Image from Gallery",
           text: "Check out this image from the gallery!",
-          url: zoomImage,
         });
       } catch (error) {
         console.error("Share error:", error);
+        alert("Share functionality failed. Please try again.");
       }
     } else {
-      alert("Share functionality not supported in this browser.");
+      alert("Share functionality is not supported in this browser.");
     }
   };
 
@@ -180,40 +182,39 @@ const Gallery = () => {
     <>
       {(isLoading || deleting) && <Loader />}
       <Topbar />
+
       <div
         className="flex flex-col py-12 font-[Inter,sans-serif]"
-        style={{
-          background: theme.colors.background,
-          fontFamily: theme.fonts.body,
-        }}
+        style={{ background: theme.colors.background }}
       >
-        <div className="max-w-md mx-auto w-full">
-          {/* Action Bar */}
-          <div className="flex justify-between items-center px-4 py-2">
+        {/* Action Bar */}
+        <div className="bg-white border-b border-gray-200 px-4 py-3">
+          <div className="flex justify-between items-center">
             <button
               onClick={toggleSortOrder}
-              className="p-2 rounded-full hover:bg-gray-200 transition"
+              className="p-2 rounded-full hover:bg-gray-100 transition"
               title={`Sort ${sortOrder === "asc" ? "Oldest First" : "Newest First"}`}
             >
               <FilterListIcon />
             </button>
+
             {isAdmin && (
               <>
                 {!selectionMode ? (
                   <button
                     onClick={() => setSelectionMode(true)}
-                    className="px-4 py-2 rounded-full font-semibold text-white shadow-sm"
+                    className="px-4 py-2 rounded-full font-medium text-white shadow-sm"
                     style={{ background: theme.colors.primary }}
                     disabled={deleting}
                   >
                     Select
                   </button>
                 ) : (
-                  <div className="flex gap-2 w-full justify-between">
+                  <div className="flex gap-2">
                     <button
                       onClick={handleDeleteSelected}
                       disabled={selectedImages.length === 0 || deleting}
-                      className={`flex-1 px-4 py-2 rounded-full font-semibold text-white shadow-sm transition ${
+                      className={`px-4 py-2 rounded-full font-medium text-white shadow-sm transition ${
                         selectedImages.length === 0
                           ? "cursor-not-allowed opacity-50"
                           : "hover:scale-105"
@@ -227,7 +228,7 @@ const Gallery = () => {
                         setSelectionMode(false);
                         setSelectedImages([]);
                       }}
-                      className="flex-1 px-4 py-2 rounded-full font-semibold text-white shadow-sm hover:scale-105 transition"
+                      className="px-4 py-2 rounded-full font-medium text-white shadow-sm hover:scale-105 transition"
                       style={{ background: theme.colors.neutralDark }}
                       disabled={deleting}
                     >
@@ -238,23 +239,25 @@ const Gallery = () => {
               </>
             )}
           </div>
+        </div>
 
-          {/* Gallery Grid */}
+        {/* Gallery Grid */}
+        <div className="flex-1">
           {uploadedData.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 p-2 mt-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1 p-1">
               {uploadedData.map((img, index) => (
                 <div
                   key={img.id}
-                  className={`relative rounded-xl overflow-hidden transition-all shadow-md ${
+                  className={`relative overflow-hidden rounded-lg transition-all ${
                     selectedImages.includes(img.id)
                       ? "ring-4 ring-blue-500"
-                      : "hover:scale-105"
+                      : "hover:opacity-90"
                   }`}
                 >
                   <img
                     src={img.thumb}
                     alt="uploaded"
-                    className="w-full h-40 object-cover rounded-xl cursor-pointer"
+                    className="w-full h-28 sm:h-32 md:h-36 object-cover cursor-pointer"
                     onClick={() => {
                       if (selectionMode) handleSelect(img.id);
                       else setZoomIndex(index);
@@ -272,78 +275,73 @@ const Gallery = () => {
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-600 mt-10">
+            <p className="text-center text-gray-500 mt-20">
               No images uploaded yet.
             </p>
           )}
-
-          {/* Zoom Modal */}
-          {zoomImage && (
-            <div
-              className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[10000] p-2"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            >
-              <div className="relative w-full h-full flex items-center justify-center">
-                {/* Left (Download & Share) */}
-                <div className="absolute top-4 left-4 flex items-center gap-3">
-                  <button
-                    onClick={handleDownload}
-                    className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition-transform"
-                    title="Download"
-                  >
-                    <FileDownloadOutlinedIcon />
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition-transform"
-                    title="Share"
-                  >
-                    <ShareOutlinedIcon />
-                  </button>
-                </div>
-
-                {/* Right (Close) */}
-                <div className="absolute top-4 right-4">
-                  <button
-                    onClick={() => setZoomIndex(null)}
-                    className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition-transform"
-                    title="Close"
-                  >
-                    <CloseIcon />
-                  </button>
-                </div>
-
-                {/* Navigation Arrows (visible on desktop) */}
-                <button
-                  onClick={showPrevImage}
-                  className="absolute left-4 text-white bg-black bg-opacity-40 p-2 rounded-full hover:bg-opacity-70 hidden md:block"
-                >
-                  <ArrowBackIosNewIcon />
-                </button>
-                <button
-                  onClick={showNextImage}
-                  className="absolute right-4 text-white bg-black bg-opacity-40 p-2 rounded-full hover:bg-opacity-70 hidden md:block"
-                >
-                  <ArrowForwardIosIcon />
-                </button>
-
-                {/* The Image with zoom and touch-only slide */}
-                <img
-                  key={zoomIndex}
-                  src={zoomImage}
-                  alt="Zoomed"
-                  className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-in-out cursor-zoom-in"
-                  style={{ transform: `translateX(${slideOffset}px)` }}
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevents click from triggering slide
-                  }}
-                />
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Zoom Modal */}
+        {zoomImage && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[10000] p-2"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div className="relative w-full h-full flex items-center justify-center">
+              {/* Top Buttons */}
+              <div className="absolute top-4 left-4 flex items-center gap-3">
+                <button
+                  onClick={handleDownload}
+                  className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition"
+                  title="Download"
+                >
+                  <FileDownloadOutlinedIcon />
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition"
+                  title="Share"
+                >
+                  <ShareOutlinedIcon />
+                </button>
+              </div>
+              <div className="absolute top-4 right-4">
+                <button
+                  onClick={() => setZoomIndex(null)}
+                  className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition"
+                  title="Close"
+                >
+                  <CloseIcon />
+                </button>
+              </div>
+
+              {/* Navigation Arrows (Desktop only) */}
+              <button
+                onClick={showPrevImage}
+                className="absolute left-4 text-white bg-black/50 p-2 rounded-full hover:bg-black/70 hidden md:block"
+              >
+                <ArrowBackIosNewIcon />
+              </button>
+              <button
+                onClick={showNextImage}
+                className="absolute right-4 text-white bg-black/50 p-2 rounded-full hover:bg-black/70 hidden md:block"
+              >
+                <ArrowForwardIosIcon />
+              </button>
+
+              {/* Zoomed Image */}
+              <img
+                key={zoomIndex}
+                src={zoomImage}
+                alt="Zoomed"
+                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-in-out"
+                style={{ transform: `translateX(${slideOffset}px)` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

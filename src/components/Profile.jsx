@@ -29,46 +29,40 @@ const Profile = () => {
       setPopupMessage(null);
 
       const minLoadPromise = new Promise((resolve) =>
-        setTimeout(resolve, 1500)
+        setTimeout(resolve, 1200)
       );
 
       try {
         const storedMember = localStorage.getItem("loggedInMember");
 
         if (storedMember) {
-          try {
-            const parsedMember = JSON.parse(storedMember);
-            setMember(parsedMember);
+          const parsedMember = JSON.parse(storedMember);
+          setMember(parsedMember);
 
-            let foundImageUrl = null;
-            if (parsedMember.roll_no) {
-              for (let ext of supportedExtensions) {
-                const url = `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${parsedMember.roll_no}.${ext}`;
-                if (await checkImageExists(url)) {
-                  foundImageUrl = url;
-                  break;
-                }
+          let foundImageUrl = null;
+          if (parsedMember.roll_no) {
+            for (let ext of supportedExtensions) {
+              const url = `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${parsedMember.roll_no}.${ext}`;
+              if (await checkImageExists(url)) {
+                foundImageUrl = url;
+                break;
               }
             }
+          }
+          setImageUrl(foundImageUrl || null);
 
-            setImageUrl(foundImageUrl || null);
-            if (!foundImageUrl) {
-              setPopupMessage(
-                "Profile image not found. Displaying placeholder."
-              );
-              setPopupType("info");
-            }
-          } catch (error) {
-            console.error("Error parsing member data:", error);
-            setPopupMessage(
-              "Failed to load profile data. Please log in again."
-            );
-            setPopupType("error");
+          if (!foundImageUrl) {
+            setPopupMessage("Profile image not found. Displaying placeholder.");
+            setPopupType("info");
           }
         } else {
           setPopupMessage("No profile data found. Please log in.");
           setPopupType("error");
         }
+      } catch (error) {
+        console.error("Error parsing member data:", error);
+        setPopupMessage("Failed to load profile data. Please log in again.");
+        setPopupType("error");
       } finally {
         await minLoadPromise;
         setIsLoading(false);
@@ -116,7 +110,7 @@ const Profile = () => {
     <>
       <Topbar />
       <div
-        className="min-h-screen pt-24 font-[Inter,sans-serif] pt-4"
+        className="min-h-screen font-[Inter,sans-serif] py-20 px-4 md:px-8"
         style={{ background: theme.colors.background }}
       >
         <LoadData />
@@ -129,12 +123,15 @@ const Profile = () => {
           />
         )}
 
-        <div className="flex justify-center px-4 py-2">
+        <div className="flex justify-center">
           <div
-            className="w-full max-w-md bg-white rounded-2xl shadow-lg border transform transition-all duration-500 hover:shadow-xl animate-fadeIn"
+            className="w-full max-w-lg bg-white rounded-2xl shadow-lg border animate-fadeIn"
             style={{ borderColor: theme.colors.primaryLight }}
           >
-            <div className="flex flex-col items-center py-8 px-6">
+            {/* Profile Header */}
+            <div className="flex flex-col items-center py-10 px-6 border-b"
+              style={{ borderColor: theme.colors.primaryLight }}
+            >
               {imageUrl ? (
                 <img
                   src={imageUrl}
@@ -153,38 +150,38 @@ const Profile = () => {
                   {(member.name || "N/A").charAt(0).toUpperCase()}
                 </div>
               )}
-
+              <h2
+                className="mt-4 text-2xl font-bold"
+                style={{ color: theme.colors.neutralDark }}
+              >
+                {member.name} {member.last_name}
+              </h2>
               <p
-                className="mt-4 text-sm font-medium"
+                className="text-sm font-medium mt-1"
                 style={{ color: theme.colors.primary }}
               >
-                Roll No:
-                <span
-                  className="ml-1 font-semibold"
-                  style={{ color: theme.colors.neutralDark }}
-                >
-                  {member.roll_no}
-                </span>
+                Roll No:{" "}
+                <span className="font-semibold">{member.roll_no}</span>
               </p>
             </div>
 
-            <div className="px-6 pb-8 space-y-4">
+            {/* Profile Details */}
+            <div className="px-8 py-6 space-y-5">
               {[
-                { label: "Name", value: `${member.name} ${member.last_name}` },
                 { label: "Email", value: member.email },
                 { label: "Phone", value: member.phone_no },
                 { label: "Address", value: member.address },
               ].map((item, idx, arr) => (
                 <div
                   key={item.label}
-                  className={idx !== arr.length - 1 ? "pb-3 border-b" : ""}
+                  className={idx !== arr.length - 1 ? "pb-4 border-b" : ""}
                   style={{ borderColor: theme.colors.primaryLight }}
                 >
                   <span
                     className="block text-sm font-semibold mb-1"
                     style={{ color: theme.colors.primary }}
                   >
-                    {item.label}:
+                    {item.label}
                   </span>
                   <p
                     className="text-lg font-medium"
@@ -201,14 +198,14 @@ const Profile = () => {
         {/* Fade In Animation */}
         <style>
           {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out;
-          }
-        `}
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(20px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fadeIn {
+              animation: fadeIn 0.6s ease-out;
+            }
+          `}
         </style>
       </div>
     </>

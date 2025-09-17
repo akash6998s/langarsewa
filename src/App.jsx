@@ -32,6 +32,8 @@ import UploadImages from "./components/UploadImages";
 import Gallery from "./components/Gallery";
 import LastUpdate from "./components/LastUpdate";
 import UpdatedList from "./components/UpdatedList";
+import CreatePost from "./components/CreatePost";
+import Notify from "./components/Notify";
 
 // Global variables for Firebase config and app ID
 const firebaseConfig =
@@ -172,6 +174,8 @@ function AppRoutes() {
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/lastupdate" element={<LastUpdate />} />
           <Route path="/updatedlist" element={<UpdatedList />} />
+          <Route path="/createpost" element={<CreatePost />} />
+          <Route path="/notify" element={<Notify />} />
         </Routes>
       </div>
 

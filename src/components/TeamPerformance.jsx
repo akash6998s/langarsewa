@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import Loader from "./Loader";
-import { theme } from "../theme";
 import Topbar from "./Topbar";
 import { FaTrophy } from "react-icons/fa";
 import {
@@ -13,27 +12,29 @@ import {
   ResponsiveContainer,
   Label,
 } from "recharts";
+import { theme } from "../theme";
 
 const { colors, fonts } = theme;
 
-// Custom Tooltip for the Bar Chart
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div
-        className="p-3 rounded-lg shadow-lg"
+        className="p-3 rounded-xl shadow-lg border border-gray-300"
         style={{
           backgroundColor: colors.neutralLight,
-          border: `1px solid ${colors.primary}`,
           color: colors.neutralDark,
         }}
       >
         <p className="font-bold text-sm mb-1">{label}</p>
-        <p className="text-sm">
-          Total Days Present:{" "}
-          <span style={{ color: colors.primary }}>
+        <p className="text-xs text-gray-600">
+          <span
+            className="font-semibold text-sm"
+            style={{ color: colors.primary }}
+          >
             {payload[0].value}
-          </span>
+          </span>{" "}
+          Days Present
         </p>
       </div>
     );
@@ -47,13 +48,8 @@ const TeamPerformance = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [availableYears, setAvailableYears] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filterZero, setFilterZero] = useState(false);
-
-  const [showPopup, setShowPopup] = useState(false);
-  const [popupMessage, setPopupMessage] = useState("");
-
-  const [monthlyData, setMonthlyData] = useState([]);
   const [showGraphPopup, setShowGraphPopup] = useState(false);
+  const [showZeroPerformance, setShowZeroPerformance] = useState(false);
 
   const months = [
     "January",
@@ -70,18 +66,12 @@ const TeamPerformance = () => {
     "December",
   ];
 
-  const showCopyPopup = (message) => {
-    setPopupMessage(message);
-    setShowPopup(true);
-    setTimeout(() => {
-      setShowPopup(false);
-    }, 3000);
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        setIsLoading(true);
+        // Simulating a network delay
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         const storedData = localStorage.getItem("allMembers");
         if (storedData) {
           const parsedMembers = JSON.parse(storedData);
@@ -116,56 +106,34 @@ const TeamPerformance = () => {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (selectedYear && members.length > 0) {
-      const monthlyTotals = months.map((month) => ({
+  const monthlyData = selectedYear
+    ? months.map((month) => ({
         month,
-        totalAttendance: 0,
-      }));
-
-      members.forEach((member) => {
-        const yearAttendance = member.attendance?.[selectedYear];
-        if (yearAttendance) {
-          months.forEach((month, index) => {
-            const monthData = yearAttendance[month];
-            if (monthData) {
-              monthlyTotals[index].totalAttendance += monthData.length;
-            }
-          });
-        }
-      });
-      setMonthlyData(monthlyTotals);
-    } else {
-      setMonthlyData([]);
-    }
-  }, [members, selectedYear]);
+        totalAttendance: members.reduce((sum, member) => {
+          const monthData = member.attendance?.[selectedYear]?.[month];
+          return sum + (monthData ? monthData.length : 0);
+        }, 0),
+      }))
+    : [];
 
   const getDaysInMonth = (year, month) => {
     const monthIndex = months.indexOf(month);
-    if (monthIndex === -1) return 0;
-    return new Date(year, monthIndex + 1, 0).getDate();
+    return monthIndex !== -1 ? new Date(year, monthIndex + 1, 0).getDate() : 0;
   };
 
   const calculateAttendance = (member) => {
-    if (!member.attendance || !selectedYear || !selectedMonth) {
-      return { presentDays: 0, percentage: 0 };
-    }
-
-    const yearAttendance = member.attendance[selectedYear];
+    const yearAttendance = member.attendance?.[selectedYear];
     if (!yearAttendance) {
       return { presentDays: 0, percentage: 0 };
     }
-
     const monthData = yearAttendance[selectedMonth];
     const presentDays = monthData ? monthData.length : 0;
     const totalDaysInMonth = getDaysInMonth(selectedYear, selectedMonth);
     const percentage =
       totalDaysInMonth > 0 ? (presentDays / totalDaysInMonth) * 100 : 0;
-
     return { presentDays, percentage };
   };
 
@@ -179,32 +147,39 @@ const TeamPerformance = () => {
   );
 
   const rankedMembers = sortedMembers.reduce((acc, member, index) => {
-    if (index === 0) {
-      acc.push({ ...member, rank: 1 });
-    } else {
-      const prevMember = acc[acc.length - 1];
-      const rank =
-        member.percentage === prevMember.percentage
-          ? prevMember.rank
-          : prevMember.rank + 1;
-      acc.push({ ...member, rank });
-    }
+    const prevMember = acc.length > 0 ? acc[acc.length - 1] : null;
+    const rank =
+      prevMember && member.percentage === prevMember.percentage
+        ? prevMember.rank
+        : acc.length + 1;
+    acc.push({ ...member, rank });
     return acc;
   }, []);
 
-  const displayedMembers = filterZero
-    ? rankedMembers.filter((m) => m.presentDays === 0)
+  const filteredMembers = showZeroPerformance
+    ? rankedMembers.filter((member) => member.presentDays === 0)
     : rankedMembers;
 
-  const allMembersRankOne =
-    displayedMembers.length > 0 &&
-    displayedMembers.every((member) => member.rank === 1);
+  const handleCopyNames = async () => {
+    const namesToCopy = rankedMembers
+      .map((member) => `${member.name} ${member.last_name}`)
+      .join("\n");
+    try {
+      await navigator.clipboard.writeText(namesToCopy);
+      alert("Names copied to clipboard! ✅");
+    } catch (err) {
+      console.error("Failed to copy text:", err);
+      alert(
+        "Failed to copy names. This may be due to browser security settings. Please try again. ❌"
+      );
+    }
+  };
 
   return (
     <>
       <Topbar />
       <div
-        className="container pb-24 pt-24 mx-auto p-4 min-h-screen"
+        className="container mx-auto p-4 pt-24 pb-24 min-h-screen"
         style={{
           background: colors.background,
           fontFamily: fonts.body,
@@ -214,93 +189,91 @@ const TeamPerformance = () => {
         {isLoading ? (
           <Loader />
         ) : (
-          <>
-            <h2
-              className="text-3xl font-extrabold mb-4 text-center"
-              style={{ fontFamily: fonts.heading, color: colors.primary }}
+          <div className="max-w-6xl mx-auto space-y-8">
+            <div
+              className="p-6 md:p-10 rounded-3xl text-center shadow-lg transform transition-all duration-300 ease-in-out hover:scale-[1.01]"
+              style={{
+                background: `linear-gradient(135deg,${colors.tertiary},${colors.primary})`,
+                color: colors.neutralLight,
+              }}
             >
-              Team Performance
-            </h2>
-
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <select
-                  id="year"
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="w-full p-2 border rounded-md "
-                  style={{
-                    borderColor: colors.tertiary,
-                    backgroundColor: colors.neutralLight,
-                    color: colors.neutralDark,
-                    "--tw-ring-color": colors.primary,
-                  }}
-                >
-                  <option value="">--Select Year--</option>
-                  {availableYears.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <select
-                  id="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="w-full p-2 border rounded-md "
-                  style={{
-                    borderColor: colors.tertiary,
-                    backgroundColor: colors.neutralLight,
-                    color: colors.neutralDark,
-                    "--tw-ring-color": colors.primary,
-                  }}
-                >
-                  <option value="">--Select Month--</option>
-                  {months.map((month) => (
-                    <option key={month} value={month}>
-                      {month}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <h2
+                className="text-3xl md:text-5xl font-extrabold mb-2"
+                style={{ fontFamily: fonts.heading }}
+              >
+                Team Performance Leaderboard
+              </h2>
+            </div>
+            <div className="flex flex-wrap justify-center items-center gap-4">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="px-4 py-2 rounded-xl border-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                style={{
+                  borderColor: colors.tertiary,
+                  backgroundColor: colors.neutralLight,
+                  color: colors.neutralDark,
+                }}
+              >
+                <option value="">Select Year</option>
+                {availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="px-4 py-2 rounded-xl border-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                style={{
+                  borderColor: colors.tertiary,
+                  backgroundColor: colors.neutralLight,
+                  color: colors.neutralDark,
+                }}
+              >
+                <option value="">Select Month</option>
+                {months.map((month) => (
+                  <option key={month} value={month}>
+                    {month}
+                  </option>
+                ))}
+              </select>
               {selectedYear && (
                 <button
                   onClick={() => setShowGraphPopup(true)}
-                  className="w-full sm:w-auto p-2 rounded-md transition-colors duration-200 ease-in-out font-semibold text-sm"
+                  className="px-6 py-2 rounded-xl text-sm font-semibold shadow-md transition-all duration-200 hover:scale-105"
                   style={{
                     backgroundColor: colors.primary,
                     color: colors.neutralLight,
-                    ":hover": { backgroundColor: colors.primaryDark },
                   }}
+                  aria-label="View Graph of Monthly Attendance"
                 >
-                  View Graph
+                  📊 View Graph
                 </button>
               )}
             </div>
-
-            {/* Graph Popup */}
             {showGraphPopup && (
               <div
-                className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50"
+                className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
                 onClick={() => setShowGraphPopup(false)}
               >
                 <div
-                  className="p-6 rounded-lg shadow-xl w-11/12 max-w-4xl max-h-[90vh] overflow-y-auto relative"
+                  className="p-6 rounded-2xl shadow-xl w-11/12 max-w-4xl max-h-[90vh] overflow-y-auto relative transform transition-all duration-300 ease-out scale-95"
                   style={{ backgroundColor: colors.neutralLight }}
-                  onClick={(e) => e.stopPropagation()} // Prevent closing on click inside
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <button
-                    className="absolute top-2 right-4 text-2xl font-bold"
+                    className="absolute top-4 right-4 text-3xl font-bold transition hover:text-red-500"
                     onClick={() => setShowGraphPopup(false)}
                     style={{ color: colors.neutralDark }}
+                    aria-label="Close"
                   >
                     &times;
                   </button>
                   <h3
-                    className="text-xl font-bold mb-4 text-center"
-                    style={{ color: colors.primary }}
+                    className="text-xl font-bold mb-6 text-center"
+                    style={{ color: colors.primary, fontFamily: fonts.heading }}
                   >
                     Total Monthly Attendance for {selectedYear}
                   </h3>
@@ -308,18 +281,17 @@ const TeamPerformance = () => {
                     <ResponsiveContainer>
                       <BarChart
                         data={monthlyData}
-                        margin={{
-                          top: 20,
-                          right: 10, // Adjusted for mobile
-                          left: 10,  // Adjusted for mobile
-                          bottom: 5,
-                        }}
-                        barCategoryGap="15%" // Add gap between bar categories
+                        margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
+                        barCategoryGap="15%"
                       >
-                        <CartesianGrid vertical={false} stroke={colors.tertiary} />
+                        <CartesianGrid
+                          vertical={false}
+                          strokeDasharray="3 3"
+                          stroke={colors.tertiary}
+                        />
                         <defs>
                           <linearGradient
-                            id="colorUv"
+                            id="colorAttendance"
                             x1="0"
                             y1="0"
                             x2="0"
@@ -328,7 +300,7 @@ const TeamPerformance = () => {
                             <stop
                               offset="5%"
                               stopColor={colors.primary}
-                              stopOpacity={0.8}
+                              stopOpacity={0.9}
                             />
                             <stop
                               offset="95%"
@@ -345,9 +317,10 @@ const TeamPerformance = () => {
                           style={{
                             fill: colors.neutralDark,
                             fontSize: "12px",
+                            opacity: 0.8,
                           }}
                           tickFormatter={(tick) => tick.substring(0, 3)}
-                          interval="preserveStartEnd" // Optimizes label display
+                          interval="preserveStartEnd"
                         />
                         <YAxis
                           axisLine={false}
@@ -356,22 +329,24 @@ const TeamPerformance = () => {
                           style={{
                             fill: colors.neutralDark,
                             fontSize: "12px",
+                            opacity: 0.8,
                           }}
                         >
                           <Label
-                            value="Total Days Present"
+                            value="Days Present"
                             angle={-90}
                             position="insideLeft"
                             style={{
                               textAnchor: "middle",
                               fill: colors.neutralDark,
+                              opacity: 0.9,
                             }}
                           />
                         </YAxis>
                         <Tooltip content={<CustomTooltip />} />
                         <Bar
                           dataKey="totalAttendance"
-                          fill="url(#colorUv)"
+                          fill="url(#colorAttendance)"
                           barSize={20}
                           radius={[5, 5, 0, 0]}
                         />
@@ -381,146 +356,118 @@ const TeamPerformance = () => {
                 </div>
               </div>
             )}
-
             {selectedYear && selectedMonth && members.length > 0 ? (
-              <div
-                className="overflow-x-auto rounded-lg shadow-md"
-                style={{ backgroundColor: colors.neutralLight }}
-              >
-                <table
-                  className="min-w-full table-auto border-collapse border border-gray-300 shadow-md rounded-lg"
-                  style={{ borderColor: colors.primaryLight }}
+              <div className="space-y-4">
+                <div
+                  className="flex items-center p-4 rounded-xl shadow-inner font-semibold text-sm"
+                  style={{
+                    backgroundColor: colors.primary,
+                    color: colors.neutralLight,
+                  }}
                 >
-                  <thead
-                    className="sticky top-0 z-50"
-                    style={{ backgroundColor: colors.tertiaryLight }}
+                  <div className="w-1/4">Rank</div>
+                  <div
+                    className="w-1/2 cursor-pointer"
+                    onDoubleClick={handleCopyNames}
+                    title="Double-click to copy all names"
                   >
-                    <tr>
-                      <th
-                        scope="col"
-                        className="p-1.5 text-left text-xs font-bold uppercase tracking-wider sticky left-0 z-40 w-12 sm:w-16 border border-gray-300"
-                        style={{
-                          backgroundColor: colors.tertiaryLight,
-                          color: colors.primary,
-                        }}
-                      >
-                        Rank
-                      </th>
-                      <th
-                        scope="col"
-                        className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 cursor-pointer"
-                        style={{
-                          backgroundColor: colors.tertiaryLight,
-                          color: colors.primary,
-                        }}
-                        onDoubleClick={() => {
-                          const namesText = displayedMembers
-                            .map((m) => `${m.name} ${m.last_name || ""}`.trim())
-                            .join(",\n");
-
-                          navigator.clipboard
-                            .writeText(namesText)
-                            .then(() => {
-                              showCopyPopup("Names copied to clipboard!");
-                            })
-                            .catch((err) =>
-                              console.error("Clipboard error:", err)
-                            );
-                        }}
-                      >
-                        Name
-                      </th>
-
-                      <th
-                        scope="col"
-                        className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 w-20"
-                        style={{
-                          backgroundColor: colors.tertiaryLight,
-                          color: colors.primary,
-                        }}
-                      >
-                        Days Present
-                      </th>
-                      <th
-                        scope="col"
-                        className="p-1.5 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 w-20 cursor-pointer"
-                        onClick={() => setFilterZero((prev) => !prev)}
-                        style={{
-                          backgroundColor: colors.tertiaryLight,
-                          color: colors.primary,
-                        }}
-                      >
-                        Percentage
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white">
-                    {displayedMembers.map((member) => (
-                      <tr
+                    Name
+                  </div>
+                  <div
+                    className="w-1/4 text-right cursor-pointer"
+                    onClick={() => setShowZeroPerformance((prev) => !prev)}
+                    title="Click to toggle members with 0% attendance"
+                  >
+                    Performance
+                  </div>
+                </div>
+                {filteredMembers.length > 0 ? (
+                  filteredMembers.map((member) => {
+                    const isTopPerformer = member.rank === 1 && member.percentage > 0;
+                    return (
+                      <div
                         key={member.id}
-                        className="transition-colors duration-150 ease-in-out"
+                        className={`flex items-center justify-between p-4 rounded-xl shadow-md transition-all duration-300 ease-in-out hover:scale-[1.01]`}
                         style={{
-                          backgroundColor: member.rank === 1 && !allMembersRankOne ? '#FFD700' : colors.neutralLight,
-                          color: colors.neutralDark,
+                          background: isTopPerformer
+                            ? "linear-gradient(90deg, #FFD700, #FFC700)"
+                            : colors.neutralLight,
+                          color: isTopPerformer ? "black" : colors.neutralDark,
                         }}
                       >
-                        <td
-                          className="p-1.5 whitespace-nowrap text-sm font-medium sticky left-0 z-10 w-12 sm:w-16 border border-gray-300"
-                        >
-                          <span style={{ color: member.rank === 1 && !allMembersRankOne ? 'black' : colors.neutralDark }}>
+                        <div className="flex items-center gap-3 w-1/4">
+                          <div
+                            className="w-10 h-10 flex items-center justify-center rounded-full font-bold"
+                            style={{
+                              backgroundColor: isTopPerformer
+                                ? colors.primaryLight
+                                : colors.neutralLight,
+                              color: isTopPerformer
+                                ? "black"
+                                : colors.primary,
+                            }}
+                          >
                             {member.rank}
-                          </span>
-                          {!allMembersRankOne && member.rank === 1 && (
+                          </div>
+                          {isTopPerformer && (
                             <FaTrophy
-                              className="inline-block text-yellow-700 ml-1"
+                              className="inline-block text-yellow-700 text-lg"
                               title="Top Performer"
                             />
                           )}
-                        </td>
-                        <td
-                          className="p-1.5 text-sm border border-gray-300 whitespace-normal break-words"
-                        >
-                          {member.name} {member.last_name}{" "}
-                        </td>
-                        <td
-                          className="p-1.5 whitespace-nowrap text-sm border border-gray-300 w-20"
-                        >
-                          {member.presentDays}
-                        </td>
-                        <td
-                          className="p-1.5 whitespace-nowrap text-sm border border-gray-300 w-20"
-                        >
+                        </div>
+                        <div className="w-1/2">
+                          <p className="font-semibold text-base truncate">
+                            {member.name} {member.last_name}
+                          </p>
+                          <p className="text-xs opacity-75">
+                            {member.presentDays} days present
+                          </p>
+                        </div>
+                        <span className="text-lg font-bold w-1/4 text-right">
                           {member.percentage.toFixed(2)}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div
+                    className="text-center mt-12 p-8 rounded-2xl shadow-lg border border-gray-200"
+                    style={{
+                      color: colors.neutralDark,
+                      backgroundColor: colors.neutralLight,
+                    }}
+                  >
+                    <p
+                      className="text-xl font-semibold mb-2"
+                      style={{ fontFamily: fonts.heading }}
+                    >
+                      No Members with 0% Attendance 🥳
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
-              <p
-                className="text-center mt-6 p-4 rounded-lg shadow-sm"
+              <div
+                className="text-center mt-12 p-8 rounded-2xl shadow-lg border border-gray-200"
                 style={{
                   color: colors.neutralDark,
                   backgroundColor: colors.neutralLight,
                 }}
               >
-                {members.length > 0
-                  ? "Please select a year and a month to view individual performance, or a year to view the monthly graph."
-                  : "No member data found in local storage. Make sure you have member data available to load."}
-              </p>
+                <p
+                  className="text-xl font-semibold mb-2"
+                  style={{ fontFamily: fonts.heading }}
+                >
+                  No Data to Display 😔
+                </p>
+                <p className="text-sm opacity-80">
+                  {members.length > 0
+                    ? "Please select a year and month from the dropdowns above to view the leaderboard."
+                    : "No member data found. Please ensure data is loaded into local storage."}
+                </p>
+              </div>
             )}
-          </>
-        )}
-
-        {showPopup && (
-          <div
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-4 rounded-lg shadow-xl text-center z-50 transition-opacity duration-300 ease-in-out"
-            style={{
-              opacity: showPopup ? 1 : 0,
-            }}
-          >
-            {popupMessage}
           </div>
         )}
       </div>

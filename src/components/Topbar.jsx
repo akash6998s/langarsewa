@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { theme } from "../theme";
-import RefreshIcon from "@mui/icons-material/Refresh";
 import LogoutIcon from "@mui/icons-material/Logout";
 import GroupIcon from "@mui/icons-material/Group";
-import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import CachedIcon from "@mui/icons-material/Cached";
+import ListAltIcon from "@mui/icons-material/ListAlt";
+import CreateIcon from "@mui/icons-material/Create";
+import logo from "/favicon.png";
 
 function Topbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -76,26 +79,39 @@ function Topbar() {
 
   return (
     <div
-      className="w-full flex justify-between items-center h-16 px-4 py-2 bg-white/80 backdrop-blur-md shadow-lg rounded-xl border border-gray-200 relative z-[9999]"
+      className="w-full flex justify-between items-center h-16 px-4 py-2 bg-white backdrop-blur-md shadow-md rounded-b-xl border-b border-gray-200 relative z-[9999]"
       style={{ position: "fixed", top: 0, left: 0, right: 0 }}
     >
-      {/* Left: Logo */}
+      {/* Left: Logo and App Name */}
       <div className="flex items-center gap-2">
         <img
-          src="/favicon.png"
-          alt="Logo"
-          className="h-12 w-auto object-contain"
+          src={logo}
+          alt="LangarSewa Logo"
+          className="h-10 w-auto object-contain"
         />
         <span
-          className="font-bold text-lg hidden sm:inline"
+          className="font-extrabold text-xl hidden sm:inline"
           style={{ color: theme.colors.primary }}
         >
           LangarSewa
         </span>
       </div>
 
-      {/* Right: Gallery + Profile */}
-      <div className="flex items-center gap-3">
+      {/* Right: Gallery and Profile Section */}
+      <div className="flex items-center gap-2 sm:gap-4">
+        {/* Create Post Button */}
+        <button
+          onClick={() => navigate("/createpost")}
+          className="hidden sm:flex items-center justify-center px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
+          style={{
+            backgroundColor: theme.colors.primary,
+            color: theme.colors.neutralLight,
+          }}
+        >
+          <CreateIcon fontSize="small" className="mr-2" />
+          <span className="text-sm font-semibold">Create Post</span>
+        </button>
+
         {/* Gallery Button */}
         <button
           onClick={() => navigate("/gallery")}
@@ -103,14 +119,14 @@ function Topbar() {
           style={{ color: theme.colors.primary }}
         >
           <PhotoLibraryIcon fontSize="medium" />
-          <span className=" sm:inline text-sm font-medium">Gallery</span>
+          <span className="sm:inline text-sm font-medium">Gallery</span>
         </button>
 
         {/* Profile Section */}
         <div ref={dropdownRef} className="relative">
           <button
             onClick={toggleDropdown}
-            className="flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full transition-all duration-200 hover:bg-gray-100 focus:outline-none"
+            className="flex items-center gap-2 p-1 rounded-full transition-all duration-200 hover:bg-gray-100 focus:outline-none"
           >
             <div className="relative">
               <img
@@ -122,7 +138,7 @@ function Topbar() {
             </div>
 
             <span
-              className="hidden md:inline font-medium text-sm"
+              className="hidden md:inline font-semibold text-sm"
               style={{ color: theme.colors.primary }}
             >
               {userName}
@@ -149,23 +165,32 @@ function Topbar() {
           {/* Dropdown Menu */}
           {isDropdownOpen && (
             <div
-              className="absolute right-0 mt-3 w-60 rounded-xl shadow-2xl z-9999 p-3 transition-all duration-200"
+              className="absolute right-0 mt-3 w-60 rounded-xl shadow-2xl z-[10000] p-3 transition-all duration-200"
               style={{
                 background: theme.colors.neutralLight,
                 border: `1px solid ${theme.colors.tertiaryLight}`,
               }}
             >
-              {/* Reload */}
+
               <button
                 onClick={() => window.location.reload()}
                 className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
                 style={{ color: theme.colors.primary }}
               >
-                <RefreshIcon fontSize="small" />
+                <CachedIcon fontSize="small" />
                 Reload
               </button>
 
-              {/* All Members */}
+              <NavLink
+                to="/createpost"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5 sm:hidden"
+                style={{ color: theme.colors.primary }}
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                <CreateIcon fontSize="small" />
+                Create Post
+              </NavLink>
+
               <NavLink
                 to="/members"
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
@@ -176,20 +201,28 @@ function Topbar() {
                 All Members
               </NavLink>
 
-              {/* All Members */}
               <NavLink
-  to="/updatedlist"
-  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-  style={{ color: theme.colors.primary }}
-  onClick={() => setIsDropdownOpen(false)}
->
-  <PersonAddAltIcon fontSize="small" />
-  Updated Details
-</NavLink>
+                to="/updatedlist"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                style={{ color: theme.colors.primary }}
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                <ListAltIcon fontSize="small" />
+                Updated Details
+              </NavLink>
+
+              <NavLink
+                to="/profile"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                style={{ color: theme.colors.primary }}
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                <AccountCircle fontSize="small" />
+                Your Profile
+              </NavLink>
 
               <div className="border-t border-gray-200 my-2"></div>
 
-              {/* Sign Out */}
               <NavLink
                 to="/"
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-red-100 hover:pl-5"

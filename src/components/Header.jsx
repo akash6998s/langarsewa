@@ -5,8 +5,7 @@ import { theme } from "../theme"; // Import the theme
 // Import MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
 import InsightsIcon from "@mui/icons-material/Insights";
-import GroupIcon from "@mui/icons-material/Group";
-import PersonIcon from "@mui/icons-material/Person";
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 
@@ -14,7 +13,7 @@ const navItems = [
   { name: "Home", path: "/home", icon: <HomeIcon /> },
   { name: "Activity", path: "/activity", icon: <InsightsIcon /> },
   { name: "Rank", path: "/rank", icon: <MilitaryTechIcon /> },
-  { name: "Profile", path: "/profile", icon: <PersonIcon /> },
+  { name: "Notification", path: "/notify", icon: <NotificationsIcon /> },
 ];
 
 const Header = () => {

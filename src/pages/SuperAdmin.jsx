@@ -13,7 +13,6 @@ import DownloadBackup from "../components/DownloadBackup";
 import UploadImages from "../components/UploadImages";
 
 // ✅ MUI Icons
-import RefreshIcon from "@mui/icons-material/Refresh";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -27,6 +26,10 @@ import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import GroupIcon from "@mui/icons-material/Group";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import CachedIcon from "@mui/icons-material/Cached";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import ListAltIcon from "@mui/icons-material/ListAlt";
+import CreateIcon from "@mui/icons-material/Create";
 
 // ✅ Centralize and refine nav items
 const navItems = {
@@ -73,7 +76,7 @@ const navItems = {
   uploadImages: {
     name: "Upload Images",
     component: <UploadImages />,
-    icon: <AddPhotoAlternateIcon  fontSize="small" />,
+    icon: <AddPhotoAlternateIcon fontSize="small" />,
   },
 };
 
@@ -87,7 +90,7 @@ const navItemsOrder = [
   "memberperformance",
   "users",
   "downloadbackup",
-  "uploadImages"
+  "uploadImages",
 ];
 
 const SuperAdmin = () => {
@@ -327,48 +330,75 @@ const SuperAdmin = () => {
 
             {isDropdownOpen && (
               <div
-                className="absolute right-0 mt-2 w-52 rounded-xl shadow-lg z-10 overflow-hidden"
+                className="absolute right-0 mt-3 w-60 rounded-xl shadow-2xl z-[10000] p-3 transition-all duration-200"
                 style={{
                   background: theme.colors.neutralLight,
                   border: `1px solid ${theme.colors.tertiaryLight}`,
                 }}
               >
-                {/* Reload */}
-              <button
-                onClick={() => window.location.reload()}
-                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                style={{ color: theme.colors.primary }}
-              >
-                <RefreshIcon fontSize="small" />
-                Reload
-              </button>
+                <NavLink
+                  to="/profile"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                  style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <AccountCircle fontSize="small" />
+                  Your Profile
+                </NavLink>
 
-              {/* All Members */}
-              <NavLink
-                to="/members"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                style={{ color: theme.colors.primary }}
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <GroupIcon fontSize="small" />
-                All Members
-              </NavLink>
+                <NavLink
+                  to="/createpost"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5 sm:hidden"
+                  style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <CreateIcon fontSize="small" />
+                  Create Post
+                </NavLink>
 
-              <div className="border-t border-gray-200 my-2"></div>
+                <NavLink
+                  to="/members"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                  style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <GroupIcon fontSize="small" />
+                  All Members
+                </NavLink>
 
-              {/* Sign Out */}
-              <NavLink
-                to="/"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-red-100 hover:pl-5"
-                style={{ color: theme.colors.danger }}
-                onClick={() => {
-                  localStorage.removeItem("loggedInMember");
-                  setIsDropdownOpen(false);
-                }}
-              >
-                <LogoutIcon fontSize="small" />
-                Sign Out
-              </NavLink>
+                <NavLink
+                  to="/updatedlist"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                  style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <ListAltIcon fontSize="small" />
+                  Updated Details
+                </NavLink>
+
+                <div className="border-t border-gray-200 my-2"></div>
+
+                <button
+                  onClick={() => window.location.reload()}
+                  className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                  style={{ color: theme.colors.primary }}
+                >
+                  <CachedIcon fontSize="small" />
+                  Reload
+                </button>
+
+                <NavLink
+                  to="/"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-red-100 hover:pl-5"
+                  style={{ color: theme.colors.danger }}
+                  onClick={() => {
+                    localStorage.removeItem("loggedInMember");
+                    setIsDropdownOpen(false);
+                  }}
+                >
+                  <LogoutIcon fontSize="small" />
+                  Sign Out
+                </NavLink>
               </div>
             )}
           </div>
