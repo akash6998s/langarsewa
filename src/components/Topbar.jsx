@@ -14,14 +14,12 @@ function Topbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [profileImageUrl, setProfileImageUrl] = useState(
-    "https://placehold.co/40x40/CCCCCC/333333?text=User"
+    "https://placehold.co/40x40/CCCCCC/333333?text=U"
   );
   const [userName, setUserName] = useState("Member");
   const navigate = useNavigate();
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   const checkImageExists = async (url) => {
     try {
@@ -59,7 +57,7 @@ function Topbar() {
           }
         }
       }
-      setProfileImageUrl("https://placehold.co/40x40/CCCCCC/333333?text=User");
+      setProfileImageUrl("https://placehold.co/40x40/CCCCCC/333333?text=U");
     };
 
     loadImage();
@@ -72,171 +70,145 @@ function Topbar() {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div
-      className="w-full flex justify-between items-center h-16 px-4 py-2 bg-white backdrop-blur-md shadow-md rounded-b-xl border-b border-gray-200 relative z-[9999]"
-      style={{ position: "fixed", top: 0, left: 0, right: 0 }}
-    >
-      {/* Left: Logo and App Name */}
-      <div className="flex items-center gap-2">
-        <img
-          src={logo}
-          alt="LangarSewa Logo"
-          className="h-10 w-auto object-contain"
-        />
-        <span
-          className="font-extrabold text-xl hidden sm:inline"
-          style={{ color: theme.colors.primary }}
-        >
-          LangarSewa
-        </span>
-      </div>
-
-      {/* Right: Gallery and Profile Section */}
-      <div className="flex items-center gap-2 sm:gap-4">
-        {/* Create Post Button */}
-        <button
-          onClick={() => navigate("/createpost")}
-          className="hidden sm:flex items-center justify-center px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
-          style={{
-            backgroundColor: theme.colors.primary,
-            color: theme.colors.neutralLight,
-          }}
-        >
-          <CreateIcon fontSize="small" className="mr-2" />
-          <span className="text-sm font-semibold">Create Post</span>
-        </button>
-
-        {/* Gallery Button */}
-        <button
-          onClick={() => navigate("/gallery")}
-          className="flex items-center justify-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200"
-          style={{ color: theme.colors.primary }}
-        >
-          <PhotoLibraryIcon fontSize="medium" />
-          <span className="sm:inline text-sm font-medium">Gallery</span>
-        </button>
-
-        {/* Profile Section */}
-        <div ref={dropdownRef} className="relative">
-          <button
-            onClick={toggleDropdown}
-            className="flex items-center gap-2 p-1 rounded-full transition-all duration-200 hover:bg-gray-100 focus:outline-none"
+    <div className="fixed top-0 left-0 right-0 z-[9999] bg-white border-b border-gray-200 shadow-sm">
+      <div className="flex items-center justify-between h-14 px-3">
+        {/* Left: Logo */}
+        <div className="flex items-center gap-2">
+          <img src={logo} alt="LangarSewa Logo" className="h-8 w-8 object-contain" />
+          <span
+            className="font-bold text-lg hidden sm:inline"
+            style={{ color: theme.colors.primary }}
           >
-            <div className="relative">
-              <img
-                src={profileImageUrl}
-                alt="User Profile"
-                className="w-10 h-10 rounded-full object-cover border-2 transition-transform duration-300 hover:scale-105"
-                style={{ borderColor: theme.colors.tertiaryLight }}
-              />
-            </div>
+            LangarSewa
+          </span>
+        </div>
 
-            <span
-              className="hidden md:inline font-semibold text-sm"
-              style={{ color: theme.colors.primary }}
-            >
-              {userName}
-            </span>
-            <svg
-              className="w-5 h-5 transition-transform duration-200"
-              style={{
-                transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
-                color: theme.colors.primary,
-              }}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 9l-7 7-7-7"
-              ></path>
-            </svg>
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Create Post */}
+          <button
+            onClick={() => navigate("/createpost")}
+            className="flex items-center gap-1 px-3 py-1 sm:px-4 sm:py-2 rounded-lg transition-all duration-300 hover:scale-105"
+            style={{
+              backgroundColor: theme.colors.primary,
+              color: theme.colors.neutralLight,
+            }}
+          >
+            <CreateIcon fontSize="small" />
+            <span className="text-sm font-semibold">Post</span>
           </button>
 
-          {/* Dropdown Menu */}
-          {isDropdownOpen && (
-            <div
-              className="absolute right-0 mt-3 w-60 rounded-xl shadow-2xl z-[10000] p-3 transition-all duration-200"
-              style={{
-                background: theme.colors.neutralLight,
-                border: `1px solid ${theme.colors.tertiaryLight}`,
-              }}
+          {/* Gallery */}
+          <button
+            onClick={() => navigate("/gallery")}
+            className="flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-gray-100 transition-all duration-200"
+            style={{ color: theme.colors.primary }}
+          >
+            <PhotoLibraryIcon fontSize="small" />
+            <span className="text-sm font-medium">Gallery</span>
+          </button>
+
+          {/* Profile Dropdown */}
+          <div ref={dropdownRef} className="relative">
+            <button
+              onClick={toggleDropdown}
+              className="flex items-center gap-1 sm:gap-2 p-1 rounded-full hover:bg-gray-100"
             >
-
-              <button
-                onClick={() => window.location.reload()}
-                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+              <img
+                src={profileImageUrl}
+                alt="User"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border"
+                style={{ borderColor: theme.colors.tertiaryLight }}
+              />
+              <span
+                className="hidden md:inline text-sm font-medium"
                 style={{ color: theme.colors.primary }}
               >
-                <CachedIcon fontSize="small" />
-                Reload
-              </button>
-
-              <NavLink
-                to="/createpost"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5 sm:hidden"
-                style={{ color: theme.colors.primary }}
-                onClick={() => setIsDropdownOpen(false)}
+                {userName}
+              </span>
+              <svg
+                className="w-4 h-4 sm:w-5 sm:h-5"
+                style={{
+                  transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  color: theme.colors.primary,
+                }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <CreateIcon fontSize="small" />
-                Create Post
-              </NavLink>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
 
-              <NavLink
-                to="/members"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                style={{ color: theme.colors.primary }}
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <GroupIcon fontSize="small" />
-                All Members
-              </NavLink>
-
-              <NavLink
-                to="/updatedlist"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                style={{ color: theme.colors.primary }}
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <ListAltIcon fontSize="small" />
-                Updated Details
-              </NavLink>
-
-              <NavLink
-                to="/profile"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                style={{ color: theme.colors.primary }}
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <AccountCircle fontSize="small" />
-                Your Profile
-              </NavLink>
-
-              <div className="border-t border-gray-200 my-2"></div>
-
-              <NavLink
-                to="/"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-red-100 hover:pl-5"
-                style={{ color: theme.colors.danger }}
-                onClick={() => {
-                  localStorage.removeItem("loggedInMember");
-                  setIsDropdownOpen(false);
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div
+                className="absolute right-0 mt-3 w-56 rounded-xl shadow-xl p-2"
+                style={{
+                  background: theme.colors.neutralLight,
+                  border: `1px solid ${theme.colors.tertiaryLight}`,
                 }}
               >
-                <LogoutIcon fontSize="small" />
-                Sign Out
-              </NavLink>
-            </div>
-          )}
+                <button
+                  onClick={() => window.location.reload()}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
+                  style={{ color: theme.colors.primary }}
+                >
+                  <CachedIcon fontSize="small" /> Reload
+                </button>
+
+                <NavLink
+                  to="/members"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
+                  style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <GroupIcon fontSize="small" /> All Members
+                </NavLink>
+
+                <NavLink
+                  to="/updatedlist"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
+                  style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <ListAltIcon fontSize="small" /> Updated Details
+                </NavLink>
+
+                <NavLink
+                  to="/profile"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
+                  style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <AccountCircle fontSize="small" /> Your Profile
+                </NavLink>
+
+                <div className="border-t border-gray-200 my-2"></div>
+
+                <NavLink
+                  to="/"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-red-100"
+                  style={{ color: theme.colors.danger }}
+                  onClick={() => {
+                    localStorage.removeItem("loggedInMember");
+                    setIsDropdownOpen(false);
+                  }}
+                >
+                  <LogoutIcon fontSize="small" /> Sign Out
+                </NavLink>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

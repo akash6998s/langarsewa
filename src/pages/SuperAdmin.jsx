@@ -346,15 +346,6 @@ const SuperAdmin = () => {
                   Your Profile
                 </NavLink>
 
-                <NavLink
-                  to="/createpost"
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5 sm:hidden"
-                  style={{ color: theme.colors.primary }}
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  <CreateIcon fontSize="small" />
-                  Create Post
-                </NavLink>
 
                 <NavLink
                   to="/members"
