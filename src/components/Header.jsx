@@ -80,7 +80,8 @@ const Header = () => {
                 e.currentTarget.style.color = theme.colors.primary;
               }
             }}
-          >
+          > 
+          
             <div className="text-xl sm:text-2xl mb-1 group-hover:scale-110 transition-transform duration-200 relative">
               {item.icon}
               {/* Conditionally render the badge only on the Notification icon */}
