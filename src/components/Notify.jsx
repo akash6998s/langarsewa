@@ -13,20 +13,20 @@ import { theme } from "../theme";
 import { MdDeleteForever, MdNotificationsNone, MdAddCircle } from "react-icons/md";
 import Topbar from "./Topbar";
 import Loader from "./Loader";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
-// Base URL for the raw images in your GitHub repository
 const GITHUB_BASE_URL =
   "https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/";
 
+const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg"];
 const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;
 
 const Notify = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [failedImages, setFailedImages] = useState({});
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [profileImageUrls, setProfileImageUrls] = useState({});
+  const navigate = useNavigate();
 
   const handleDeletePost = async (postId) => {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
@@ -41,8 +41,34 @@ const Notify = () => {
     }
   };
 
+  const getProfileImageUrl = async (rollNumber) => {
+    // Check cache first to avoid redundant checks
+    if (profileImageUrls[rollNumber] !== undefined) {
+      return profileImageUrls[rollNumber];
+    }
+
+    // Try each extension
+    for (const ext of IMAGE_EXTENSIONS) {
+      const url = `${GITHUB_BASE_URL}${rollNumber}.${ext}`;
+      try {
+        const response = await fetch(url, { method: 'HEAD' });
+        if (response.ok) {
+          setProfileImageUrls(prev => ({ ...prev, [rollNumber]: url }));
+          return url;
+        }
+      } catch (e) {
+        // Fallback to next extension on network error
+        console.error(`Failed to fetch ${url}:`, e);
+      }
+    }
+
+    // If all extensions fail, set to null and return null
+    setProfileImageUrls(prev => ({ ...prev, [rollNumber]: null }));
+    return null;
+  };
+
   useEffect(() => {
-    const fetchAndDeletePosts = async () => {
+    const fetchAndProcessPosts = async () => {
       try {
         const q = query(collection(db, "post"), orderBy("upload_time", "desc"));
         const querySnapshot = await getDocs(q);
@@ -50,10 +76,14 @@ const Notify = () => {
         const postsList = [];
         const oldPostsToDelete = [];
         const currentTime = new Date().getTime();
+        const postsToProcess = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        querySnapshot.docs.forEach((document) => {
-          const postData = { id: document.id, ...document.data() };
+        // Parallel fetching of profile image URLs
+        const profileUrlPromises = postsToProcess.map(post => getProfileImageUrl(post.roll_number));
+        await Promise.all(profileUrlPromises);
 
+        // Filter and delete old posts
+        postsToProcess.forEach((postData) => {
           const uploadTime =
             postData.upload_time instanceof Timestamp
               ? postData.upload_time.toDate().getTime()
@@ -83,7 +113,7 @@ const Notify = () => {
       }
     };
 
-    fetchAndDeletePosts();
+    fetchAndProcessPosts();
   }, []);
 
   const loggedInMember = JSON.parse(localStorage.getItem("loggedInMember"));
@@ -124,7 +154,6 @@ const Notify = () => {
             >
               No new notifications available.
             </p>
-            {/* Added a button to create a post */}
             <button
               onClick={handleNavigateToCreatePost}
               className="mt-6 px-6 py-3 flex items-center gap-2 rounded-full shadow-lg transition-all duration-300 hover:scale-105"
@@ -154,32 +183,26 @@ const Notify = () => {
             const showDeleteButton =
               isAdmin || post.roll_number === loggedInRollNo;
 
-            const profileImageUrl = `${GITHUB_BASE_URL}${post.roll_number}.png`;
+            const profileImageUrl = profileImageUrls[post.roll_number];
+            const hasProfileImage = profileImageUrl !== null;
 
             return (
               <div
                 key={post.id}
                 className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden"
               >
-                {/* Post Header */}
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
-                    {failedImages[post.roll_number] ? (
-                      <div className="w-11 h-11 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
-                        {post.name?.charAt(0) || "U"}
-                      </div>
-                    ) : (
+                    {hasProfileImage ? (
                       <img
                         src={profileImageUrl}
                         alt={`${post.name}'s profile`}
                         className="w-11 h-11 rounded-full object-cover"
-                        onError={() =>
-                          setFailedImages((prev) => ({
-                            ...prev,
-                            [post.roll_number]: true,
-                          }))
-                        }
                       />
+                    ) : (
+                      <div className="w-11 h-11 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+                        {post.name?.charAt(0) || "U"}
+                      </div>
                     )}
                     <div>
                       <p className="text-sm font-semibold text-gray-900">
@@ -199,14 +222,12 @@ const Notify = () => {
                   )}
                 </div>
 
-                {/* Post Text */}
                 {post.text_content && (
                   <div className="px-4 pb-2 text-base text-gray-800 whitespace-pre-wrap">
                     {post.text_content}
                   </div>
                 )}
 
-                {/* Post Image */}
                 {post.image_link && (
                   <div className="w-full mt-2">
                     <img

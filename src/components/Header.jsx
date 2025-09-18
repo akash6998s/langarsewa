@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { theme } from "../theme"; // Import the theme
+import { theme } from "../theme";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase"; // Ensure this path is correct
 
 // Import MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
@@ -17,6 +19,24 @@ const navItems = [
 ];
 
 const Header = () => {
+  const [postCount, setPostCount] = useState(0);
+
+  useEffect(() => {
+    // Reference to the 'post' collection in Firestore
+    const postCollectionRef = collection(db, "post");
+
+    // Set up a real-time listener
+    const unsubscribe = onSnapshot(postCollectionRef, (querySnapshot) => {
+      // Update the state with the number of documents
+      setPostCount(querySnapshot.size);
+    }, (error) => {
+      console.error("Error fetching post count: ", error);
+    });
+
+    // Cleanup function to detach the listener when the component unmounts
+    return () => unsubscribe();
+  }, []);
+
   const loggedInMember = JSON.parse(localStorage.getItem("loggedInMember"));
   const isSuperAdmin = loggedInMember?.isAdmin === true;
 
@@ -61,8 +81,14 @@ const Header = () => {
               }
             }}
           >
-            <div className="text-xl sm:text-2xl mb-1 group-hover:scale-110 transition-transform duration-200">
+            <div className="text-xl sm:text-2xl mb-1 group-hover:scale-110 transition-transform duration-200 relative">
               {item.icon}
+              {/* Conditionally render the badge only on the Notification icon */}
+              {item.name === "Notification" && postCount > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                  {postCount}
+                </span>
+              )}
             </div>
             <span className="text-[10px] sm:text-xs font-medium tracking-wide">
               {item.name}
