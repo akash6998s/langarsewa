@@ -8,6 +8,7 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import CachedIcon from "@mui/icons-material/Cached";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import CreateIcon from "@mui/icons-material/Create";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import logo from "/favicon.png";
 
 function Topbar() {
@@ -78,7 +79,11 @@ function Topbar() {
       <div className="flex items-center justify-between h-14 px-3">
         {/* Left: Logo */}
         <div className="flex items-center gap-2">
-          <img src={logo} alt="LangarSewa Logo" className="h-8 w-8 object-contain" />
+          <img
+            src={logo}
+            alt="LangarSewa Logo"
+            className="h-8 w-8 object-contain"
+          />
           <span
             className="font-bold text-lg hidden sm:inline"
             style={{ color: theme.colors.primary }}
@@ -165,6 +170,15 @@ function Topbar() {
                 >
                   <CachedIcon fontSize="small" /> Reload
                 </button>
+
+                <NavLink
+                  to="/inchargelist"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
+                  style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <ManageAccountsIcon fontSize="small" /> Incharge List
+                </NavLink>
 
                 <NavLink
                   to="/members"
