@@ -88,6 +88,9 @@ function CreatePost() {
         last_name,
         image_link,
         text_content,
+        // 👇 ADDED: Initialize likes and comments as empty arrays
+        likes: [],
+        comments: [],
       };
 
       await savePostToFirebase(postData);
@@ -106,110 +109,109 @@ function CreatePost() {
   if (loading) return <Loader />;
 
   return (
-<>
+    <>
+      <Topbar />
 
-<Topbar/>
-
-    <div className="p-4 max-w-md mx-auto py-12">
-      <div
-        className="bg-white rounded-2xl shadow-lg p-6 space-y-4"
-        style={{ border: `1px solid ${theme.colors.primaryLight}` }}
-      >
-        {/* Header */}
-        <h2
-          className="text-xl font-bold text-center"
-          style={{ color: theme.colors.primary }}
+      <div className="p-4 max-w-md mx-auto py-12">
+        <div
+          className="bg-white rounded-2xl shadow-lg p-6 space-y-4"
+          style={{ border: `1px solid ${theme.colors.primaryLight}` }}
         >
-          Create a Post
-        </h2>
+          {/* Header */}
+          <h2
+            className="text-xl font-bold text-center"
+            style={{ color: theme.colors.primary }}
+          >
+            Create a Post
+          </h2>
 
-        {/* Textarea */}
-        <textarea
-          rows="4"
-          value={text}
-          onChange={handleTextChange}
-          placeholder="What's on your mind?"
-          className="w-full p-3 rounded-xl border text-sm focus:ring-2 focus:outline-none resize-none"
-          style={{
-            borderColor: theme.colors.primaryLight,
-            backgroundColor: theme.colors.neutralLight,
-            color: theme.colors.neutralDark,
-          }}
-        />
-
-        {/* Image Upload */}
-        <div className="flex flex-col space-y-2">
-          <label
-            htmlFor="image-upload"
-            className="cursor-pointer py-2 px-4 rounded-xl text-center text-sm font-medium border transition hover:bg-gray-100"
+          {/* Textarea */}
+          <textarea
+            rows="4"
+            value={text}
+            onChange={handleTextChange}
+            placeholder="What's on your mind?"
+            className="w-full p-3 rounded-xl border text-sm focus:ring-2 focus:outline-none resize-none"
             style={{
               borderColor: theme.colors.primaryLight,
-              color: theme.colors.primary,
+              backgroundColor: theme.colors.neutralLight,
+              color: theme.colors.neutralDark,
             }}
-          >
-            📷 Choose an image
-          </label>
-          <input
-            type="file"
-            id="image-upload"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
           />
 
-          {/* Preview Image */}
-          {previewImage && (
-            <div className="relative">
-              <img
-                src={previewImage}
-                alt="Preview"
-                className="rounded-xl w-full max-h-60 object-cover"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setPreviewImage(null);
-                  setImageFile(null);
-                }}
-                className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-lg"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-        </div>
+          {/* Image Upload */}
+          <div className="flex flex-col space-y-2">
+            <label
+              htmlFor="image-upload"
+              className="cursor-pointer py-2 px-4 rounded-xl text-center text-sm font-medium border transition hover:bg-gray-100"
+              style={{
+                borderColor: theme.colors.primaryLight,
+                color: theme.colors.primary,
+              }}
+            >
+              📷 Choose an image
+            </label>
+            <input
+              type="file"
+              id="image-upload"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
 
-        {/* Submit Button */}
-        <button
-          onClick={handleSubmit}
-          disabled={loading || (!imageFile && !text)}
-          className="w-full py-2 rounded-xl font-semibold transition"
-          style={{
-            backgroundColor: loading
-              ? theme.colors.secondary
-              : theme.colors.primary,
-            color: theme.colors.neutralLight,
-            opacity: loading || (!imageFile && !text) ? 0.6 : 1,
-          }}
-        >
-          {loading ? "Uploading..." : "Post"}
-        </button>
+            {/* Preview Image */}
+            {previewImage && (
+              <div className="relative">
+                <img
+                  src={previewImage}
+                  alt="Preview"
+                  className="rounded-xl w-full max-h-60 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewImage(null);
+                    setImageFile(null);
+                  }}
+                  className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-lg"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
 
-        {/* Message */}
-        {message && (
-          <p
-            className="text-center text-sm font-medium mt-2"
+          {/* Submit Button */}
+          <button
+            onClick={handleSubmit}
+            disabled={loading || (!imageFile && !text)}
+            className="w-full py-2 rounded-xl font-semibold transition"
             style={{
-              color: message.includes("successfully")
-                ? theme.colors.success
-                : theme.colors.danger,
+              backgroundColor: loading
+                ? theme.colors.secondary
+                : theme.colors.primary,
+              color: theme.colors.neutralLight,
+              opacity: loading || (!imageFile && !text) ? 0.6 : 1,
             }}
           >
-            {message}
-          </p>
-        )}
+            {loading ? "Uploading..." : "Post"}
+          </button>
+
+          {/* Message */}
+          {message && (
+            <p
+              className="text-center text-sm font-medium mt-2"
+              style={{
+                color: message.includes("successfully")
+                  ? theme.colors.success
+                  : theme.colors.danger,
+              }}
+            >
+              {message}
+            </p>
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 }

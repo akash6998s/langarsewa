@@ -86,10 +86,13 @@ const Header = () => {
               {item.icon}
               {/* Conditionally render the badge only on the Notification icon */}
               {item.name === "Notification" && postCount > 0 && (
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-                  {postCount}
-                </span>
-              )}
+  <span className="absolute top-0 right-0 inline-flex items-center justify-center
+    w-4 h-4 text-[10px] font-semibold text-white bg-red-600 rounded-full transform
+    translate-x-1/2 -translate-y-1/2">
+    {postCount}
+  </span>
+)}
+
             </div>
             <span className="text-[10px] sm:text-xs font-medium tracking-wide">
               {item.name}
