@@ -168,17 +168,17 @@ function Topbar() {
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
                   style={{ color: theme.colors.primary }}
                 >
-                  <CachedIcon fontSize="small" /> Refresh
+                  <CachedIcon fontSize="small" /> Reload
                 </button>
 
-                <NavLink
+                {/* <NavLink
                   to="/inchargelist"
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
                   style={{ color: theme.colors.primary }}
                   onClick={() => setIsDropdownOpen(false)}
                 >
                   <ManageAccountsIcon fontSize="small" /> Incharge List
-                </NavLink>
+                </NavLink> */}
 
                 <NavLink
                   to="/members"
