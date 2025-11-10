@@ -7,9 +7,9 @@ import { db } from "../firebase"; // Ensure this path is correct
 // Import MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
 import InsightsIcon from "@mui/icons-material/Insights";
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
+import MilitaryTechIcon from "@mui/icons-material/MilitaryTech";
 
 const navItems = [
   { name: "Home", path: "/home", icon: <HomeIcon /> },
@@ -26,12 +26,16 @@ const Header = () => {
     const postCollectionRef = collection(db, "post");
 
     // Set up a real-time listener
-    const unsubscribe = onSnapshot(postCollectionRef, (querySnapshot) => {
-      // Update the state with the number of documents
-      setPostCount(querySnapshot.size);
-    }, (error) => {
-      console.error("Error fetching post count: ", error);
-    });
+    const unsubscribe = onSnapshot(
+      postCollectionRef,
+      (querySnapshot) => {
+        // Update the state with the number of documents
+        setPostCount(querySnapshot.size);
+      },
+      (error) => {
+        console.error("Error fetching post count: ", error);
+      }
+    );
 
     // Cleanup function to detach the listener when the component unmounts
     return () => unsubscribe();
@@ -41,7 +45,14 @@ const Header = () => {
   const isSuperAdmin = loggedInMember?.isAdmin === true;
 
   const fullNavItems = isSuperAdmin
-    ? [...navItems, { name: "Admin", path: "/superadmin", icon: <AdminPanelSettingsIcon /> }]
+    ? [
+        ...navItems,
+        {
+          name: "Admin",
+          path: "/superadmin",
+          icon: <AdminPanelSettingsIcon />,
+        },
+      ]
     : navItems;
 
   return (
@@ -61,7 +72,7 @@ const Header = () => {
             className={({ isActive }) =>
               `flex flex-col items-center px-1 py-2 rounded-xl transition-all duration-300 ease-in-out
                 focus:outline-none focus:ring-2 focus:ring-offset-2 group
-                ${isActive ? 'active' : ''}`
+                ${isActive ? "active" : ""}`
             }
             style={({ isActive }) => ({
               color: isActive ? theme.colors.tertiary : theme.colors.primary,
@@ -80,19 +91,19 @@ const Header = () => {
                 e.currentTarget.style.color = theme.colors.primary;
               }
             }}
-          > 
-          
+          >
             <div className="text-xl sm:text-2xl mb-1 group-hover:scale-110 transition-transform duration-200 relative">
               {item.icon}
               {/* Conditionally render the badge only on the Notification icon */}
               {item.name === "Notification" && postCount > 0 && (
-  <span className="absolute top-0 right-0 inline-flex items-center justify-center
+                <span
+                  className="absolute top-0 right-0 inline-flex items-center justify-center
     w-4 h-4 text-[10px] font-semibold text-white bg-red-600 rounded-full transform
-    translate-x-1/2 -translate-y-1/2">
-    {postCount}
-  </span>
-)}
-
+    translate-x-1/2 -translate-y-1/2"
+                >
+                  {postCount}
+                </span>
+              )}
             </div>
             <span className="text-[10px] sm:text-xs font-medium tracking-wide">
               {item.name}
