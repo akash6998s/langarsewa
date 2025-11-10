@@ -10,7 +10,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { theme } from "../theme";
-import { MdDeleteForever, MdNotificationsNone, MdAddCircle } from "react-icons/md";
+import { MdDeleteForever, MdNotificationsNone, MdAddCircle, MdConstruction } from "react-icons/md"; // Added MdConstruction
 import Topbar from "./Topbar";
 import Loader from "./Loader";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,11 @@ const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg"];
 const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;
 
 const Notify = () => {
+  // === NEW STATE VARIABLE FOR MAINTENANCE MODE ===
+  const [isUnderMaintenance, setIsUnderMaintenance] = useState(true); 
+  // Set to 'false' when you want to show the actual content again.
+  // ===============================================
+  
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -68,6 +73,12 @@ const Notify = () => {
   };
 
   useEffect(() => {
+    // Only run the data fetching logic if NOT under maintenance
+    if (isUnderMaintenance) {
+      setLoading(false); // Stop loading animation if maintenance is active
+      return; 
+    }
+
     const fetchAndProcessPosts = async () => {
       try {
         const q = query(collection(db, "post"), orderBy("upload_time", "desc"));
@@ -114,7 +125,7 @@ const Notify = () => {
     };
 
     fetchAndProcessPosts();
-  }, []);
+  }, [isUnderMaintenance]); // Rerun effect if maintenance state changes
 
   const loggedInMember = JSON.parse(localStorage.getItem("loggedInMember"));
   const loggedInRollNo = loggedInMember ? loggedInMember.roll_no : null;
@@ -124,10 +135,38 @@ const Notify = () => {
     navigate("/createpost");
   };
 
+  const renderMaintenanceMessage = () => (
+    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center p-6">
+      <MdConstruction
+        className="text-8xl mb-4 animate-pulse" // Added a subtle animation
+        style={{ color: theme.colors.primary }}
+      />
+      <h2
+        className="text-2xl font-bold mb-2"
+        style={{ color: theme.colors.neutralDark }}
+      >
+        Page Under Maintenance 🚧
+      </h2>
+      <p
+        className="text-lg text-gray-600"
+        style={{ fontFamily: theme.fonts.body }}
+      >
+        We're working hard to improve this page. Please check back again soon!
+      </p>
+    </div>
+  );
+
   const renderContent = () => {
+    // === MAINTENANCE CHECK ===
+    if (isUnderMaintenance) {
+      return renderMaintenanceMessage();
+    }
+    // =========================
+
     if (loading) return <Loader />;
 
     if (error) {
+      // ... (Your existing error rendering logic)
       return (
         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
           <p
@@ -143,6 +182,7 @@ const Notify = () => {
     return (
       <div className="flex flex-col gap-6 py-5 font-[Inter,sans-serif]">
         {posts.length === 0 ? (
+          // ... (Your existing 'No new notifications' logic)
           <div className="flex flex-col items-center justify-center text-center p-6">
             <MdNotificationsNone
               className="text-8xl mb-4"
@@ -169,6 +209,7 @@ const Notify = () => {
           </div>
         ) : (
           posts.map((post) => {
+            // ... (Your existing post rendering logic)
             const formattedTime =
               post.upload_time instanceof Timestamp
                 ? post.upload_time.toDate().toLocaleString("en-US", {
