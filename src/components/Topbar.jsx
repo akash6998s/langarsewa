@@ -168,7 +168,7 @@ function Topbar() {
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
                   style={{ color: theme.colors.primary }}
                 >
-                  <CachedIcon fontSize="small" /> Reload
+                  <CachedIcon fontSize="small" /> Refresh
                 </button>
 
                 <NavLink
