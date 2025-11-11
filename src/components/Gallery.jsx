@@ -11,6 +11,13 @@ import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
+// Helper function to calculate the distance between two touch points for pinch detection
+const getDistance = (touches) => {
+  const dx = touches[0].clientX - touches[1].clientX;
+  const dy = touches[0].clientY - touches[1].clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
 const Gallery = () => {
   const [uploadedData, setUploadedData] = useState([]);
   const [selectedImages, setSelectedImages] = useState([]);
@@ -21,11 +28,25 @@ const Gallery = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Touch slide states
+  // Touch slide states (for image swiping)
   const [initialTouchX, setInitialTouchX] = useState(0);
   const [slideOffset, setSlideOffset] = useState(0);
 
+  // 🚀 Zoom and Pan states 🚀
+  const [scale, setScale] = useState(1);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
+  const [initialTouchState, setInitialTouchState] = useState(null);
+
   const zoomImage = zoomIndex !== null ? uploadedData[zoomIndex]?.url : null;
+
+  // Reset zoom/pan when a new image is loaded or modal is closed
+  useEffect(() => {
+    setScale(1);
+    setTranslateX(0);
+    setTranslateY(0);
+    setInitialTouchState(null);
+  }, [zoomIndex]);
 
   useEffect(() => {
     const loggedInMember = JSON.parse(localStorage.getItem("loggedInMember"));
@@ -160,16 +181,21 @@ const Gallery = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [zoomImage, showPrevImage, showNextImage]);
 
+  /* --- Swiping/Navigation Logic (Single Finger on Image) --- */
+  // Only allow swiping if the image is not zoomed (scale is 1)
   const handleTouchStart = (e) => {
+    if (scale > 1) return;
     setInitialTouchX(e.targetTouches[0].clientX);
   };
 
   const handleTouchMove = (e) => {
+    if (scale > 1) return;
     const currentTouchX = e.targetTouches[0].clientX;
     setSlideOffset(currentTouchX - initialTouchX);
   };
 
   const handleTouchEnd = () => {
+    if (scale > 1) return;
     if (slideOffset > 50) {
       showPrevImage();
     } else if (slideOffset < -50) {
@@ -177,6 +203,67 @@ const Gallery = () => {
     }
     setSlideOffset(0);
   };
+
+  /* --- 🚀 Pinch-to-Zoom/Pan Logic (Applied to Modal Container) 🚀 --- */
+
+  const handleZoomTouchStart = (e) => {
+    // 2 fingers = Pinch (Zoom/Dezoom)
+    if (e.touches.length === 2) {
+      setInitialTouchState({
+        distance: getDistance(e.touches),
+        scale: scale,
+        translateX: translateX,
+        translateY: translateY,
+      });
+    } else if (e.touches.length === 1 && scale > 1) {
+      // 1 finger = Pan (Move zoomed image)
+      setInitialTouchState({
+        scale: scale,
+        startX: e.touches[0].clientX,
+        startY: e.touches[0].clientY,
+        translateX: translateX,
+        translateY: translateY,
+      });
+    }
+  };
+
+  const handleZoomTouchMove = (e) => {
+    if (!initialTouchState) return;
+    // IMPORTANT: Only prevent default if we are actively zooming or panning
+    if (e.touches.length === 2 || (e.touches.length === 1 && scale > 1)) {
+        e.preventDefault(); 
+    }
+
+    if (e.touches.length === 2) {
+      // Pinch move
+      const currentDistance = getDistance(e.touches);
+      const newScale = initialTouchState.scale * (currentDistance / initialTouchState.distance);
+      setScale(Math.max(1, Math.min(3, newScale))); 
+    } else if (e.touches.length === 1 && scale > 1) {
+      // Pan move
+      const deltaX = e.touches[0].clientX - initialTouchState.startX;
+      const deltaY = e.touches[0].clientY - initialTouchState.startY;
+
+      // Simple boundary check
+      const maxPan = (scale - 1) * 150; 
+
+      setTranslateX(Math.min(maxPan, Math.max(-maxPan, initialTouchState.translateX + deltaX)));
+      setTranslateY(Math.min(maxPan, Math.max(-maxPan, initialTouchState.translateY + deltaY)));
+    }
+  };
+
+  const handleZoomTouchEnd = () => {
+    setInitialTouchState(null);
+
+    // Snap back to original position if nearly un-zoomed
+    if (scale < 1.1) {
+      setScale(1);
+      setTranslateX(0);
+      setTranslateY(0);
+    }
+  };
+
+  // --- End Pinch-to-Zoom/Pan Logic ---
 
   return (
     <>
@@ -281,17 +368,18 @@ const Gallery = () => {
           )}
         </div>
 
-        {/* Zoom Modal */}
+        {/* 🚀 Zoom Modal with Pinch/Pan Handlers 🚀 */}
         {zoomImage && (
           <div
             className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[10000] p-2"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            // Apply the new zoom/pan handlers to the entire modal container
+            onTouchStart={handleZoomTouchStart}
+            onTouchMove={handleZoomTouchMove}
+            onTouchEnd={handleZoomTouchEnd}
           >
             <div className="relative w-full h-full flex items-center justify-center">
-              {/* Top Buttons */}
-              <div className="absolute top-4 left-4 flex items-center gap-3">
+              {/* Top Buttons (z-index 10 to stay above image) */}
+              <div className="absolute top-4 left-4 flex items-center gap-3 z-10">
                 <button
                   onClick={handleDownload}
                   className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition"
@@ -307,7 +395,7 @@ const Gallery = () => {
                   <ShareOutlinedIcon />
                 </button>
               </div>
-              <div className="absolute top-4 right-4">
+              <div className="absolute top-4 right-4 z-10">
                 <button
                   onClick={() => setZoomIndex(null)}
                   className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition"
@@ -317,27 +405,43 @@ const Gallery = () => {
                 </button>
               </div>
 
-              {/* Navigation Arrows (Desktop only) */}
-              <button
-                onClick={showPrevImage}
-                className="absolute left-4 text-white bg-black/50 p-2 rounded-full hover:bg-black/70 hidden md:block"
-              >
-                <ArrowBackIosNewIcon />
-              </button>
-              <button
-                onClick={showNextImage}
-                className="absolute right-4 text-white bg-black/50 p-2 rounded-full hover:bg-black/70 hidden md:block"
-              >
-                <ArrowForwardIosIcon />
-              </button>
+              {/* Navigation Arrows (Desktop only, only visible when not zoomed) */}
+              {scale === 1 && (
+                <>
+                  <button
+                    onClick={showPrevImage}
+                    className="absolute left-4 text-white bg-black/50 p-2 rounded-full hover:bg-black/70 hidden md:block z-10"
+                  >
+                    <ArrowBackIosNewIcon />
+                  </button>
+                  <button
+                    onClick={showNextImage}
+                    className="absolute right-4 text-white bg-black/50 p-2 rounded-full hover:bg-black/70 hidden md:block z-10"
+                  >
+                    <ArrowForwardIosIcon />
+                  </button>
+                </>
+              )}
 
               {/* Zoomed Image */}
               <img
                 key={zoomIndex}
                 src={zoomImage}
                 alt="Zoomed"
-                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-in-out"
-                style={{ transform: `translateX(${slideOffset}px)` }}
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                style={{
+                  // Apply the CSS transformation based on state
+                  transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale})`,
+                  // Disable transition during active touch to make panning/zooming feel immediate
+                  transition: initialTouchState ? 'none' : 'transform 0.3s ease-out',
+                  cursor: scale > 1 ? "grab" : "default",
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                }}
+                // Apply single-finger swipe on the image itself when not zoomed (scale === 1)
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
               />
             </div>
           </div>

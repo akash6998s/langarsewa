@@ -4,6 +4,8 @@ import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import Loader from "./Loader";
 import { theme } from "../theme";
 import Topbar from "./Topbar";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const { colors, fonts } = theme;
 
@@ -17,9 +19,9 @@ const DAYS = [
   "Sunday",
 ];
 const ASSIGNMENTS_STORAGE_KEY = "memberAssignmentsByDay";
-// Define the new storage key for the logged-in user
 const LOGGED_IN_MEMBER_STORAGE_KEY = "loggedInMember";
 
+// --- MemberImage Component (Retained and slightly adjusted for larger shadow) ---
 const MemberImage = ({ rollNo, name, isLarge = false }) => {
   const baseImageUrl = `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${rollNo}`;
   const possibleExtensions = ["png", "jpg", "jpeg"];
@@ -36,7 +38,8 @@ const MemberImage = ({ rollNo, name, isLarge = false }) => {
     }
   };
 
-  const sizeClass = isLarge ? "h-12 w-12 text-xl" : "h-10 w-10 text-lg";
+  // Increased size slightly for better mobile appearance
+  const sizeClass = isLarge ? "h-14 w-14 text-2xl shadow-md" : "h-12 w-12 text-xl shadow-sm";
   const fallbackBgColor = isLarge ? colors.tertiary : colors.primary;
 
   if (extensionIndex < possibleExtensions.length) {
@@ -45,7 +48,7 @@ const MemberImage = ({ rollNo, name, isLarge = false }) => {
         src={currentImageUrl}
         alt={`${name} profile`}
         onError={handleImageError}
-        className={`${sizeClass} rounded-full object-cover flex-shrink-0 mr-4`}
+        className={`${sizeClass} rounded-full object-cover flex-shrink-0 mr-4 border-2 border-white`}
       />
     );
   } else {
@@ -60,13 +63,14 @@ const MemberImage = ({ rollNo, name, isLarge = false }) => {
     );
   }
 };
+// ---------------------------------------------------------------------------------
 
 function InchargeList() {
   const [allMembers, setAllMembers] = useState([]);
   const [dailyAssignments, setDailyAssignments] = useState(null);
   const [activeDay, setActiveDay] = useState(DAYS[0]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false); // New state for admin check
+  const [isAdmin, setIsAdmin] = useState(false);
   const [status, setStatus] = useState({
     loading: true,
     message: "Initializing data...",
@@ -74,6 +78,7 @@ function InchargeList() {
   });
 
   const fetchAssignmentsFromFirestore = useCallback(async () => {
+    // ... (Firestore fetch logic remains the same)
     const fetchedAssignments = {};
     let success = true;
 
@@ -125,12 +130,11 @@ function InchargeList() {
         );
         if (loggedInMemberString) {
           const memberData = JSON.parse(loggedInMemberString);
-          // Set isAdmin to true if the stored data has isAdmin: true
           setIsAdmin(!!memberData.isAdmin);
         }
       } catch (e) {
         console.error("Error loading logged-in member from local storage.", e);
-        setIsAdmin(false); // Default to false on error
+        setIsAdmin(false);
       }
 
       // 2. Load all members
@@ -152,7 +156,6 @@ function InchargeList() {
 
       if (assignmentsString) {
         initialAssignments = JSON.parse(assignmentsString);
-        // Suppressing success message for local storage load
         setStatus((prev) => ({ ...prev, loading: false, message: "" }));
       } else {
         setStatus((prev) => ({
@@ -168,7 +171,6 @@ function InchargeList() {
             ASSIGNMENTS_STORAGE_KEY,
             JSON.stringify(firestoreAssignments)
           );
-          // Suppressing success message for Firestore load
           setStatus({ loading: false, message: "", error: false });
         } else {
           initialAssignments = DAYS.reduce(
@@ -192,6 +194,7 @@ function InchargeList() {
   }, [fetchAssignmentsFromFirestore]);
 
   const handleSaveAssignments = async (newAssignmentsArray) => {
+    // ... (Firestore save logic remains the same)
     if (!dailyAssignments) return;
 
     const dayKey = activeDay.toLowerCase();
@@ -214,13 +217,11 @@ function InchargeList() {
       const batch = writeBatch(db);
       const collectionRef = collection(db, collectionPath);
 
-      // Fetch current documents to delete
       const snapshot = await getDocs(collectionRef);
       snapshot.docs.forEach((docSnap) => {
         batch.delete(doc(collectionRef, docSnap.id));
       });
 
-      // Set new documents
       newAssignmentsArray.forEach((assignment) => {
         batch.set(doc(collectionRef, assignment.rollId), {
           rollNumber: Number(assignment.rollId),
@@ -230,7 +231,6 @@ function InchargeList() {
 
       await batch.commit();
 
-      // Suppressing success message for saving
       setStatus({ loading: false, message: "", error: false });
     } catch (error) {
       console.error("Error updating assignments in Firestore:", error);
@@ -241,6 +241,109 @@ function InchargeList() {
       });
     }
   };
+
+  const handleDownloadPDF = async () => {
+    // ... (PDF download logic remains the same - focusing on the component for now)
+    setStatus({
+        loading: true,
+        message: `Generating PDF for ${activeDay}...`,
+        error: false,
+    });
+
+    const pdfContent = document.createElement('div');
+    pdfContent.style.width = '210mm'; 
+    pdfContent.style.padding = '10mm';
+
+    const header = document.createElement('h1');
+    header.style.color = colors.primary;
+    header.style.fontSize = '24px';
+    header.style.marginBottom = '20px';
+    header.textContent = `${activeDay} Incharge List`;
+    pdfContent.appendChild(header);
+
+    if (incharges.length > 0) {
+        const inchargeHeader = document.createElement('h2');
+        inchargeHeader.style.color = colors.tertiary;
+        inchargeHeader.style.fontSize = '18px';
+        inchargeHeader.style.borderLeft = `4px solid ${colors.tertiary}`;
+        inchargeHeader.style.paddingLeft = '10px';
+        inchargeHeader.style.marginBottom = '10px';
+        inchargeHeader.textContent = `INCHARGE (${incharges.length})`;
+        pdfContent.appendChild(inchargeHeader);
+
+        incharges.forEach((member) => {
+            const memberDiv = document.createElement('p');
+            memberDiv.style.margin = '5px 0';
+            memberDiv.style.paddingLeft = '10px';
+            memberDiv.textContent = `⭐ ${member.name} ${member.last_name} (Roll No: ${member.roll_no})`;
+            pdfContent.appendChild(memberDiv);
+        });
+        pdfContent.appendChild(document.createElement('hr'));
+    }
+
+    if (teamMembers.length > 0) {
+        const teamHeader = document.createElement('h2');
+        teamHeader.style.color = colors.primary;
+        teamHeader.style.fontSize = '18px';
+        teamHeader.style.borderLeft = `4px solid ${colors.primary}`;
+        teamHeader.style.paddingLeft = '10px';
+        teamHeader.style.marginBottom = '10px';
+        teamHeader.style.marginTop = '20px';
+        teamHeader.textContent = `Team Members (${teamMembers.length})`;
+        pdfContent.appendChild(teamHeader);
+
+        teamMembers.forEach((member) => {
+            const memberDiv = document.createElement('p');
+            memberDiv.style.margin = '5px 0';
+            memberDiv.style.paddingLeft = '10px';
+            memberDiv.textContent = `• ${member.name} ${member.last_name} (Roll No: ${member.roll_no})`;
+            pdfContent.appendChild(memberDiv);
+        });
+    }
+
+    document.body.appendChild(pdfContent);
+
+    try {
+        const canvas = await html2canvas(pdfContent, { scale: 2 });
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 200; 
+        const pageHeight = 295;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'JPEG', 5, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 5, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        const fileName = `${activeDay.toLowerCase()}-incharge-list-seconds.pdf`;
+        pdf.save(fileName);
+
+        setStatus({ loading: false, message: "PDF generated successfully.", error: false });
+
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        setStatus({
+            loading: false,
+            message: `Failed to generate PDF.`,
+            error: true,
+        });
+    } finally {
+        document.body.removeChild(pdfContent);
+        if (!status.error) {
+            setTimeout(() => setStatus({ loading: false, message: "", error: false }), 3000);
+        }
+    }
+  };
+
 
   const membersForActiveDay = allMembers
     .filter(
@@ -265,8 +368,11 @@ function InchargeList() {
       return 0;
     });
 
+  const incharges = membersForActiveDay.filter((member) => member.star);
+  const teamMembers = membersForActiveDay.filter((member) => !member.star);
+
   const AddMemberModal = ({ isOpen, onClose, currentAssignments, onSave }) => {
-    // ... (Modal logic remains the same)
+    // ... (Modal logic remains the same, adjusted styling slightly)
     const [modalAssignments, setModalAssignments] = useState(() => {
       const initialMap = allMembers.reduce((acc, member) => {
         const memberId = String(member.id);
@@ -338,22 +444,22 @@ function InchargeList() {
 
     return (
       <div
-        className="fixed inset-0 flex justify-center items-center z-50  px-6  gap-4"
-        style={{ backgroundColor: "rgba(59, 76, 122, 0.5)" }}
+        className="fixed inset-0 flex justify-center items-center z-50 	px-6 	gap-4"
+        style={{ backgroundColor: "rgba(59, 76, 122, 0.7)" }} // Darker overlay
       >
         <div
-          className="rounded-xl shadow-2xl w-full max-w-lg max-h-[75vh] overflow-y-auto transform transition-all duration-300"
+          className="rounded-3xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto transform transition-all duration-300 animate-slide-in-up" // Rounded corners and animation
           style={{ backgroundColor: colors.neutralLight }}
         >
           <div
-            className="sticky top-0 p-6 border-b z-10"
+            className="sticky top-0 p-6 border-b z-10 rounded-t-3xl"
             style={{ backgroundColor: colors.neutralLight }}
           >
             <h3
-              className="text-2xl font-bold"
+              className="text-2xl font-extrabold"
               style={{ color: colors.primary, fontFamily: fonts.heading }}
             >
-              Assign Members for {activeDay}
+              Assign Team for {activeDay}
             </h3>
           </div>
 
@@ -368,16 +474,16 @@ function InchargeList() {
                   return (
                     <div
                       key={member.id}
-                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg transition duration-150"
-                      style={{ backgroundColor: colors.primaryLight + "10" }}
+                      className={`flex items-center justify-between p-3 border border-gray-200 rounded-xl transition duration-150 ${assignment.isAssigned ? 'shadow-inner' : 'hover:bg-gray-50'}`} // Subtle shadow on selected
+                      style={{ backgroundColor: assignment.isAssigned ? colors.primaryLight + "30" : colors.neutralLight }}
                     >
                       <label className="flex items-center space-x-4 cursor-pointer flex-grow">
                         <input
                           type="checkbox"
                           checked={assignment.isAssigned}
                           onChange={() => handleCheckboxChange(member.id)}
-                          className="form-checkbox h-5 w-5 rounded-md focus:ring-indigo-500"
-                          style={{ color: colors.primary }}
+                          className="form-checkbox h-6 w-6 rounded-full focus:ring-0" // Rounded checkbox
+                          style={{ color: colors.primary, accentColor: colors.primary }}
                         />
                         <span
                           className="text-base font-medium"
@@ -387,8 +493,8 @@ function InchargeList() {
                           }}
                         >
                           {member.name} {member.last_name}
-                          <span className="text-sm text-gray-500 ml-2">
-                            (Roll No: {member.roll_no})
+                          <span className="text-xs text-gray-500 block">
+                            Roll No: {member.roll_no}
                           </span>
                         </span>
                       </label>
@@ -425,12 +531,12 @@ function InchargeList() {
           </div>
 
           <div
-            className="sticky bottom-0 p-4 border-t flex justify-end space-x-3 shadow-top z-10"
+            className="sticky bottom-0 p-4 border-t flex justify-end space-x-3 shadow-top z-10 rounded-b-3xl"
             style={{ backgroundColor: colors.neutralLight }}
           >
             <button
               onClick={onClose}
-              className="px-5 py-2 text-sm font-medium rounded-lg hover:bg-gray-200 transition duration-150"
+              className="px-6 py-2 text-base font-medium rounded-full hover:bg-gray-200 transition duration-150"
               style={{
                 backgroundColor: colors.primaryLight + "30",
                 color: colors.neutralDark,
@@ -440,7 +546,7 @@ function InchargeList() {
             </button>
             <button
               onClick={handleSave}
-              className="px-5 py-2 text-sm font-medium text-white rounded-lg shadow-md hover:opacity-90 transition duration-150 disabled:opacity-50"
+              className="px-6 py-2 text-base font-bold text-white rounded-full shadow-lg hover:shadow-xl transition duration-150 disabled:opacity-50"
               style={{
                 backgroundColor: colors.primary,
                 fontFamily: fonts.body,
@@ -458,133 +564,130 @@ function InchargeList() {
     return <Loader />;
   }
 
-  const incharges = membersForActiveDay.filter((member) => member.star);
-  const teamMembers = membersForActiveDay.filter((member) => !member.star);
-
   return (
     <>
-    <Topbar/>
+      <Topbar />
       <div
-        className="px-4 pt-16"
+        className="min-h-screen pb-20" // Ensure min-height and padding for mobile
         style={{ backgroundColor: "#F0F0F0", fontFamily: fonts.body }}
       >
         <header
-          className="shadow-md rounded-xl p-4 mb-4"
-          style={{ backgroundColor: colors.neutralLight }}
+          className="shadow-xl rounded-b-3xl p-4 pt-20 mb-6" // Larger shadow, rounded bottom
+          style={{ backgroundColor: colors.primary }}
         >
           <h1
-            className="text-2xl font-extrabold pb-2"
-            style={{
-              color: colors.neutralDark,
-              borderBottom: `2px solid ${colors.primary}`,
-              fontFamily: fonts.heading,
-            }}
+            className="text-3xl font-extrabold text-white"
+            style={{ fontFamily: fonts.heading }}
           >
-            Incharge List
+            Team Roster
           </h1>
+          <p className="text-white opacity-90 mt-1">Daily Incharge & Seva Assignments</p>
         </header>
 
-        {/* Status/Error Message - Only renders if message is NOT empty (i.e., only for errors or initial loading hints) */}
+        {/* Status/Error Message - Styled as an app notification/banner */}
         {status.message && !status.loading && (
-          <div
-            className="p-3 rounded-lg relative mb-4 shadow-sm"
-            style={{
-              backgroundColor: status.error
-                ? colors.dangerLight
-                : colors.successLight,
-              border: `1px solid ${
-                status.error ? colors.danger : colors.success
-              }`,
-              color: status.error ? colors.danger : colors.success,
-            }}
-          >
-            {status.error ? "🚨 Error: " : "✅ Success: "} {status.message}
+          <div className="mx-4">
+            <div
+              className={`p-3 rounded-xl relative mb-4 shadow-md transition duration-300`}
+              style={{
+                backgroundColor: status.error
+                  ? colors.dangerLight
+                  : colors.successLight,
+                border: `1px solid ${
+                  status.error ? colors.danger : colors.success
+                }`,
+                color: status.error ? colors.danger : colors.success,
+              }}
+            >
+              <span className="font-semibold">{status.error ? "🚨 Error: " : "✅ Success: "}</span> {status.message}
+            </div>
           </div>
         )}
-
-        <div
-          className="flex overflow-x-auto border-b border-gray-300 rounded-t-xl shadow-md"
-          style={{ backgroundColor: colors.neutralLight }}
-        >
-          {DAYS.map((day) => (
-            <button
-              key={day}
-              onClick={() => setActiveDay(day)}
-              className={`py-3 px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-200 focus:outline-none`}
-              style={{
-                color: activeDay === day ? colors.primary : colors.neutralDark,
-                borderBottom:
-                  activeDay === day ? `4px solid ${colors.primary}` : "none",
-                backgroundColor:
-                  activeDay === day
-                    ? colors.primaryLight + "20"
-                    : colors.neutralLight,
-              }}
-              disabled={status.loading}
-            >
-              {day}
-              {dailyAssignments[day]?.length > 0 && (
-                <span
-                  className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white rounded-full"
-                  style={{ backgroundColor: colors.danger }}
-                >
-                  {dailyAssignments[day].length}
-                </span>
-              )}
-            </button>
-          ))}
+        
+        {/* Day Selection Tabs - Social Media Style Pills */}
+        <div className="px-4 mb-6">
+          <div 
+            className="flex overflow-x-auto p-1 space-x-2 rounded-full shadow-lg"
+            style={{ backgroundColor: colors.neutralLight }}
+          >
+            {DAYS.map((day) => (
+              <button
+                key={day}
+                onClick={() => setActiveDay(day)}
+                className={`py-2 px-4 text-base font-semibold whitespace-nowrap rounded-full transition-all duration-300 ease-in-out focus:outline-none`}
+                style={{
+                  color: activeDay === day ? colors.neutralLight : colors.primary,
+                  backgroundColor: activeDay === day ? colors.primary : "transparent",
+                }}
+                disabled={status.loading}
+              >
+                {day}
+                {dailyAssignments[day]?.length > 0 && (
+                  <span
+                    className="ml-2 inline-flex items-center justify-center px-2 text-xs font-bold leading-none text-white rounded-full"
+                    style={{ backgroundColor: colors.danger }}
+                  >
+                    {dailyAssignments[day].length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div
-          className="mt-3 px-4 py-8 mb-6 rounded-b-xl shadow-lg"
+          className="mx-4 p-5 mb-6 rounded-3xl shadow-2xl transition transform duration-500" // Elevated card look
           style={{ backgroundColor: colors.neutralLight }}
         >
-          <div className="flex justify-between items-center mb-4 border-b pb-3">
+          <div className="flex justify-between items-center mb-5 border-b pb-3">
             <h2
-              className="text-xl font-bold"
+              className="text-2xl font-extrabold"
               style={{ color: colors.neutralDark, fontFamily: fonts.heading }}
             >
-              {activeDay}
+              {activeDay} Team
             </h2>
 
-            {/* CONDITIONAL RENDERING: Only show Edit button if isAdmin is true */}
-            {isAdmin && (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center px-4 py-2 text-white font-medium rounded-lg shadow-md hover:opacity-90 transition duration-150 disabled:opacity-50 text-sm"
-                style={{ backgroundColor: colors.primary }}
-                disabled={status.loading}
-              >
-                <svg
-                  className="w-5 h-5 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
+            {/* Admin Buttons Container - Grouped and styled as action buttons */}
+            <div className="flex space-x-3"> 
+                <button
+                    onClick={handleDownloadPDF}
+                    className="flex items-center p-2 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition duration-150 disabled:opacity-50 text-sm"
+                    style={{ backgroundColor: colors.secondary }}
+                    disabled={status.loading || membersForActiveDay.length === 0}
+                    aria-label="Download Roster PDF"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  ></path>
-                </svg>
-                Edit
-              </button>
-            )}
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                </button>
+            
+                {isAdmin && (
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center p-2 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition duration-150 disabled:opacity-50 text-sm"
+                    style={{ backgroundColor: colors.primary }}
+                    disabled={status.loading}
+                    aria-label="Edit Roster"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                </button>
+                )}
+            </div>
           </div>
 
           {membersForActiveDay.length === 0 ? (
             <div className="text-center py-10">
               <p
-                className="text-lg mb-4"
+                className="text-lg font-medium mb-4"
                 style={{ color: colors.primaryLight }}
               >
-                No members are currently assigned for {activeDay}.
+                No members are currently assigned for **{activeDay}**.
               </p>
               {isAdmin && (
                 <p style={{ color: colors.primaryLight }}>
-                  Tap "Edit" to assign a team.
+                  Tap the **Edit** button to assign a team.
                 </p>
               )}
             </div>
@@ -593,23 +696,22 @@ function InchargeList() {
               {incharges.length > 0 && (
                 <section>
                   <h3
-                    className="text-lg font-bold mb-3 pl-2"
+                    className="text-xl font-extrabold mb-3 text-left tracking-wider" // Emphasis on section header
                     style={{
-                      color: colors.neutralDark,
-                      borderLeft: `4px solid ${colors.tertiary}`,
+                      color: colors.tertiary,
                       fontFamily: fonts.heading,
                     }}
                   >
-                    INCHARGE ({incharges.length})
+                    ⭐ INCHARGE ({incharges.length})
                   </h3>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {incharges.map((member) => (
                       <div
                         key={member.id}
-                        className="p-4 rounded-xl shadow-lg flex items-center transition transform hover:scale-[1.01]"
+                        className="p-4 rounded-2xl shadow-xl flex items-center transition transform hover:scale-[1.02] duration-300 border-2" // Prominent Incharge card
                         style={{
                           backgroundColor: colors.tertiaryLight,
-                          border: `1px solid ${colors.tertiary}`,
+                          borderColor: colors.tertiary,
                         }}
                       >
                         <MemberImage
@@ -620,13 +722,13 @@ function InchargeList() {
 
                         <div className="min-w-0 flex-1">
                           <p
-                            className="text-lg font-extrabold truncate flex items-center"
+                            className="text-xl font-bold truncate flex items-center"
                             style={{ color: colors.neutralDark }}
                           >
                             {member.name} {member.last_name}
                           </p>
                           <p
-                            className="text-sm mt-0.5"
+                            className="text-sm mt-0.5 font-medium"
                             style={{ color: colors.primary }}
                           >
                             Roll No: {member.roll_no}
@@ -641,22 +743,22 @@ function InchargeList() {
               {teamMembers.length > 0 && (
                 <section>
                   <h3
-                    className="text-lg font-bold mb-3 pl-2"
+                    className="text-xl font-extrabold mb-3 text-left tracking-wider" // Emphasis on section header
                     style={{
-                      color: colors.neutralDark,
-                      borderLeft: `4px solid ${colors.primary}`,
+                      color: colors.primary,
                       fontFamily: fonts.heading,
+                      marginTop: incharges.length > 0 ? '30px' : '0'
                     }}
                   >
-                    Team Members ({teamMembers.length})
+                    👥 Team Members ({teamMembers.length})
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {teamMembers.map((member) => (
                       <div
                         key={member.id}
-                        className="p-3 rounded-lg shadow-sm flex items-center transition hover:shadow-md"
+                        className="p-3 rounded-xl shadow-md flex items-center transition hover:shadow-lg duration-200"
                         style={{
-                          backgroundColor: colors.primaryLight + "20",
+                          backgroundColor: colors.primaryLight + "15",
                           border: `1px solid ${colors.primaryLight}`,
                         }}
                       >
@@ -689,7 +791,6 @@ function InchargeList() {
           )}
         </div>
 
-        {/* CONDITIONAL RENDERING: Only render the modal if isAdmin is true AND we have assignments data */}
         {isAdmin && dailyAssignments && (
           <AddMemberModal
             isOpen={isModalOpen}

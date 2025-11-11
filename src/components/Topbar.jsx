@@ -157,19 +157,21 @@ function Topbar() {
             {/* Dropdown Menu */}
             {isDropdownOpen && (
               <div
-                className="absolute right-0 mt-3 w-56 rounded-xl shadow-xl p-2"
+                className="absolute right-0 mt-3 w-60 rounded-xl shadow-2xl z-[10000] p-3 transition-all duration-200"
                 style={{
                   background: theme.colors.neutralLight,
                   border: `1px solid ${theme.colors.tertiaryLight}`,
                 }}
               >
-                <button
-                  onClick={() => window.location.reload()}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
+                <NavLink
+                  to="/profile"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
                   style={{ color: theme.colors.primary }}
+                  onClick={() => setIsDropdownOpen(false)}
                 >
-                  <CachedIcon fontSize="small" /> Reload
-                </button>
+                  <AccountCircle fontSize="small" />
+                  Your Profile
+                </NavLink>
 
                 {/* <NavLink
                   to="/inchargelist"
@@ -182,43 +184,46 @@ function Topbar() {
 
                 <NavLink
                   to="/members"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
                   style={{ color: theme.colors.primary }}
                   onClick={() => setIsDropdownOpen(false)}
                 >
-                  <GroupIcon fontSize="small" /> All Members
+                  <GroupIcon fontSize="small" />
+                  All Members
                 </NavLink>
 
                 <NavLink
                   to="/updatedlist"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
                   style={{ color: theme.colors.primary }}
                   onClick={() => setIsDropdownOpen(false)}
                 >
-                  <ListAltIcon fontSize="small" /> Updated Details
-                </NavLink>
-
-                <NavLink
-                  to="/profile"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
-                  style={{ color: theme.colors.primary }}
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  <AccountCircle fontSize="small" /> Your Profile
+                  <ListAltIcon fontSize="small" />
+                  Updated Details
                 </NavLink>
 
                 <div className="border-t border-gray-200 my-2"></div>
 
+                <button
+                  onClick={() => window.location.reload()}
+                  className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                  style={{ color: theme.colors.primary }}
+                >
+                  <CachedIcon fontSize="small" />
+                  Reload
+                </button>
+
                 <NavLink
                   to="/"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-red-100"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-red-100 hover:pl-5"
                   style={{ color: theme.colors.danger }}
                   onClick={() => {
                     localStorage.removeItem("loggedInMember");
                     setIsDropdownOpen(false);
                   }}
                 >
-                  <LogoutIcon fontSize="small" /> Sign Out
+                  <LogoutIcon fontSize="small" />
+                  Sign Out
                 </NavLink>
               </div>
             )}
