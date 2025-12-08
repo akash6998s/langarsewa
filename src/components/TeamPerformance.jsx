@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import Loader from "./Loader"; 
+import Loader from "./Loader";
 import { theme } from "../theme";
 import Topbar from "./Topbar";
 import { FaTrophy } from "react-icons/fa";
@@ -48,25 +48,25 @@ const TeamPerformance = () => {
   const [members, setMembers] = useState([]);
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
   const [filterZero, setFilterZero] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
   const [monthlyData, setMonthlyData] = useState([]);
   const [yearlyPointsData, setYearlyPointsData] = useState([]);
   const [showGraphPopup, setShowGraphPopup] = useState(false);
-  const [activeTab, setActiveTab] = useState("Performance"); 
+  const [activeTab, setActiveTab] = useState("Performance");
 
   // --- Constants ---
   const LOADER_DURATION = 2000;
 
   // Generate a fixed list of years starting from 2025
-  const FIXED_YEARS = useMemo(() => 
-    Array.from({ length: 11 }, (_, i) => (2025 + i).toString()), 
+  const FIXED_YEARS = useMemo(() =>
+    Array.from({ length: 11 }, (_, i) => (2025 + i).toString()),
   []);
 
   const months = useMemo(() => [
-    "January", "February", "March", "April", "May", "June", 
+    "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
   ], []);
 
@@ -96,16 +96,16 @@ const TeamPerformance = () => {
 
           const currentDate = new Date();
           const currentMonth = months[currentDate.getMonth()];
-          
+
           // Set initial year and month
-          setSelectedYear(FIXED_YEARS[0]); 
+          setSelectedYear(FIXED_YEARS[0]);
           setSelectedMonth(currentMonth);
         } else {
           setMembers([]);
         }
       } catch (error) {
         console.error("Error loading from local storage:", error);
-      } 
+      }
     };
 
     fetchData();
@@ -131,7 +131,7 @@ const TeamPerformance = () => {
       const timer = setTimeout(() => {
         setSelectedYear(year);
         setIsLoading(false);
-      }, LOADER_DURATION); 
+      }, LOADER_DURATION);
       return () => clearTimeout(timer);
     }
   }, [selectedYear]);
@@ -200,7 +200,7 @@ const TeamPerformance = () => {
       (a, b) => b.percentage - a.percentage
     );
 
-    // Calculate rank, handling ties
+    // --- DENSE RANKING LOGIC FIX (Performance Tab) ---
     const rankedMembers = sortedMembers.reduce((acc, member, index) => {
       if (index === 0) {
         acc.push({ ...member, rank: 1 });
@@ -208,12 +208,13 @@ const TeamPerformance = () => {
         const prevMember = acc[acc.length - 1];
         const rank =
           member.percentage === prevMember.percentage
-            ? prevMember.rank
-            : index + 1; // Rank is based on index + 1
+            ? prevMember.rank // Tie: reuse the previous rank (Dense Ranking)
+            : prevMember.rank + 1; // Not a tie: Increment by 1 (Dense Ranking)
         acc.push({ ...member, rank });
       }
       return acc;
     }, []);
+    // --- END DENSE RANKING LOGIC FIX ---
 
     // Apply the filter for members with zero attendance days
     const displayed = filterZero
@@ -232,16 +233,16 @@ const TeamPerformance = () => {
   useEffect(() => {
     if (selectedYear && members.length > 0 && activeTab === "Points") {
       const yearInt = parseInt(selectedYear);
-      
+
       const yearlyData = members.map((member) => {
         let totalDaysPresent = 0;
-        let totalPoints = 0; 
+        let totalPoints = 0;
         const yearAttendance = member.attendance?.[selectedYear];
 
         if (yearAttendance) {
           Object.keys(yearAttendance).forEach((monthName) => {
             const monthAttendance = yearAttendance[monthName];
-            const monthIndex = months.indexOf(monthName); 
+            const monthIndex = months.indexOf(monthName);
 
             if (monthAttendance && monthIndex !== -1) {
               totalDaysPresent += monthAttendance.length;
@@ -267,8 +268,8 @@ const TeamPerformance = () => {
           name: member.name,
           last_name: member.last_name,
           daysPresent: totalDaysPresent,
-          points: totalPoints, 
-          rank: 0, 
+          points: totalPoints,
+          rank: 0,
         };
       });
 
@@ -276,7 +277,7 @@ const TeamPerformance = () => {
         (a, b) => b.points - a.points
       );
 
-      // Calculate rank, handling ties
+      // --- DENSE RANKING LOGIC FIX (Points Tab) ---
       const rankedYearlyData = sortedYearlyData.reduce((acc, member, index) => {
         if (index === 0) {
           acc.push({ ...member, rank: 1 });
@@ -284,18 +285,19 @@ const TeamPerformance = () => {
           const prevMember = acc[acc.length - 1];
           const rank =
             member.points === prevMember.points
-              ? prevMember.rank
-              : index + 1; // Rank is based on index + 1
+              ? prevMember.rank // Tie: reuse the previous rank (Dense Ranking)
+              : prevMember.rank + 1; // Not a tie: Increment by 1 (Dense Ranking)
           acc.push({ ...member, rank });
         }
         return acc;
       }, []);
+      // --- END DENSE RANKING LOGIC FIX ---
 
       setYearlyPointsData(rankedYearlyData);
     } else {
       setYearlyPointsData([]);
     }
-  }, [members, selectedYear, activeTab, months]); 
+  }, [members, selectedYear, activeTab, months]);
 
   // --- Rendering Content for Performance Tab ---
   const renderPerformanceContent = () => (
@@ -370,7 +372,7 @@ const TeamPerformance = () => {
           <div
             className="p-6 rounded-lg shadow-2xl w-11/12 max-w-4xl max-h-[90vh] overflow-y-auto relative"
             style={{ backgroundColor: colors.neutralLight }}
-            onClick={(e) => e.stopPropagation()} 
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               className="absolute top-2 right-4 text-2xl font-bold"
@@ -736,18 +738,18 @@ const TeamPerformance = () => {
     <>
       <Topbar />
       <div
-        className="container pb-24 pt-24 mx-auto p-4 min-h-screen" 
+        className="container pb-24 pt-24 mx-auto p-4 min-h-screen"
         style={{
           background: colors.background,
           fontFamily: fonts.body,
           color: colors.neutralDark,
-          paddingTop: '64px', 
+          paddingTop: '64px',
           boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 10px ${colors.neutralLight}`
         }}
       >
         {/* Conditional Loader */}
         {isLoading && <Loader />}
-        
+
         {/* Tab Navigation */}
         <div
           className="flex justify-center mb-6 border-b-2"
@@ -764,7 +766,7 @@ const TeamPerformance = () => {
               color: activeTab === "Performance" ? colors.primary : colors.neutralDark,
               borderColor: activeTab === "Performance" ? colors.primary : "transparent",
             }}
-            disabled={isLoading} 
+            disabled={isLoading}
           >
             Performance
           </button>
@@ -779,7 +781,7 @@ const TeamPerformance = () => {
               color: activeTab === "Points" ? colors.primary : colors.neutralDark,
               borderColor: activeTab === "Points" ? colors.primary : "transparent",
             }}
-            disabled={isLoading} 
+            disabled={isLoading}
           >
             Points
           </button>
