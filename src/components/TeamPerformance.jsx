@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Loader from "./Loader"; 
 import { theme } from "../theme";
 import Topbar from "./Topbar";
@@ -14,8 +14,10 @@ import {
   Label,
 } from "recharts";
 
+// Destructure theme colors and fonts for easier use
 const { colors, fonts } = theme;
 
+// Custom tooltip component for the Recharts BarChart
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -40,14 +42,13 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+// Main component for displaying team performance and points
 const TeamPerformance = () => {
+  // --- State Initialization ---
   const [members, setMembers] = useState([]);
-  const [selectedYear, setSelectedYear] = useState("2025");
+  const [selectedYear, setSelectedYear] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
-  const FIXED_YEARS = useMemo(() => Array.from({ length: 11 }, (_, i) => (2025 + i).toString()), []);
-  
   const [isLoading, setIsLoading] = useState(true); 
-  
   const [filterZero, setFilterZero] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
@@ -56,29 +57,37 @@ const TeamPerformance = () => {
   const [showGraphPopup, setShowGraphPopup] = useState(false);
   const [activeTab, setActiveTab] = useState("Performance"); 
 
-  // --- Constants and Utility ---
-  const LOADER_DURATION = 2000; // 3 seconds in milliseconds
+  // --- Constants ---
+  const LOADER_DURATION = 2000;
+
+  // Generate a fixed list of years starting from 2025
+  const FIXED_YEARS = useMemo(() => 
+    Array.from({ length: 11 }, (_, i) => (2025 + i).toString()), 
+  []);
 
   const months = useMemo(() => [
     "January", "February", "March", "April", "May", "June", 
     "July", "August", "September", "October", "November", "December",
   ], []);
 
-  const showCopyPopup = (message) => {
+  // Utility function to display a temporary notification popup
+  const showCopyPopup = useCallback((message) => {
     setPopupMessage(message);
     setShowPopup(true);
     setTimeout(() => {
       setShowPopup(false);
     }, 2000);
-  };
+  }, []);
 
-  // --- Initial Loader Management (3-second mandatory) ---
+  // --- Initial Data Load and State Setup ---
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Set mandatory loader for initial mount
+    const loaderTimer = setTimeout(() => {
       setIsLoading(false);
     }, LOADER_DURATION);
 
-    const fetchData = async () => {
+    // Fetch members data from Local Storage
+    const fetchData = () => {
       try {
         const storedData = localStorage.getItem("allMembers");
         if (storedData) {
@@ -88,6 +97,7 @@ const TeamPerformance = () => {
           const currentDate = new Date();
           const currentMonth = months[currentDate.getMonth()];
           
+          // Set initial year and month
           setSelectedYear(FIXED_YEARS[0]); 
           setSelectedMonth(currentMonth);
         } else {
@@ -99,11 +109,11 @@ const TeamPerformance = () => {
     };
 
     fetchData();
-    return () => clearTimeout(timer);
+    return () => clearTimeout(loaderTimer);
   }, [months, FIXED_YEARS]);
 
-  // --- Tab Change Handler with 3-second Loader ---
-  const handleTabChange = (tabName) => {
+  // Handler to switch tabs with a loading screen
+  const handleTabChange = useCallback((tabName) => {
     if (activeTab !== tabName) {
       setIsLoading(true);
       const timer = setTimeout(() => {
@@ -112,10 +122,10 @@ const TeamPerformance = () => {
       }, LOADER_DURATION);
       return () => clearTimeout(timer);
     }
-  };
+  }, [activeTab]);
 
-  // --- Year Change Handler with 3-second Loader ---
-  const handleYearChange = (year) => {
+  // Handler to change the selected year with a loading screen
+  const handleYearChange = useCallback((year) => {
     if (selectedYear !== year) {
       setIsLoading(true);
       const timer = setTimeout(() => {
@@ -124,10 +134,17 @@ const TeamPerformance = () => {
       }, LOADER_DURATION); 
       return () => clearTimeout(timer);
     }
-  };
+  }, [selectedYear]);
 
-  // --- Data Calculation Effects ---
+  // Utility function to calculate the number of days in a given month/year
+  const getDaysInMonth = useCallback((year, month) => {
+    const monthIndex = months.indexOf(month);
+    if (monthIndex === -1) return 0;
+    // Date(year, monthIndex + 1, 0) gets the last day of the month
+    return new Date(year, monthIndex + 1, 0).getDate();
+  }, [months]);
 
+  // --- Data Calculation: Monthly Attendance Sum for Graph (Performance Tab) ---
   useEffect(() => {
     if (selectedYear && members.length > 0) {
       const monthlyTotals = months.map((month) => ({
@@ -141,6 +158,7 @@ const TeamPerformance = () => {
           months.forEach((month, index) => {
             const monthData = yearAttendance[month];
             if (monthData) {
+              // Sum the length of the day array for attendance count
               monthlyTotals[index].totalAttendance += monthData.length;
             }
           });
@@ -152,13 +170,7 @@ const TeamPerformance = () => {
     }
   }, [members, selectedYear, months]);
 
-  const getDaysInMonth = (year, month) => {
-    const monthIndex = months.indexOf(month);
-    if (monthIndex === -1) return 0;
-    return new Date(year, monthIndex + 1, 0).getDate();
-  };
-
-  // Logic for Performance Tab (Monthly Attendance and Rank)
+  // --- Data Calculation: Monthly Performance (Attendance, Percentage, Rank) ---
   const { displayedMembers, allMembersRankOne } = useMemo(() => {
     const calculateAttendance = (member) => {
       if (!member.attendance || !selectedYear || !selectedMonth) {
@@ -188,6 +200,7 @@ const TeamPerformance = () => {
       (a, b) => b.percentage - a.percentage
     );
 
+    // Calculate rank, handling ties
     const rankedMembers = sortedMembers.reduce((acc, member, index) => {
       if (index === 0) {
         acc.push({ ...member, rank: 1 });
@@ -196,24 +209,26 @@ const TeamPerformance = () => {
         const rank =
           member.percentage === prevMember.percentage
             ? prevMember.rank
-            : prevMember.rank + 1;
+            : index + 1; // Rank is based on index + 1
         acc.push({ ...member, rank });
       }
       return acc;
     }, []);
 
+    // Apply the filter for members with zero attendance days
     const displayed = filterZero
       ? rankedMembers.filter((m) => m.presentDays === 0)
       : rankedMembers;
 
+    // Check if all displayed members share rank 1 (no clear winner)
     const allRankOne =
       displayed.length > 0 &&
       displayed.every((member) => member.rank === 1);
 
     return { displayedMembers: displayed, allMembersRankOne: allRankOne };
-  }, [members, selectedYear, selectedMonth, filterZero, months]);
+  }, [members, selectedYear, selectedMonth, filterZero, getDaysInMonth]);
 
-  // Effect to calculate Yearly Points Data for Points tab, including Rank
+  // --- Data Calculation: Yearly Points (Points Tab) ---
   useEffect(() => {
     if (selectedYear && members.length > 0 && activeTab === "Points") {
       const yearInt = parseInt(selectedYear);
@@ -231,7 +246,9 @@ const TeamPerformance = () => {
             if (monthAttendance && monthIndex !== -1) {
               totalDaysPresent += monthAttendance.length;
 
+              // Calculate points: 4 for weekend, 2 for weekday attendance
               monthAttendance.forEach((day) => {
+                // Month index is 0-based
                 const date = new Date(yearInt, monthIndex, day);
                 const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
 
@@ -259,6 +276,7 @@ const TeamPerformance = () => {
         (a, b) => b.points - a.points
       );
 
+      // Calculate rank, handling ties
       const rankedYearlyData = sortedYearlyData.reduce((acc, member, index) => {
         if (index === 0) {
           acc.push({ ...member, rank: 1 });
@@ -267,7 +285,7 @@ const TeamPerformance = () => {
           const rank =
             member.points === prevMember.points
               ? prevMember.rank
-              : prevMember.rank + 1;
+              : index + 1; // Rank is based on index + 1
           acc.push({ ...member, rank });
         }
         return acc;
@@ -279,11 +297,11 @@ const TeamPerformance = () => {
     }
   }, [members, selectedYear, activeTab, months]); 
 
-  // --- Rendering Functions for Tabs ---
-
+  // --- Rendering Content for Performance Tab ---
   const renderPerformanceContent = () => (
     <>
       <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
+        {/* Year Selector */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <select
             id="year-performance"
@@ -305,6 +323,7 @@ const TeamPerformance = () => {
             ))}
           </select>
         </div>
+        {/* Month Selector */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <select
             id="month-performance"
@@ -326,6 +345,7 @@ const TeamPerformance = () => {
             ))}
           </select>
         </div>
+        {/* View Graph Button (Visible only when a year is selected) */}
         {selectedYear && (
           <button
             onClick={() => setShowGraphPopup(true)}
@@ -336,11 +356,12 @@ const TeamPerformance = () => {
             }}
             disabled={isLoading}
           >
-            View Graph
+            View Monthly Graph
           </button>
         )}
       </div>
 
+      {/* Graph Popup Modal */}
       {showGraphPopup && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50"
@@ -384,6 +405,7 @@ const TeamPerformance = () => {
                     tickLine={false}
                     tickMargin={10}
                     style={{ fill: colors.neutralDark, fontSize: "12px", }}
+                    // Display only the first 3 letters for months
                     tickFormatter={(tick) => tick.substring(0, 3)}
                     interval="preserveStartEnd"
                   />
@@ -414,15 +436,22 @@ const TeamPerformance = () => {
         </div>
       )}
 
+      {/* Performance Table */}
       {selectedYear && selectedMonth && members.length > 0 ? (
         <div
-          className="overflow-x-auto rounded-lg shadow-xl"
+          className="rounded-lg shadow-xl"
           style={{ backgroundColor: colors.neutralLight }}
         >
           <table
-            className="min-w-full table-auto border-collapse border border-gray-300 shadow-md rounded-lg"
+            className="min-w-full table-fixed border-collapse border border-gray-300 shadow-md rounded-lg"
             style={{ borderColor: colors.primaryLight }}
           >
+            <colgroup>
+              <col style={{ width: "15%" }} /> {/* Rank */}
+              <col style={{ width: "40%" }} /> {/* Name */}
+              <col style={{ width: "22.5%" }} /> {/* Days Present */}
+              <col style={{ width: "22.5%" }} /> {/* Percentage */}
+            </colgroup>
             <thead
               className="sticky top-0 z-50"
               style={{ backgroundColor: colors.tertiaryLight }}
@@ -430,7 +459,7 @@ const TeamPerformance = () => {
               <tr>
                 <th
                   scope="col"
-                  className="p-3 text-left text-xs font-bold uppercase tracking-wider sticky left-0 z-40 w-12 sm:w-16 border border-gray-300"
+                  className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
                   style={{
                     backgroundColor: colors.tertiaryLight,
                     color: colors.primary,
@@ -440,11 +469,12 @@ const TeamPerformance = () => {
                 </th>
                 <th
                   scope="col"
-                  className="p-3 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 cursor-pointer"
+                  className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 cursor-pointer"
                   style={{
                     backgroundColor: colors.tertiaryLight,
                     color: colors.primary,
                   }}
+                  // Double-click to copy all displayed member names
                   onDoubleClick={() => {
                     const namesText = displayedMembers
                       .map((m) => `${m.name} ${m.last_name || ""}`.trim())
@@ -465,24 +495,24 @@ const TeamPerformance = () => {
 
                 <th
                   scope="col"
-                  className="p-3 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 w-20"
+                  className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
                   style={{
                     backgroundColor: colors.tertiaryLight,
                     color: colors.primary,
                   }}
                 >
-                  Days Present
+                  Days
                 </th>
                 <th
                   scope="col"
-                  className="p-3 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 w-20 cursor-pointer"
+                  className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 cursor-pointer"
                   onClick={() => setFilterZero((prev) => !prev)}
                   style={{
                     backgroundColor: colors.tertiaryLight,
                     color: colors.primary,
                   }}
                 >
-                  Percentage
+                  Pcntg.
                 </th>
               </tr>
             </thead>
@@ -492,6 +522,7 @@ const TeamPerformance = () => {
                   key={member.id}
                   className="transition-colors duration-150 ease-in-out hover:bg-gray-100"
                   style={{
+                    // Highlight the rank 1 member if there's no tie across all members
                     backgroundColor:
                       member.rank === 1 && !allMembersRankOne
                         ? "#FFD700"
@@ -499,7 +530,7 @@ const TeamPerformance = () => {
                     color: colors.neutralDark,
                   }}
                 >
-                  <td className="p-3 whitespace-nowrap text-sm font-medium sticky left-0 z-10 w-12 sm:w-16 border border-gray-300">
+                  <td className="p-2 text-sm font-medium border border-gray-300 whitespace-nowrap">
                     <span
                       style={{
                         color:
@@ -510,6 +541,7 @@ const TeamPerformance = () => {
                     >
                       {member.rank}
                     </span>
+                    {/* Display trophy icon for the top ranked member(s) */}
                     {!allMembersRankOne && member.rank === 1 && (
                       <FaTrophy
                         className="inline-block text-yellow-700 ml-1"
@@ -517,13 +549,13 @@ const TeamPerformance = () => {
                       />
                     )}
                   </td>
-                  <td className="p-3 text-sm border border-gray-300 whitespace-normal break-words">
+                  <td className="p-2 text-sm border border-gray-300 whitespace-normal break-words">
                     {member.name} {member.last_name}{" "}
                   </td>
-                  <td className="p-3 whitespace-nowrap text-sm border border-gray-300 w-20">
+                  <td className="p-2 text-sm border border-gray-300 whitespace-nowrap text-center">
                     {member.presentDays}
                   </td>
-                  <td className="p-3 whitespace-nowrap text-sm border border-gray-300 w-20">
+                  <td className="p-2 text-sm border border-gray-300 whitespace-nowrap text-center">
                     {member.percentage.toFixed(2)}%
                   </td>
                 </tr>
@@ -540,14 +572,16 @@ const TeamPerformance = () => {
           }}
         >
           {members.length > 0
-            ? "Please select a year and a month to view individual performance, or a year to view the monthly graph."
-            : "No member data found in local storage. Make sure you have member data available to load."}
+            ? "Please select a year and a month to view individual performance."
+            : "No member data found in local storage."}
         </p>
       )}
     </>
   );
 
+  // --- Rendering Content for Points Tab ---
   const renderPointsContent = () => {
+    // Check if all members share rank 1 in points (no clear winner)
     const allPointsRankOne =
       yearlyPointsData.length > 0 &&
       yearlyPointsData.every((member) => member.rank === 1);
@@ -555,6 +589,7 @@ const TeamPerformance = () => {
     return (
       <>
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
+          {/* Year Selector for Points Tab */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <select
               id="year-points"
@@ -578,15 +613,22 @@ const TeamPerformance = () => {
           </div>
         </div>
 
+        {/* Points Table */}
         {selectedYear && members.length > 0 ? (
           <div
-            className="overflow-x-auto rounded-lg shadow-xl"
+            className="rounded-lg shadow-xl"
             style={{ backgroundColor: colors.neutralLight }}
           >
             <table
-              className="min-w-full table-auto border-collapse border border-gray-300 shadow-md rounded-lg"
+              className="min-w-full table-fixed border-collapse border border-gray-300 shadow-md rounded-lg"
               style={{ borderColor: colors.primaryLight }}
             >
+              <colgroup>
+                <col style={{ width: "15%" }} /> {/* Rank */}
+                <col style={{ width: "35%" }} /> {/* Name */}
+                <col style={{ width: "30%" }} /> {/* Days Present */}
+                <col style={{ width: "20%" }} /> {/* Points */}
+              </colgroup>
               <thead
                 className="sticky top-0 z-50"
                 style={{ backgroundColor: colors.tertiaryLight }}
@@ -594,7 +636,7 @@ const TeamPerformance = () => {
                 <tr>
                   <th
                     scope="col"
-                    className="p-3 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
+                    className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
                     style={{
                       backgroundColor: colors.tertiaryLight,
                       color: colors.primary,
@@ -604,7 +646,7 @@ const TeamPerformance = () => {
                   </th>
                   <th
                     scope="col"
-                    className="p-3 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
+                    className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
                     style={{
                       backgroundColor: colors.tertiaryLight,
                       color: colors.primary,
@@ -614,17 +656,17 @@ const TeamPerformance = () => {
                   </th>
                   <th
                     scope="col"
-                    className="p-3 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
+                    className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
                     style={{
                       backgroundColor: colors.tertiaryLight,
                       color: colors.primary,
                     }}
                   >
-                    Days Present ({selectedYear})
+                    Days Present
                   </th>
                   <th
                     scope="col"
-                    className="p-3 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
+                    className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
                     style={{
                       backgroundColor: colors.tertiaryLight,
                       color: colors.primary,
@@ -640,6 +682,7 @@ const TeamPerformance = () => {
                     key={member.id}
                     className="transition-colors duration-150 ease-in-out hover:bg-gray-100"
                     style={{
+                      // Highlight the rank 1 member if there's no tie across all members
                       backgroundColor:
                         member.rank === 1 && !allPointsRankOne
                           ? "#FFD700"
@@ -647,8 +690,9 @@ const TeamPerformance = () => {
                       color: colors.neutralDark,
                     }}
                   >
-                    <td className="p-3 text-sm font-medium border border-gray-300 whitespace-nowrap">
+                    <td className="p-2 text-sm font-medium border border-gray-300 whitespace-nowrap">
                       {member.rank}
+                      {/* Display trophy icon for the top ranked member(s) */}
                       {!allPointsRankOne && member.rank === 1 && (
                         <FaTrophy
                           className="inline-block text-yellow-700 ml-1"
@@ -656,13 +700,13 @@ const TeamPerformance = () => {
                         />
                       )}
                     </td>
-                    <td className="p-3 text-sm border border-gray-300 whitespace-normal break-words">
+                    <td className="p-2 text-sm border border-gray-300 whitespace-normal break-words">
                       {member.name} {member.last_name}
                     </td>
-                    <td className="p-3 text-sm border border-gray-300 whitespace-nowrap">
+                    <td className="p-2 text-sm border border-gray-300 whitespace-nowrap text-center">
                       {member.daysPresent}
                     </td>
-                    <td className="p-3 text-sm border border-gray-300 whitespace-nowrap font-bold">
+                    <td className="p-2 text-sm border border-gray-300 whitespace-nowrap font-bold text-center">
                       {member.points}
                     </td>
                   </tr>
@@ -680,19 +724,19 @@ const TeamPerformance = () => {
           >
             {members.length > 0
               ? "Please select a year to view yearly points data."
-              : "No member data found in local storage. Make sure you have member data available to load."}
+              : "No member data found in local storage."}
           </p>
         )}
       </>
     );
   };
 
+  // --- Main Component Render ---
   return (
     <>
       <Topbar />
-      {/* The main container is styled for a clean mobile-app feel */}
       <div
-        className="container mx-auto p-4 min-h-screen max-w-lg md:max-w-xl shadow-2xl rounded-xl mt-4 mb-4" 
+        className="container pb-24 pt-24 mx-auto p-4 min-h-screen" 
         style={{
           background: colors.background,
           fontFamily: fonts.body,
@@ -701,9 +745,10 @@ const TeamPerformance = () => {
           boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 10px ${colors.neutralLight}`
         }}
       >
-        {/* --- Loader Conditional Render --- */}
+        {/* Conditional Loader */}
         {isLoading && <Loader />}
         
+        {/* Tab Navigation */}
         <div
           className="flex justify-center mb-6 border-b-2"
           style={{ borderColor: colors.tertiaryLight }}
@@ -740,8 +785,10 @@ const TeamPerformance = () => {
           </button>
         </div>
 
+        {/* Render content based on active tab */}
         {activeTab === "Performance" ? renderPerformanceContent() : renderPointsContent()}
 
+        {/* Copy Success/Error Popup */}
         {showPopup && (
           <div
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-4 rounded-lg shadow-xl text-center z-[1000] transition-opacity duration-300 ease-in-out"
