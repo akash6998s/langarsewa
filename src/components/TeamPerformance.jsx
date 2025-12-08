@@ -501,7 +501,7 @@ const TeamPerformance = () => {
                     color: colors.primary,
                   }}
                 >
-                  Days
+                  Days Present
                 </th>
                 <th
                   scope="col"
@@ -512,7 +512,7 @@ const TeamPerformance = () => {
                     color: colors.primary,
                   }}
                 >
-                  Pcntg.
+                  Percentage
                 </th>
               </tr>
             </thead>
