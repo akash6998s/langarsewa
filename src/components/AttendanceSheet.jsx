@@ -76,13 +76,30 @@ const Attendance = () => {
         return rollA - rollB;
       });
 
+      const normalizedSelectedMonth = normalizeMonthName(month);
+
       const membersWithAttendance = allMembersData.map((member) => {
-        const normalizedMonth = normalizeMonthName(month);
-        const currentMonthAttendance = member.attendance?.[year]?.[normalizedMonth] || [];
+        // 1. Get the current month's attendance for rendering the table cells (days)
+        const currentMonthAttendanceDays = member.attendance?.[year]?.[normalizedSelectedMonth] || [];
+
+        // 2. Calculate TOTAL POINTS for the selected YEAR
+        let totalYearlyPoints = 0;
+        
+        // Check if the member has attendance data for the selected year
+        const yearlyAttendance = member.attendance?.[year];
+
+        if (yearlyAttendance) {
+            // Iterate over every month in the selected year's record
+            for (const monthKey in yearlyAttendance) {
+                // yearlyAttendance[monthKey] is an array of present days (e.g., [1, 5, 10])
+                totalYearlyPoints += yearlyAttendance[monthKey].length;
+            }
+        }
 
         return {
           ...member,
-          attendance: currentMonthAttendance,
+          attendance: currentMonthAttendanceDays, // Use only selected month's days for the table view
+          points: totalYearlyPoints, // Use total yearly points for the 'Points' column
         };
       });
 
@@ -95,7 +112,7 @@ const Attendance = () => {
       await minLoadPromise;
       setLoading(false);
     }
-  }, [year, month]);
+  }, [year, month]); // The dependency on 'month' is kept to re-fetch when the month selector changes, ensuring the table view (days) updates, even though points are now year-based.
 
   // --- Effect to trigger data fetching when component mounts or `fetchMembersFromLocalStorage` changes ---
   useEffect(() => {
@@ -252,6 +269,14 @@ const Attendance = () => {
                     >
                       Roll No & Name
                     </th>
+                    {/* POINTS COLUMN HEADER - Now represents YEARLY total */}
+                    <th
+                      className="p-1 text-center text-xs font-semibold uppercase tracking-wider border border-gray-300 min-w-[50px] sm:min-w-0 sm:px-3 sm:py-3 sm:text-sm"
+                      style={{ color: theme.colors.primary }}
+                    >
+                      Points
+                    </th>
+                    {/* END NEW POINTS COLUMN HEADER */}
                     {daysInMonth.map((dayData) => (
                       <th
                         key={`header-${dayData.day}`}
@@ -276,7 +301,8 @@ const Attendance = () => {
                   {filteredMembers.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={daysInMonth.length + 1}
+                        // Colspan updated to daysInMonth + 2
+                        colSpan={daysInMonth.length + 2} 
                         className="text-center py-8 text-base border border-gray-300"
                         style={{ color: theme.colors.primary }}
                       >
@@ -312,6 +338,16 @@ const Attendance = () => {
                             </div>
                           </div>
                         </td>
+                        
+                        {/* POINTS DATA CELL (Yearly Total) */}
+                        <td
+                          className="p-1 whitespace-nowrap text-center text-xs font-bold border border-gray-300 min-w-[50px] sm:min-w-0 sm:px-3 sm:py-3 sm:text-sm"
+                          style={{ color: theme.colors.secondary }}
+                        >
+                          {member.points}
+                        </td>
+                        {/* END POINTS DATA CELL */}
+
                         {daysInMonth.map((dayData) => (
                           <td
                             key={`data-${member.roll_no}-${dayData.day}`}
