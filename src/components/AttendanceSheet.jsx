@@ -131,7 +131,7 @@ const Attendance = () => {
             await minLoadPromise;
             setLoading(false);
         }
-    }, [year, month]); // *** CORRECTED: Removed 'months' dependency ***
+    }, [year, month]);
 
     // --- Effect to trigger data fetching ---
     useEffect(() => {
@@ -192,7 +192,7 @@ const Attendance = () => {
     // --- Component Render ---
     return (
         <div
-            className="p-6 md:p-10 font-[Inter,sans-serif]"
+            className="p-3 md:p-10 font-[Inter,sans-serif]"
             style={{ background: theme.colors.background }}
         >
             <LoadData/>
@@ -289,12 +289,12 @@ const Attendance = () => {
                                     >
                                         Roll No & Name
                                     </th>
-                                    {/* POINTS COLUMN HEADER - YEARLY weighted total */}
+                                    {/* POINTS COLUMN HEADER - Reduced size and padding */}
                                     <th
-                                        className="p-1 text-center text-xs font-semibold uppercase tracking-wider border border-gray-300 min-w-[50px] sm:min-w-0 sm:px-3 sm:py-3 sm:text-sm"
+                                        className="p-1 text-center text-xs font-semibold uppercase tracking-wider border border-gray-300 min-w-[30px] sm:min-w-[40px] sm:px-1 sm:py-2 sm:text-xs"
                                         style={{ color: theme.colors.primary }}
                                     >
-                                        Points (Yearly)
+                                        Points
                                     </th>
                                     {/* End Points Header */}
                                     {daysInMonth.map((dayData) => (
@@ -358,9 +358,9 @@ const Attendance = () => {
                                                 </div>
                                             </td>
                                             
-                                            {/* POINTS DATA CELL (Yearly Total) */}
+                                            {/* POINTS DATA CELL - Reduced size and padding */}
                                             <td
-                                                className="p-1 whitespace-nowrap text-center text-base font-bold border border-gray-300 min-w-[50px] sm:min-w-0 sm:px-3 sm:py-3"
+                                                className="p-1 whitespace-nowrap text-center text-xs font-bold border border-gray-300 min-w-[30px] sm:min-w-[40px] sm:px-1 sm:py-2"
                                                 style={{ color: theme.colors.secondary }}
                                             >
                                                 {member.points}
