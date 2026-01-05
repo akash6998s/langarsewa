@@ -11,7 +11,7 @@ const Members = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const getStatusColor = (dateString) => {
-    if (!dateString) return "#ef4444"; 
+    if (!dateString) return "#ef4444";
     try {
       let cleanDate = dateString.replace(/\bat\b/i, "").split("UTC")[0].trim();
       const lastSeen = new Date(cleanDate);
@@ -22,14 +22,14 @@ const Members = () => {
       const oneDayInMs = 24 * 60 * 60 * 1000;
       const sevenDaysInMs = 7 * oneDayInMs;
 
-      if (diffInMs < oneDayInMs) return "#10b981"; 
-      if (diffInMs < sevenDaysInMs) return "#f59e0b"; 
-      return "#ef4444"; 
+      if (diffInMs < oneDayInMs) return "#10b981";
+      if (diffInMs < sevenDaysInMs) return "#f59e0b";
+      return "#ef4444";
     } catch { return "#ef4444"; }
   };
 
   const formatLastSeen = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return "No recent activity";
     try {
       let cleanDate = dateString.replace(/\bat\b/i, "").split("UTC")[0].trim();
       const lastSeen = new Date(cleanDate);
@@ -71,7 +71,7 @@ const Members = () => {
         })
       );
       setMembers(processedMembers.sort((a, b) => parseInt(a.roll_no) - parseInt(b.roll_no)));
-    } catch(error) {
+    } catch (error) {
       console.log(error)
     } finally {
       await minLoadPromise;
@@ -81,7 +81,7 @@ const Members = () => {
 
   useEffect(() => { fetchMembersFromLocalStorage(); }, []);
 
-  const filteredMembers = members.filter((m) => 
+  const filteredMembers = members.filter((m) =>
     [m.roll_no, m.name, m.last_name].some(v => String(v).toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
@@ -91,7 +91,7 @@ const Members = () => {
       <div className="pb-24 pt-20 px-4 min-h-screen" style={{ background: `linear-gradient(135deg, ${theme.colors.background} 0%, #f8fafc 100%)` }}>
         <LoadData />
         {isLoading && <Loader />}
-        
+
         {!isLoading && (
           <div className="max-w-7xl mx-auto">
             <div className="mb-10 flex justify-center">
@@ -110,7 +110,7 @@ const Members = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredMembers.map((member) => (
                 <div key={member.id} className="group relative bg-white rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 animate-fadeIn">
-                  
+
                   {/* Top Left Badge (Only Number) */}
                   <div className="absolute top-4 left-4 z-10 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-500">
                     {member.roll_no}
@@ -151,11 +151,12 @@ const Members = () => {
                         </div>
                       )}
                       {member.address && (
-                        <div className="flex items-center gap-3 text-slate-500 text-[11px] px-3">
-                          <FiMapPin size={12} className="text-slate-300 shrink-0" />
-                          <span className="truncate">{member.address}</span>
+                        <div className="flex items-center gap-3 text-slate-600 text-[13px] px-3 py-2 rounded-xl bg-slate-50/50 border border-slate-50">
+                          <FiMapPin size={12} className="text-slate-400 shrink-0" />
+                          <span className="break-words">{member.address}</span>
                         </div>
                       )}
+
                     </div>
 
                     {/* Footer */}
@@ -165,9 +166,9 @@ const Members = () => {
                         <span>{formatLastSeen(member.last_online)}</span>
                       </div>
                       <div className="flex gap-1.5">
-                         <a href={`tel:${member.phone_no}`} className="p-2 rounded-lg hover:bg-green-50 hover:text-green-500 transition-colors">
-                           <FiPhone size={16} />
-                         </a>
+                        <a href={`tel:${member.phone_no}`} className="p-2 rounded-lg hover:bg-green-50 hover:text-green-500 transition-colors">
+                          <FiPhone size={16} />
+                        </a>
                       </div>
                     </div>
                   </div>
