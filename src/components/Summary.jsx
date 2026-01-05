@@ -20,43 +20,51 @@ export default function Summary() {
     const fetchData = async () => {
       setIsLoading(true);
       setPopupMessage(null);
+      
       let calculatedTotalExpense = 0;
       let calculatedTotalActiveDonation = 0;
       let calculatedTotalArchivedDonation = 0;
-      const currentYear = new Date().getFullYear().toString();
 
       try {
+        // --- 1. ALL YEARS EXPENSES ---
         const expensesString = localStorage.getItem("expenses");
         const expensesData = expensesString ? JSON.parse(expensesString) : {};
 
-        if (expensesData[currentYear]) {
+        // Sabhi years par loop chala rahe hain
+        Object.keys(expensesData).forEach(year => {
           months.forEach(month => {
-            if (expensesData[currentYear][month] && Array.isArray(expensesData[currentYear][month])) {
-              expensesData[currentYear][month].forEach(expenseItem => {
+            if (expensesData[year][month] && Array.isArray(expensesData[year][month])) {
+              expensesData[year][month].forEach(expenseItem => {
                 if (expenseItem.amount) {
                   calculatedTotalExpense += Number(expenseItem.amount);
                 }
               });
             }
           });
-        }
+        });
 
+        // --- 2. ALL YEARS ACTIVE MEMBERS DONATIONS ---
         const allMembersString = localStorage.getItem("allMembers");
         const allMembers = allMembersString ? JSON.parse(allMembersString) : [];
 
         allMembers.forEach((member) => {
-          if (member.donation && member.donation[currentYear]) {
-            months.forEach(month => {
-              const lowerCaseMonth = month.toLowerCase();
-              if (member.donation[currentYear][month] !== undefined) {
-                calculatedTotalActiveDonation += Number(member.donation[currentYear][month]);
-              } else if (member.donation[currentYear][lowerCaseMonth] !== undefined) {
-                calculatedTotalActiveDonation += Number(member.donation[currentYear][lowerCaseMonth]);
-              }
+          if (member.donation) {
+            // Har member ke har saal ki donation ko count karna
+            Object.keys(member.donation).forEach(year => {
+              months.forEach(month => {
+                const lowerCaseMonth = month.toLowerCase();
+                // Check for both Title Case and lower case month keys
+                if (member.donation[year][month] !== undefined) {
+                  calculatedTotalActiveDonation += Number(member.donation[year][month]);
+                } else if (member.donation[year][lowerCaseMonth] !== undefined) {
+                  calculatedTotalActiveDonation += Number(member.donation[year][lowerCaseMonth]);
+                }
+              });
             });
           }
         });
 
+        // --- 3. ALL ARCHIVED DONATIONS ---
         const allArchivedDonationsString = localStorage.getItem("allArchivedDonations");
         const allArchivedDonations = allArchivedDonationsString ? JSON.parse(allArchivedDonationsString) : [];
 
@@ -71,9 +79,10 @@ export default function Summary() {
         setPopupMessage("Failed to load financial data from local storage.");
         setPopupType("error");
       } finally {
+        const finalDonation = calculatedTotalActiveDonation + calculatedTotalArchivedDonation;
         setTotalExpense(calculatedTotalExpense);
-        setTotalDonation(calculatedTotalActiveDonation + calculatedTotalArchivedDonation);
-        setRemainingAmount(calculatedTotalActiveDonation + calculatedTotalArchivedDonation - calculatedTotalExpense);
+        setTotalDonation(finalDonation);
+        setRemainingAmount(finalDonation - calculatedTotalExpense);
         setIsLoading(false);
       }
     };
@@ -104,12 +113,12 @@ export default function Summary() {
         className="text-2xl sm:text-3xl font-extrabold mb-6 sm:mb-8 text-center"
         style={{ color: theme.colors.neutralDark, fontFamily: theme.fonts.heading }}
       >
-        Financial Summary
+        Overall Financial Summary
       </h1>
 
       {!isLoading && popupType !== 'error' && (
         <div className="space-y-4 w-full">
-          {/* Total Donations */}
+          {/* Total Donations (All Time) */}
           <div
             className="rounded-md shadow-sm p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border"
             style={{
@@ -122,7 +131,7 @@ export default function Summary() {
               className="text-base sm:text-lg mb-2 sm:mb-0"
               style={{ color: theme.colors.primary }}
             >
-              Total Donations ({new Date().getFullYear()}):
+              Total Donations
             </strong>
             <span
               className="text-xl sm:text-2xl font-bold"
@@ -132,7 +141,7 @@ export default function Summary() {
             </span>
           </div>
 
-          {/* Total Expenses */}
+          {/* Total Expenses (All Time) */}
           <div
             className="rounded-md shadow-sm p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border"
             style={{
@@ -145,7 +154,7 @@ export default function Summary() {
               className="text-base sm:text-lg mb-2 sm:mb-0"
               style={{ color: theme.colors.primary }}
             >
-              Total Expenses ({new Date().getFullYear()}):
+              Total Expenses
             </strong>
             <span
               className="text-xl sm:text-2xl font-bold"
@@ -154,8 +163,6 @@ export default function Summary() {
               ₹{Math.round(totalExpense)}
             </span>
           </div>
-
-         
 
           {/* Remaining Amount */}
           <div
@@ -169,7 +176,7 @@ export default function Summary() {
               className="text-base sm:text-xl mb-2 sm:mb-0"
               style={{ color: theme.colors.neutralDark }}
             >
-              Remaining Amount:
+              Net Balance
             </strong>
             <span
               className="text-2xl sm:text-3xl font-extrabold"

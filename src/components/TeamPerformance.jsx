@@ -94,12 +94,18 @@ const TeamPerformance = () => {
           const parsedMembers = JSON.parse(storedData);
           setMembers(parsedMembers);
 
+          // --- LOGIC FOR DEFAULT YEAR AND MONTH ---
           const currentDate = new Date();
-          const currentMonth = months[currentDate.getMonth()];
+          const currentYearStr = currentDate.getFullYear().toString();
+          const currentMonthName = months[currentDate.getMonth()];
 
-          // Set initial year and month
-          setSelectedYear(FIXED_YEARS[0]);
-          setSelectedMonth(currentMonth);
+          // Agar current year FIXED_YEARS me hai toh wo set hoga, nahi toh 2025 (first index)
+          const defaultYear = FIXED_YEARS.includes(currentYearStr) 
+            ? currentYearStr 
+            : FIXED_YEARS[0];
+
+          setSelectedYear(defaultYear);
+          setSelectedMonth(currentMonthName);
         } else {
           setMembers([]);
         }
@@ -200,7 +206,7 @@ const TeamPerformance = () => {
       (a, b) => b.percentage - a.percentage
     );
 
-    // --- DENSE RANKING LOGIC FIX (Performance Tab) ---
+    // --- DENSE RANKING LOGIC ---
     const rankedMembers = sortedMembers.reduce((acc, member, index) => {
       if (index === 0) {
         acc.push({ ...member, rank: 1 });
@@ -208,20 +214,17 @@ const TeamPerformance = () => {
         const prevMember = acc[acc.length - 1];
         const rank =
           member.percentage === prevMember.percentage
-            ? prevMember.rank // Tie: reuse the previous rank (Dense Ranking)
-            : prevMember.rank + 1; // Not a tie: Increment by 1 (Dense Ranking)
+            ? prevMember.rank 
+            : prevMember.rank + 1; 
         acc.push({ ...member, rank });
       }
       return acc;
     }, []);
-    // --- END DENSE RANKING LOGIC FIX ---
 
-    // Apply the filter for members with zero attendance days
     const displayed = filterZero
       ? rankedMembers.filter((m) => m.presentDays === 0)
       : rankedMembers;
 
-    // Check if all displayed members share rank 1 (no clear winner)
     const allRankOne =
       displayed.length > 0 &&
       displayed.every((member) => member.rank === 1);
@@ -247,9 +250,7 @@ const TeamPerformance = () => {
             if (monthAttendance && monthIndex !== -1) {
               totalDaysPresent += monthAttendance.length;
 
-              // Calculate points: 4 for weekend, 2 for weekday attendance
               monthAttendance.forEach((day) => {
-                // Month index is 0-based
                 const date = new Date(yearInt, monthIndex, day);
                 const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
 
@@ -277,7 +278,6 @@ const TeamPerformance = () => {
         (a, b) => b.points - a.points
       );
 
-      // --- DENSE RANKING LOGIC FIX (Points Tab) ---
       const rankedYearlyData = sortedYearlyData.reduce((acc, member, index) => {
         if (index === 0) {
           acc.push({ ...member, rank: 1 });
@@ -285,13 +285,12 @@ const TeamPerformance = () => {
           const prevMember = acc[acc.length - 1];
           const rank =
             member.points === prevMember.points
-              ? prevMember.rank // Tie: reuse the previous rank (Dense Ranking)
-              : prevMember.rank + 1; // Not a tie: Increment by 1 (Dense Ranking)
+              ? prevMember.rank 
+              : prevMember.rank + 1;
           acc.push({ ...member, rank });
         }
         return acc;
       }, []);
-      // --- END DENSE RANKING LOGIC FIX ---
 
       setYearlyPointsData(rankedYearlyData);
     } else {
@@ -303,7 +302,6 @@ const TeamPerformance = () => {
   const renderPerformanceContent = () => (
     <>
       <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
-        {/* Year Selector */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <select
             id="year-performance"
@@ -319,13 +317,10 @@ const TeamPerformance = () => {
           >
             <option value="">--Select Year--</option>
             {FIXED_YEARS.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
+              <option key={year} value={year}>{year}</option>
             ))}
           </select>
         </div>
-        {/* Month Selector */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <select
             id="month-performance"
@@ -341,13 +336,10 @@ const TeamPerformance = () => {
           >
             <option value="">--Select Month--</option>
             {months.map((month) => (
-              <option key={month} value={month}>
-                {month}
-              </option>
+              <option key={month} value={month}>{month}</option>
             ))}
           </select>
         </div>
-        {/* View Graph Button (Visible only when a year is selected) */}
         {selectedYear && (
           <button
             onClick={() => setShowGraphPopup(true)}
@@ -363,7 +355,6 @@ const TeamPerformance = () => {
         )}
       </div>
 
-      {/* Graph Popup Modal */}
       {showGraphPopup && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50"
@@ -391,7 +382,7 @@ const TeamPerformance = () => {
               <ResponsiveContainer>
                 <BarChart
                   data={monthlyData}
-                  margin={{ top: 20, right: 10, left: 10, bottom: 5, }}
+                  margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
                   barCategoryGap="15%"
                 >
                   <CartesianGrid vertical={false} stroke={colors.tertiary} />
@@ -406,8 +397,7 @@ const TeamPerformance = () => {
                     axisLine={false}
                     tickLine={false}
                     tickMargin={10}
-                    style={{ fill: colors.neutralDark, fontSize: "12px", }}
-                    // Display only the first 3 letters for months
+                    style={{ fill: colors.neutralDark, fontSize: "12px" }}
                     tickFormatter={(tick) => tick.substring(0, 3)}
                     interval="preserveStartEnd"
                   />
@@ -415,13 +405,13 @@ const TeamPerformance = () => {
                     axisLine={false}
                     tickLine={false}
                     tickMargin={10}
-                    style={{ fill: colors.neutralDark, fontSize: "12px", }}
+                    style={{ fill: colors.neutralDark, fontSize: "12px" }}
                   >
                     <Label
                       value="Total Days Present"
                       angle={-90}
                       position="insideLeft"
-                      style={{ textAnchor: "middle", fill: colors.neutralDark, }}
+                      style={{ textAnchor: "middle", fill: colors.neutralDark }}
                     />
                   </YAxis>
                   <Tooltip content={<CustomTooltip />} />
@@ -438,7 +428,6 @@ const TeamPerformance = () => {
         </div>
       )}
 
-      {/* Performance Table */}
       {selectedYear && selectedMonth && members.length > 0 ? (
         <div
           className="rounded-lg shadow-xl"
@@ -449,10 +438,10 @@ const TeamPerformance = () => {
             style={{ borderColor: colors.primaryLight }}
           >
             <colgroup>
-              <col style={{ width: "15%" }} /> {/* Rank */}
-              <col style={{ width: "40%" }} /> {/* Name */}
-              <col style={{ width: "22.5%" }} /> {/* Days Present */}
-              <col style={{ width: "22.5%" }} /> {/* Percentage */}
+              <col style={{ width: "15%" }} />
+              <col style={{ width: "40%" }} />
+              <col style={{ width: "22.5%" }} />
+              <col style={{ width: "22.5%" }} />
             </colgroup>
             <thead
               className="sticky top-0 z-50"
@@ -462,21 +451,14 @@ const TeamPerformance = () => {
                 <th
                   scope="col"
                   className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
-                  style={{
-                    backgroundColor: colors.tertiaryLight,
-                    color: colors.primary,
-                  }}
+                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary }}
                 >
                   Rank
                 </th>
                 <th
                   scope="col"
                   className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 cursor-pointer"
-                  style={{
-                    backgroundColor: colors.tertiaryLight,
-                    color: colors.primary,
-                  }}
-                  // Double-click to copy all displayed member names
+                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary }}
                   onDoubleClick={() => {
                     const namesText = displayedMembers
                       .map((m) => `${m.name} ${m.last_name || ""}`.trim())
@@ -487,21 +469,15 @@ const TeamPerformance = () => {
                       .then(() => {
                         showCopyPopup("Names copied to clipboard!");
                       })
-                      .catch((err) =>
-                        console.error("Clipboard error:", err)
-                      );
+                      .catch((err) => console.error("Clipboard error:", err));
                   }}
                 >
                   Name
                 </th>
-
                 <th
                   scope="col"
                   className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
-                  style={{
-                    backgroundColor: colors.tertiaryLight,
-                    color: colors.primary,
-                  }}
+                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary }}
                 >
                   Days Present
                 </th>
@@ -509,10 +485,7 @@ const TeamPerformance = () => {
                   scope="col"
                   className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 cursor-pointer"
                   onClick={() => setFilterZero((prev) => !prev)}
-                  style={{
-                    backgroundColor: colors.tertiaryLight,
-                    color: colors.primary,
-                  }}
+                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary }}
                 >
                   Percentage
                 </th>
@@ -524,7 +497,6 @@ const TeamPerformance = () => {
                   key={member.id}
                   className="transition-colors duration-150 ease-in-out hover:bg-gray-100"
                   style={{
-                    // Highlight the rank 1 member if there's no tie across all members
                     backgroundColor:
                       member.rank === 1 && !allMembersRankOne
                         ? "#FFD700"
@@ -533,26 +505,15 @@ const TeamPerformance = () => {
                   }}
                 >
                   <td className="p-2 text-sm font-medium border border-gray-300 whitespace-nowrap">
-                    <span
-                      style={{
-                        color:
-                          member.rank === 1 && !allMembersRankOne
-                            ? "black"
-                            : colors.neutralDark,
-                      }}
-                    >
+                    <span style={{ color: member.rank === 1 && !allMembersRankOne ? "black" : colors.neutralDark }}>
                       {member.rank}
                     </span>
-                    {/* Display trophy icon for the top ranked member(s) */}
                     {!allMembersRankOne && member.rank === 1 && (
-                      <FaTrophy
-                        className="inline-block text-yellow-700 ml-1"
-                        title="Top Performer"
-                      />
+                      <FaTrophy className="inline-block text-yellow-700 ml-1" title="Top Performer" />
                     )}
                   </td>
                   <td className="p-2 text-sm border border-gray-300 whitespace-normal break-words">
-                    {member.name} {member.last_name}{" "}
+                    {member.name} {member.last_name}
                   </td>
                   <td className="p-2 text-sm border border-gray-300 whitespace-nowrap text-center">
                     {member.presentDays}
@@ -583,7 +544,6 @@ const TeamPerformance = () => {
 
   // --- Rendering Content for Points Tab ---
   const renderPointsContent = () => {
-    // Check if all members share rank 1 in points (no clear winner)
     const allPointsRankOne =
       yearlyPointsData.length > 0 &&
       yearlyPointsData.every((member) => member.rank === 1);
@@ -591,7 +551,6 @@ const TeamPerformance = () => {
     return (
       <>
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
-          {/* Year Selector for Points Tab */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <select
               id="year-points"
@@ -607,15 +566,12 @@ const TeamPerformance = () => {
             >
               <option value="">--Select Year--</option>
               {FIXED_YEARS.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
+                <option key={year} value={year}>{year}</option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* Points Table */}
         {selectedYear && members.length > 0 ? (
           <div
             className="rounded-lg shadow-xl"
@@ -626,56 +582,20 @@ const TeamPerformance = () => {
               style={{ borderColor: colors.primaryLight }}
             >
               <colgroup>
-                <col style={{ width: "15%" }} /> {/* Rank */}
-                <col style={{ width: "35%" }} /> {/* Name */}
-                <col style={{ width: "30%" }} /> {/* Days Present */}
-                <col style={{ width: "20%" }} /> {/* Points */}
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "35%" }} />
+                <col style={{ width: "30%" }} />
+                <col style={{ width: "20%" }} />
               </colgroup>
               <thead
                 className="sticky top-0 z-50"
                 style={{ backgroundColor: colors.tertiaryLight }}
               >
                 <tr>
-                  <th
-                    scope="col"
-                    className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
-                    style={{
-                      backgroundColor: colors.tertiaryLight,
-                      color: colors.primary,
-                    }}
-                  >
-                    Rank
-                  </th>
-                  <th
-                    scope="col"
-                    className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
-                    style={{
-                      backgroundColor: colors.tertiaryLight,
-                      color: colors.primary,
-                    }}
-                  >
-                    Name
-                  </th>
-                  <th
-                    scope="col"
-                    className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
-                    style={{
-                      backgroundColor: colors.tertiaryLight,
-                      color: colors.primary,
-                    }}
-                  >
-                    Days Present
-                  </th>
-                  <th
-                    scope="col"
-                    className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
-                    style={{
-                      backgroundColor: colors.tertiaryLight,
-                      color: colors.primary,
-                    }}
-                  >
-                    Points
-                  </th>
+                  <th scope="col" className="p-2 text-left text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary }}>Rank</th>
+                  <th scope="col" className="p-2 text-left text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary }}>Name</th>
+                  <th scope="col" className="p-2 text-left text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary }}>Days Present</th>
+                  <th scope="col" className="p-2 text-left text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary }}>Points</th>
                 </tr>
               </thead>
               <tbody className="bg-white">
@@ -684,56 +604,33 @@ const TeamPerformance = () => {
                     key={member.id}
                     className="transition-colors duration-150 ease-in-out hover:bg-gray-100"
                     style={{
-                      // Highlight the rank 1 member if there's no tie across all members
-                      backgroundColor:
-                        member.rank === 1 && !allPointsRankOne
-                          ? "#FFD700"
-                          : colors.neutralLight,
+                      backgroundColor: member.rank === 1 && !allPointsRankOne ? "#FFD700" : colors.neutralLight,
                       color: colors.neutralDark,
                     }}
                   >
                     <td className="p-2 text-sm font-medium border border-gray-300 whitespace-nowrap">
                       {member.rank}
-                      {/* Display trophy icon for the top ranked member(s) */}
                       {!allPointsRankOne && member.rank === 1 && (
-                        <FaTrophy
-                          className="inline-block text-yellow-700 ml-1"
-                          title="Top Performer"
-                        />
+                        <FaTrophy className="inline-block text-yellow-700 ml-1" />
                       )}
                     </td>
-                    <td className="p-2 text-sm border border-gray-300 whitespace-normal break-words">
-                      {member.name} {member.last_name}
-                    </td>
-                    <td className="p-2 text-sm border border-gray-300 whitespace-nowrap text-center">
-                      {member.daysPresent}
-                    </td>
-                    <td className="p-2 text-sm border border-gray-300 whitespace-nowrap font-bold text-center">
-                      {member.points}
-                    </td>
+                    <td className="p-2 text-sm border border-gray-300 whitespace-normal break-words">{member.name} {member.last_name}</td>
+                    <td className="p-2 text-sm border border-gray-300 text-center">{member.daysPresent}</td>
+                    <td className="p-2 text-sm border border-gray-300 font-bold text-center">{member.points}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <p
-            className="text-center mt-6 p-4 rounded-lg shadow-md"
-            style={{
-              color: colors.neutralDark,
-              backgroundColor: colors.neutralLight,
-            }}
-          >
-            {members.length > 0
-              ? "Please select a year to view yearly points data."
-              : "No member data found in local storage."}
+          <p className="text-center mt-6 p-4 rounded-lg shadow-md" style={{ color: colors.neutralDark, backgroundColor: colors.neutralLight }}>
+            {members.length > 0 ? "Please select a year to view yearly points data." : "No member data found."}
           </p>
         )}
       </>
     );
   };
 
-  // --- Main Component Render ---
   return (
     <>
       <Topbar />
@@ -747,59 +644,14 @@ const TeamPerformance = () => {
           boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 10px ${colors.neutralLight}`
         }}
       >
-        {/* Conditional Loader */}
         {isLoading && <Loader />}
-
-        {/* Tab Navigation */}
-        <div
-          className="flex justify-center mb-6 border-b-2"
-          style={{ borderColor: colors.tertiaryLight }}
-        >
-          <button
-            onClick={() => handleTabChange("Performance")}
-            className={`py-2 px-4 font-semibold text-lg transition-colors duration-200 ${
-              activeTab === "Performance"
-                ? "border-b-4"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            style={{
-              color: activeTab === "Performance" ? colors.primary : colors.neutralDark,
-              borderColor: activeTab === "Performance" ? colors.primary : "transparent",
-            }}
-            disabled={isLoading}
-          >
-            Performance
-          </button>
-          <button
-            onClick={() => handleTabChange("Points")}
-            className={`py-2 px-4 font-semibold text-lg transition-colors duration-200 ${
-              activeTab === "Points"
-                ? "border-b-4"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            style={{
-              color: activeTab === "Points" ? colors.primary : colors.neutralDark,
-              borderColor: activeTab === "Points" ? colors.primary : "transparent",
-            }}
-            disabled={isLoading}
-          >
-            Points
-          </button>
+        <div className="flex justify-center mb-6 border-b-2" style={{ borderColor: colors.tertiaryLight }}>
+          <button onClick={() => handleTabChange("Performance")} className={`py-2 px-4 font-semibold text-lg transition-colors ${activeTab === "Performance" ? "border-b-4" : "text-gray-500"}`} style={{ color: activeTab === "Performance" ? colors.primary : colors.neutralDark, borderColor: activeTab === "Performance" ? colors.primary : "transparent" }} disabled={isLoading}>Performance</button>
+          <button onClick={() => handleTabChange("Points")} className={`py-2 px-4 font-semibold text-lg transition-colors ${activeTab === "Points" ? "border-b-4" : "text-gray-500"}`} style={{ color: activeTab === "Points" ? colors.primary : colors.neutralDark, borderColor: activeTab === "Points" ? colors.primary : "transparent" }} disabled={isLoading}>Points</button>
         </div>
-
-        {/* Render content based on active tab */}
         {activeTab === "Performance" ? renderPerformanceContent() : renderPointsContent()}
-
-        {/* Copy Success/Error Popup */}
         {showPopup && (
-          <div
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-4 rounded-lg shadow-xl text-center z-[1000] transition-opacity duration-300 ease-in-out"
-            style={{
-              opacity: showPopup ? 1 : 0,
-            }}
-          >
-            {popupMessage}
-          </div>
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-4 rounded-lg shadow-xl text-center z-[1000]">{popupMessage}</div>
         )}
       </div>
     </>
