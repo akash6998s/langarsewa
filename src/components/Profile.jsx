@@ -4,14 +4,7 @@ import CustomPopup from "./Popup";
 import { theme } from "../theme";
 import LoadData from "./LoadData";
 import Topbar from "./Topbar";
-import {
-  FiClock,
-  FiBarChart2,
-  FiMail,
-  FiPhone,
-  FiMapPin,
-  FiUser,
-} from "react-icons/fi";
+import { FiClock, FiBarChart2, FiMail, FiPhone, FiMapPin } from "react-icons/fi";
 
 const Profile = () => {
   const [member, setMember] = useState(null);
@@ -23,53 +16,38 @@ const Profile = () => {
   const supportedExtensions = ["png", "jpg", "jpeg", "webp", "ico"];
 
   const getStatusColor = (dateString) => {
-    if (!dateString || dateString === "N/A") return "#cbd5e1"; 
+    if (!dateString || dateString === "N/A") return "#ef4444";
     try {
       let cleanDate = dateString.replace(/\bat\b/i, "").split("UTC")[0].trim();
       const lastSeen = new Date(cleanDate);
-      if (isNaN(lastSeen.getTime())) return "#cbd5e1";
-
-      const diff = new Date() - lastSeen;
+      if (isNaN(lastSeen.getTime())) return "#ef4444";
+      const diffInMs = new Date() - lastSeen;
       const oneDay = 24 * 60 * 60 * 1000;
-
-      if (diff < oneDay) return "#10b981"; // Green
-      if (diff < 7 * oneDay) return "#f59e0b"; // Yellow
-      return "#ef4444"; // Red
-    } catch {
-      return "#cbd5e1";
-    }
+      if (diffInMs < oneDay) return "#10b981"; // Active Green
+      if (diffInMs < 7 * oneDay) return "#f59e0b"; // Away Yellow
+      return "#ef4444"; // Offline Red
+    } catch { return "#ef4444"; }
   };
 
   const formatLastSeen = (dateString) => {
-    if (!dateString || dateString === "N/A") return "No recent activity";
+    if (!dateString || dateString === "N/A") return "Never Online";
     try {
       let cleanDate = dateString.replace(/\bat\b/i, "").split("UTC")[0].trim();
       const lastSeen = new Date(cleanDate);
       if (isNaN(lastSeen.getTime())) return "Offline";
-
-      const diff = Math.floor((new Date() - lastSeen) / 1000);
-
-      if (diff < 60) return "Active now";
-      if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
-      if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
-
-      return lastSeen.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return "Offline";
-    }
+      const diffInSec = Math.floor((new Date() - lastSeen) / 1000);
+      if (diffInSec < 60) return "Active now";
+      if (diffInSec < 3600) return `${Math.floor(diffInSec / 60)}m ago`;
+      if (diffInSec < 86400) return `${Math.floor(diffInSec / 3600)}h ago`;
+      return lastSeen.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    } catch { return "Offline"; }
   };
 
   const checkImageExists = async (url) => {
     try {
-      const res = await fetch(url, { method: "HEAD" });
-      return res.ok;
-    } catch {
-      return false;
-    }
+      const response = await fetch(url, { method: "HEAD" });
+      return response.ok;
+    } catch { return false; }
   };
 
   useEffect(() => {
@@ -85,163 +63,127 @@ const Profile = () => {
 
           if (allMembersData) {
             const allMembers = JSON.parse(allMembersData);
-            const latest = allMembers.find(
-              (m) => String(m.roll_no) === String(loggedIn.roll_no)
-            );
+            const latest = allMembers.find(m => String(m.roll_no) === String(loggedIn.roll_no));
             if (latest) finalData = latest;
           }
 
           setMember(finalData);
 
-          let foundImage = null;
+          let foundImageUrl = null;
           if (finalData.roll_no) {
             for (let ext of supportedExtensions) {
               const url = `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${finalData.roll_no}.${ext}`;
               if (await checkImageExists(url)) {
-                foundImage = url;
+                foundImageUrl = url;
                 break;
               }
             }
           }
-          setImageUrl(foundImage);
+          setImageUrl(foundImageUrl || null);
         }
-      } catch (err) {
-        setPopupMessage("Session expired. Please login again.");
-        setPopupType(err);
+      } catch (error) {
+        setPopupMessage("Session error. Please login again.");
+        setPopupType(error);
       } finally {
-        setTimeout(() => setIsLoading(false), 800);
+        setTimeout(() => setIsLoading(false), 1000);
       }
     };
-
     loadProfileData();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: theme.colors.background }}
-      >
-        <Loader />
-      </div>
-    );
-  }
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center" style={{ background: theme.colors.background }}><Loader /></div>;
 
   return (
     <>
       <Topbar />
-
       <div className="min-h-screen py-24 px-4 bg-slate-50/50">
         <LoadData />
+        {popupMessage && <CustomPopup message={popupMessage} type={popupType} onClose={() => setPopupMessage(null)} />}
 
-        {popupMessage && (
-          <CustomPopup
-            message={popupMessage}
-            type={popupType}
-            onClose={() => setPopupMessage(null)}
-          />
-        )}
-
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.04)] overflow-hidden animate-fadeIn">
+        <div className="max-w-xl mx-auto">
+          <div className="bg-white rounded-[2.5rem] shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden animate-fadeIn">
             
-            {/* Professional Header */}
-            <div className="relative pt-16 pb-10 px-8 flex flex-col items-center border-b border-slate-50">
-              <div className="absolute top-10 right-10 flex items-center gap-2">
-                <FiBarChart2 size={22} style={{ color: getStatusColor(member?.last_online) }} />
+            {/* Elegant Header Area */}
+            <div className="relative pt-16 pb-10 px-6 flex flex-col items-center bg-gradient-to-b from-slate-50 to-white">
+              
+              {/* Profile Graph Icon */}
+              <div className="absolute top-8 right-8 p-2.5 rounded-2xl bg-white shadow-sm border border-slate-50">
+                <FiBarChart2 size={24} style={{ color: getStatusColor(member?.last_online) }} />
               </div>
 
-              {/* Avatar without any dots */}
-              <div className="mb-6">
-                <div className="w-40 h-40 rounded-[3rem] overflow-hidden border-[6px] border-white shadow-xl bg-slate-50">
+              {/* Avatar with Status Ring */}
+              <div className="relative mb-6">
+                <div className="w-40 h-40 rounded-[3rem] overflow-hidden border-[6px] border-white shadow-2xl">
                   {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={imageUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center text-4xl font-light text-slate-300"
-                    >
-                      <FiUser />
+                    <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-white" style={{ background: theme.colors.primary }}>
+                      {member?.name?.[0]}
                     </div>
                   )}
                 </div>
+                <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full border-4 border-white shadow-lg animate-pulse" 
+                     style={{ backgroundColor: getStatusColor(member?.last_online) }}></div>
               </div>
 
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900" style={{ color: theme.colors.neutralDark }}>
-                {member?.name} {member?.last_name}
-              </h2>
-
-              <p className="mt-2 px-4 py-1.5 bg-slate-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-slate-500 border border-slate-200/50">
-                Roll Number: {member?.roll_no}
-              </p>
+              <h2 className="text-3xl font-black text-slate-800 tracking-tight">{member?.name} {member?.last_name}</h2>
+              <span className="mt-2 px-4 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold tracking-widest uppercase">
+                Roll No: {member?.roll_no}
+              </span>
             </div>
 
-            {/* Clean Information Layout */}
-            <div className="px-10 py-8 space-y-6">
-              <InfoRow
-                icon={<FiMail size={20} />}
-                label="Registered Email"
-                value={member?.email}
-              />
-
-              <InfoRow
-                icon={<FiPhone size={20} />}
-                label="Contact Number"
-                value={member?.phone_no}
-              />
-
-              <InfoRow
-                icon={<FiMapPin size={20} />}
-                label="Location"
-                value={member?.address}
-              />
-
-              {/* Activity Footer */}
-              <div className="pt-10 mt-4 border-t border-slate-50 flex items-center justify-between text-slate-400">
-                <div className="flex items-center gap-3">
-                  <FiClock size={18} className="text-slate-300" />
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-tighter leading-none mb-1">Last Online Activity</p>
-                    <p className="text-sm font-semibold text-slate-600">
-                      {formatLastSeen(member?.last_online)}
-                    </p>
+            {/* Information Grid */}
+            <div className="px-10 pb-12 space-y-8">
+              <div className="grid grid-cols-1 gap-6">
+                
+                <div className="flex items-center gap-5 p-4 rounded-3xl bg-slate-50/50 border border-slate-50 transition-all hover:border-indigo-100">
+                  <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm text-indigo-500"><FiMail size={20}/></div>
+                  <div className="overflow-hidden">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Official Email</p>
+                    <p className="text-slate-700 font-bold truncate">{member?.email || "No email added"}</p>
                   </div>
                 </div>
+
+                <div className="flex items-center gap-5 p-4 rounded-3xl bg-slate-50/50 border border-slate-50 transition-all hover:border-emerald-100">
+                  <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm text-emerald-500"><FiPhone size={20}/></div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number</p>
+                    <p className="text-slate-700 font-bold">{member?.phone_no || "No phone added"}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-5 p-4 rounded-3xl bg-slate-50/50 border border-slate-50 transition-all hover:border-amber-100">
+                  <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm text-amber-500"><FiMapPin size={20}/></div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Residential Address</p>
+                    <p className="text-slate-700 font-bold">{member?.address || "No address added"}</p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Modern Footer Activity Bar */}
+              <div className="pt-8 border-t border-slate-50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400"><FiClock size={18}/></div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">{formatLastSeen(member?.last_online)}</p>
+                  </div>
+                </div>
+                
+                
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <style>
-        {`
-          @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-          .animate-fadeIn { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-        `}
-      </style>
+      <style>{`
+        .animate-fadeIn { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </>
   );
 };
 
-const InfoRow = ({ icon, label, value }) => {
-  return (
-    <div className="flex items-start gap-6 p-5 rounded-3xl bg-slate-50/30 border border-transparent hover:border-slate-100 hover:bg-white hover:shadow-sm transition-all duration-300 group">
-      <div className="mt-1 text-slate-300 group-hover:text-slate-600 transition-colors">
-        {icon}
-      </div>
-      <div className="flex-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 mb-1">
-          {label}
-        </p>
-        <p className="text-slate-700 font-semibold text-lg leading-snug">
-          {value || "Not Available"}
-        </p>
-      </div>
-    </div>
-  );
-};
-
 export default Profile;
+ 
