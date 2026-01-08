@@ -1,35 +1,34 @@
 export const theme = {
   colors: {
-    // Background – calm, divine glow
-    background: "linear-gradient(180deg, #FAF9F6, #F5F3EC)", 
-    // light parchment → subtle warmth
+    // Background – Ab ye zyada clean aur modern hai (High-end UI feel)
+    background: "linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)", 
 
-    // Primary – Deep Spiritual Blue (trust, devotion)
-    primary: "#3B4C7A",          // Royal deep blue
-    primaryLight: "#A9B7D9",     // Gentle blue-gray
+    // Primary – Thoda zyada deep aur saturated (Better readability)
+    primary: "#2D3748",          // Deep Slate Blue (Professional and Bold)
+    primaryLight: "#ced4deff",     // Slate Gray
 
-    // Secondary – Sacred Green (balance, sewa, nature)
-    secondary: "#4F6B56",        // Spiritual sage green
-    secondaryLight: "#CFE2D2",   // Misty green
+    // Secondary – Professional Sage Green (Sewa & Calmness)
+    secondary: "#4A6741",        // Richer Forest Green
+    secondaryLight: "#E8F0E5",   // Very light sage wash
 
-    // Tertiary – Golden Sand (temple earth & diyas)
-    tertiary: "#D2A75D",         // Muted golden clay
-    tertiaryLight: "#F6E9D2",    // Warm parchment gold
+    // Tertiary – Muted Gold (Traditional yet subtle)
+    tertiary: "#A8864D",         // Deep Bronze Gold
+    tertiaryLight: "#FDF6E9",    // Creamy parchment
 
-    // Neutrals – pure and grounded
-    neutralLight: "#FFFFFF",     // Pure divine white
-    neutralDark: "#2B2B2B",      // Sacred ink dark
+    // Neutrals
+    neutralLight: "#FFFFFF",     
+    neutralDark: "#1A202C",      // Professional Charcoal black
 
-    // Alerts – based on dharmic tones
-    success: "#3F7C4E",          // Tulsi green (prosperity)
-    successLight: "#D6F2DC",     // Light tulsi wash
+    // Alerts – High visibility professional tones
+    success: "#15803D",          // Professional Emerald
+    successLight: "#DCFCE7",     
 
-    danger: "#9B2E2E",           // Kumkum red (warning/serious)
-    dangerLight: "#FADADA",      // Soft kumkum wash
+    danger: "#B91C1C",           // Professional Ruby Red
+    dangerLight: "#FEE2E2",      
   },
 
   fonts: {
-    heading: "'Merriweather', serif",   // Elegant, spiritual readability
-    body: "'Inter', sans-serif",        // Clean UI
+    heading: "'Merriweather', serif",   
+    body: "'Inter', sans-serif",        
   },
 };
