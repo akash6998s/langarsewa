@@ -143,7 +143,7 @@ const NaamJap = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4">
+      <div className="flex items-center justify-center px-4">
         <button
           onClick={handleJap}
           className="liquid-btn relative w-full h-full max-w-[320px] max-h-[320px] rounded-full bg-white border-8 sm:border-[14px] border-orange-50 shadow-2xl overflow-hidden hover:shadow-3xl active:scale-95 transition-all duration-300"

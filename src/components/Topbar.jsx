@@ -9,7 +9,7 @@ import CachedIcon from "@mui/icons-material/Cached";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import CreateIcon from "@mui/icons-material/Create";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-import logo from "/favicon.png";
+import logo from "/logo.png";
 
 function Topbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
