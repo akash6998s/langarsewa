@@ -35,6 +35,7 @@ import UpdatedList from "./components/UpdatedList";
 import CreatePost from "./components/CreatePost";
 import Notify from "./components/Notify";
 import InchargeList from "./components/InchargeList";
+import NaamJap from "./components/NaamJap";
 
 // Global variables for Firebase config and app ID
 const firebaseConfig =
@@ -191,6 +192,7 @@ function AppRoutes() {
           <Route path="/createpost" element={<CreatePost />} />
           <Route path="/notify" element={<Notify />} />
           <Route path="/inchargelist" element={<InchargeList />} />
+          <Route path="/naamjap" element={<NaamJap />} />
         </Routes>
       </div>
 
