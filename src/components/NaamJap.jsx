@@ -99,26 +99,27 @@ const NaamJap = () => {
   const yesterdayMalas = Math.floor(yesterdayCount / 108);
 
   return (
-
-    <>
-    <Topbar />
-    
-    
-    <div className="w-screen bg-gradient-to-b from-[#FFF5E4] via-[#FFEAD1] to-[#FBD2A8] flex flex-col font-sans select-none overflow-x-hidden">
+    <div className="min-h-screen w-screen bg-gradient-to-b from-[#FFF5E4] via-[#FFEAD1] to-[#FBD2A8] flex flex-col font-sans select-none overflow-x-hidden pb-0">
+      <Topbar />
       
-      {/* Stats Cards + Reset Button on Top Center */}
-      <div className="px-3 sm:px-6 pt-6 sm:pt-8 pb-6 sm:pb-8 flex flex-col items-center flex-shrink-0">
-        {/* Reset Button - दोनों boxes के top-center में */}
-        <div className="mb-4">
+      <div className="px-3 sm:px-6 pt-8 sm:pt-10 pb-6 sm:pb-8 flex flex-col items-center flex-shrink-0">
+        {/* Reset Button - Perfect Icon Centering */}
+        <div className="mb-6 sm:mb-8 pt-4 sm:pt-6">
           <button 
-            onClick={resetCount} 
-            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/90 shadow-xl flex items-center justify-center active:rotate-180 transition-all duration-300 border-2 border-orange-200 hover:shadow-2xl hover:bg-white hover:scale-105 z-10"
-          >
-            🔄
-          </button>
+              onClick={resetCount}
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-r from-orange-100/90 to-amber-100/90 shadow-2xl flex items-center justify-center text-xl sm:text-2xl active:rotate-180 transition-all duration-500 border-4 border-white/50 backdrop-blur-sm hover:shadow-3xl hover:scale-110 z-10 relative overflow-hidden"
+            >
+              <span className="relative z-10 font-bold text-gray-700 tracking-wide">↻</span>
+              
+              {/* Magical Ring Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400/30 via-amber-300/20 to-orange-400/30 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-all duration-500" />
+              
+              {/* Glow Pulse */}
+              <div className="absolute w-20 h-20 sm:w-24 sm:h-24 -inset-4 bg-gradient-to-r from-orange-500/20 to-amber-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700 animate-ping-slow" />
+            </button>
+            
         </div>
         
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-xs sm:max-w-sm">
           <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-4 sm:p-5 text-center border border-white shadow-sm hover:shadow-md">
             <p className="text-xs sm:text-[11px] text-gray-400 font-bold uppercase mb-2">कल</p>
@@ -142,8 +143,7 @@ const NaamJap = () => {
         </div>
       </div>
 
-      {/* Main Button */}
-      <div className="flex-1 flex items-center justify-center px-4 pb-8 sm:pb-12">
+      <div className="flex-1 flex items-center justify-center px-4">
         <button
           onClick={handleJap}
           className="liquid-btn relative w-full h-full max-w-[320px] max-h-[320px] rounded-full bg-white border-8 sm:border-[14px] border-orange-50 shadow-2xl overflow-hidden hover:shadow-3xl active:scale-95 transition-all duration-300"
@@ -188,7 +188,6 @@ const NaamJap = () => {
         }
       `}</style>
     </div>
-    </>
   );
 };
 
