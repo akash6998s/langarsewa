@@ -1,22 +1,41 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Topbar from "./Topbar";
+import { db } from "../firebase"; // Apna firebase config path check kar lein
+import { doc, updateDoc, increment, onSnapshot } from "firebase/firestore";
 
 const NaamJap = () => {
   const [todayCount, setTodayCount] = useState(0);
   const [yesterdayCount, setYesterdayCount] = useState(0);
   const [liquidHeight, setLiquidHeight] = useState('0%');
+  const [rollNo, setRollNo] = useState(null);
+  const [totalMala, setTotalMala] = useState(0);
+
+  // 1. Local Storage se Roll No aur Firebase se Real-time Data
+  useEffect(() => {
+    const memberData = localStorage.getItem('loggedInMember');
+    if (memberData) {
+      try {
+        const parsed = JSON.parse(memberData);
+        const rNo = parsed.roll_no.toString();
+        setRollNo(rNo);
+
+        const unsub = onSnapshot(doc(db, "members", rNo), (docSnap) => {
+          if (docSnap.exists()) {
+            setTotalMala(docSnap.data().naamjap || 0);
+          }
+        });
+        return () => unsub();
+      } catch (e) {
+        console.error("Initialization Error", e);
+      }
+    }
+  }, []);
 
   const getTodayDate = () => new Date().toISOString().split('T')[0];
 
   const getLiquidProgress = (count) => {
     const progressInCycle = count % 108;
-    return progressInCycle === 0 ? 1 : progressInCycle / 108;
-  };
-
-  const getTodayProgressDisplay = (count) => {
-    if (count === 0) return 0;
-    const progressInCycle = count % 108;
-    return progressInCycle === 0 ? 108 : progressInCycle;
+    return progressInCycle === 0 && count > 0 ? 1 : progressInCycle / 108;
   };
 
   const saveToStorage = useCallback((count) => {
@@ -24,32 +43,35 @@ const NaamJap = () => {
     const savedData = localStorage.getItem('naamJapData');
     let data;
     
-    if (savedData) {
-      try {
-        data = JSON.parse(savedData);
-      } catch (e) {
-        console.log(e)
-        data = { today: todayStr, yesterday: "", todayCount: 0, yesterdayCount: 0 };
+    try {
+      data = savedData ? JSON.parse(savedData) : { today: todayStr, yesterday: "", todayCount: 0, yesterdayCount: 0 };
+      if (data.today !== todayStr) {
+        data.yesterday = data.today;
+        data.yesterdayCount = data.todayCount;
+        data.today = todayStr;
+        data.todayCount = 0;
       }
-    } else {
-      data = { today: todayStr, yesterday: "", todayCount: 0, yesterdayCount: 0 };
+      data.todayCount = count;
+      localStorage.setItem('naamJapData', JSON.stringify(data));
+    } catch (e) {
+      console.error("Save Error", e);
     }
-
-    if (data.today !== todayStr) {
-      data.yesterday = data.today;
-      data.yesterdayCount = data.todayCount;
-      data.today = todayStr;
-      data.todayCount = 0;
-    }
-    
-    data.todayCount = count;
-    localStorage.setItem('naamJapData', JSON.stringify(data));
   }, []);
+
+  const updateFirebaseMala = async () => {
+    if (!rollNo) return;
+    try {
+      await updateDoc(doc(db, "members", rollNo), {
+        naamjap: increment(1)
+      });
+    } catch (error) {
+      console.error("Firebase Sync Error:", error);
+    }
+  };
 
   const loadFromStorage = useCallback(() => {
     const todayStr = getTodayDate();
     const savedData = localStorage.getItem('naamJapData');
-    
     if (savedData) {
       try {
         const data = JSON.parse(savedData);
@@ -64,7 +86,7 @@ const NaamJap = () => {
           setLiquidHeight(`${getLiquidProgress(data.todayCount) * 100}%`);
         }
       } catch (e) {
-        console.error("Storage Error", e);
+        console.log(e);
       }
     }
   }, [saveToStorage]);
@@ -81,111 +103,91 @@ const NaamJap = () => {
     setLiquidHeight(`${getLiquidProgress(newCount) * 100}%`);
     saveToStorage(newCount);
 
-    if (navigator.vibrate) {
-      newCount % 108 === 0 ? navigator.vibrate([100, 50, 100]) : navigator.vibrate(40);
-    }
-  };
-
-  const resetCount = () => {
-    if (window.confirm("आज की गिनती शून्य करें?")) {
-      setTodayCount(0);
-      setLiquidHeight('0%');
-      saveToStorage(0);
+    if (newCount % 108 === 0) {
+      updateFirebaseMala();
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    } else if (navigator.vibrate) {
+      navigator.vibrate(40);
     }
   };
 
   const todayMalas = Math.floor(todayCount / 108);
-  const todayProgressInMala = getTodayProgressDisplay(todayCount);
-  const yesterdayMalas = Math.floor(yesterdayCount / 108);
+  const todayProgressInMala = (todayCount % 108 === 0 && todayCount > 0) ? 108 : todayCount % 108;
 
   return (
-    <div className="min-h-screen w-screen bg-gradient-to-b from-[#FFF5E4] via-[#FFEAD1] to-[#FBD2A8] flex flex-col font-sans select-none overflow-x-hidden pb-0">
+    <div className="fixed inset-0 bg-gradient-to-b from-[#FFF5E4] to-[#FBD2A8] flex flex-col font-sans select-none overflow-hidden">
       <Topbar />
       
-      <div className="px-3 sm:px-6 pt-8 sm:pt-10 pb-6 sm:pb-8 flex flex-col items-center flex-shrink-0">
-        {/* Reset Button - Perfect Icon Centering */}
-        <div className="mb-6 sm:mb-8 pt-4 sm:pt-6">
-          <button 
-              onClick={resetCount}
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-r from-orange-100/90 to-amber-100/90 shadow-2xl flex items-center justify-center text-xl sm:text-2xl active:rotate-180 transition-all duration-500 border-4 border-white/50 backdrop-blur-sm hover:shadow-3xl hover:scale-110 z-10 relative overflow-hidden"
-            >
-              <span className="relative z-10 font-bold text-gray-700 tracking-wide">↻</span>
-              
-              {/* Magical Ring Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400/30 via-amber-300/20 to-orange-400/30 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-all duration-500" />
-              
-              {/* Glow Pulse */}
-              <div className="absolute w-20 h-20 sm:w-24 sm:h-24 -inset-4 bg-gradient-to-r from-orange-500/20 to-amber-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700 animate-ping-slow" />
-            </button>
-            
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-xs sm:max-w-sm">
-          <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-4 sm:p-5 text-center border border-white shadow-sm hover:shadow-md">
-            <p className="text-xs sm:text-[11px] text-gray-400 font-bold uppercase mb-2">कल</p>
-            <p className="text-xl sm:text-2xl font-black text-orange-600 leading-tight">
-              {yesterdayMalas} <span className="text-xs font-medium">माला</span>
-            </p>
-            <p className="text-xs sm:text-[10px] text-orange-800/50 font-bold mt-1">
-              {yesterdayCount.toLocaleString()}
-            </p>
+      {/* Stats Section - Optimized for all screens */}
+      <div className="w-full px-4 pt-24 pb-4">
+        <div className="grid grid-cols-3 gap-2 max-w-md mx-auto">
+          {/* Yesterday */}
+          <div className="bg-white/40 backdrop-blur-md rounded-2xl py-3 flex flex-col items-center border border-white/40 shadow-sm">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">कल</span>
+            <span className="text-xl font-black text-orange-600 leading-none my-1">{Math.floor(yesterdayCount / 108)}</span>
+            <span className="text-[9px] font-bold text-orange-800/40">MALA</span>
           </div>
           
-          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-4 sm:p-5 text-center shadow-xl border border-orange-100 hover:shadow-2xl">
-            <p className="text-xs sm:text-[11px] text-orange-400 font-bold uppercase mb-2">आज</p>
-            <p className="text-xl sm:text-2xl font-black text-orange-700 leading-tight">
-              {todayMalas} <span className="text-xs font-medium">माला</span>
-            </p>
-            <p className="text-xs sm:text-[10px] text-orange-900/60 font-bold mt-1">
-              {todayProgressInMala}/108
-            </p>
+          {/* Today */}
+          <div className="bg-white shadow-lg rounded-2xl py-3 flex flex-col items-center border border-orange-100 ring-2 ring-orange-400/10">
+            <span className="text-[10px] font-bold text-orange-500 uppercase tracking-tighter">आज</span>
+            <span className="text-xl font-black text-orange-700 leading-none my-1">{todayMalas}</span>
+            <span className="text-[9px] font-bold text-orange-900/60">{todayProgressInMala}/108</span>
+          </div>
+
+          {/* Lifetime (Firebase) */}
+          <div className="bg-orange-500/10 backdrop-blur-md rounded-2xl py-3 flex flex-col items-center border border-orange-200">
+            <span className="text-[10px] font-bold text-orange-800 uppercase tracking-tighter">कुल</span>
+            <span className="text-xl font-black text-orange-900 leading-none my-1">{totalMala}</span>
+            <span className="text-[9px] font-bold text-orange-900/40">TOTAL</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-center px-4">
+      {/* Main Jap Button Section - Centered */}
+      <div className="flex items-center justify-center p-6 mb-10">
         <button
           onClick={handleJap}
-          className="liquid-btn relative w-full h-full max-w-[320px] max-h-[320px] rounded-full bg-white border-8 sm:border-[14px] border-orange-50 shadow-2xl overflow-hidden hover:shadow-3xl active:scale-95 transition-all duration-300"
+          className="relative group transition-all duration-300 active:scale-90 touch-none"
           style={{ 
-            width: 'min(85vw, 320px)', 
-            height: 'min(85vw, 320px)',
-            aspectRatio: '1/1'
+            width: 'min(80vw, 320px)', 
+            height: 'min(80vw, 320px)' 
           }}
         >
-          <div 
-            className="liquid-fill absolute bottom-0 left-0 w-full bg-gradient-to-t from-orange-400 via-orange-300 to-orange-200 shadow-lg transition-all duration-300 ease-out"
-            style={{ height: liquidHeight }}
-          />
+          {/* Outer Ring Decoration */}
+          <div className="absolute -inset-4 border-2 border-dashed border-orange-300/30 rounded-full animate-spin-slow" />
           
-          <div 
-            className="wave-overlay absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(251,146,60,0.4)_25%,rgba(245,158,11,0.6)_50%,rgba(251,146,60,0.4)_75%,transparent_100%)] animate-wave-slow"
-          />
-          
-          <div className="relative z-10 flex items-center justify-center h-full p-4 sm:p-6">
-            <span className="text-5xl sm:text-[75px] lg:text-[85px] font-black text-gray-800 tabular-nums leading-none tracking-tight drop-shadow-2xl">
-              {todayCount.toLocaleString()}
-            </span>
+          <div className="relative w-full h-full rounded-full bg-white border-[10px] border-orange-50 shadow-[0_20px_50px_rgba(251,146,60,0.3)] overflow-hidden">
+            {/* Liquid Fill */}
+            <div 
+              className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-orange-500 via-orange-400 to-orange-300 transition-all duration-500 ease-out"
+              style={{ height: liquidHeight }}
+            />
+            
+            {/* Animated Wave Overlay */}
+            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(90deg,transparent_0%,white_50%,transparent_100%)] animate-wave" style={{ backgroundSize: '200% 100%' }} />
+            
+            {/* Count Text */}
+            <div className="relative z-10 h-full flex items-center justify-center">
+              <span className="text-6xl sm:text-7xl font-black text-gray-800 tabular-nums drop-shadow-md">
+                {todayCount.toLocaleString()}
+              </span>
+            </div>
           </div>
         </button>
       </div>
       
       <style jsx>{`
-        @keyframes wave-slow {
-          0% { background-position: 0% 0%; }
-          100% { background-position: 200% 0%; }
+        @keyframes wave {
+          from { background-position: 200% 0; }
+          to { background-position: -200% 0; }
         }
-        .animate-wave-slow {
-          animation: wave-slow 4s linear infinite;
-          background-size: 200% 100%;
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
-        .liquid-fill {
-          animation: liquid-rise 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @keyframes liquid-rise {
-          from { transform: translateY(100%); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
+        .animate-wave { animation: wave 4s linear infinite; }
+        .animate-spin-slow { animation: spin-slow 12s linear infinite; }
       `}</style>
     </div>
   );
