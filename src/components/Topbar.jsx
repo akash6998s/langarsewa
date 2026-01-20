@@ -8,7 +8,6 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import CachedIcon from "@mui/icons-material/Cached";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import CreateIcon from "@mui/icons-material/Create";
-import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import logo from "/logo.png";
 
 function Topbar() {
@@ -107,21 +106,23 @@ function Topbar() {
             <span className="text-sm font-semibold">Post</span>
           </button>
 
-          {/* Gallery */}
+          {/* Naam Jap Button - Now simple like Post button */}
           <button
-            onClick={() => navigate("/gallery")}
-            className="flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-gray-100 transition-all duration-200"
-            style={{ color: theme.colors.primary }}
+            onClick={() => navigate("/naamjap")}
+            className="flex items-center gap-1 px-3 py-1 sm:px-4 sm:py-2 rounded-lg transition-all duration-300 hover:scale-105"
+            style={{
+              backgroundColor: theme.colors.primary,
+              color: theme.colors.neutralLight,
+            }}
           >
-            <PhotoLibraryIcon fontSize="small" />
-            <span className="text-sm font-medium">Gallery</span>
+            <span className="text-sm font-semibold">Naam Jap</span>
           </button>
 
           {/* Profile Dropdown */}
           <div ref={dropdownRef} className="relative">
             <button
               onClick={toggleDropdown}
-              className="flex items-center gap-1 sm:gap-2 p-1 rounded-full hover:bg-gray-100"
+              className="flex items-center gap-1 sm:gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
             >
               <img
                 src={profileImageUrl}
@@ -140,6 +141,7 @@ function Topbar() {
                 style={{
                   transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
                   color: theme.colors.primary,
+                  transition: "transform 0.2s ease"
                 }}
                 fill="none"
                 stroke="currentColor"
@@ -173,14 +175,15 @@ function Topbar() {
                   Your Profile
                 </NavLink>
 
-                {/* <NavLink
-                  to="/inchargelist"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
+                <NavLink
+                  to="/gallery"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
                   style={{ color: theme.colors.primary }}
                   onClick={() => setIsDropdownOpen(false)}
                 >
-                  <ManageAccountsIcon fontSize="small" /> Incharge List
-                </NavLink> */}
+                  <PhotoLibraryIcon fontSize="small" />
+                  Gallery
+                </NavLink>
 
                 <NavLink
                   to="/members"

@@ -3,7 +3,6 @@ import { db } from "../firebase";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import Loader from "./Loader";
 import { theme } from "../theme";
-import Topbar from "./Topbar";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -566,7 +565,6 @@ function InchargeList() {
 
   return (
     <>
-      <Topbar />
       <div
         className="min-h-screen pb-20" // Ensure min-height and padding for mobile
         style={{ backgroundColor: "#F0F0F0", fontFamily: fonts.body }}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Loader from "./Loader";
 import { theme } from "../theme";
-import Topbar from "./Topbar";
 import { FaTrophy } from "react-icons/fa";
 import {
   BarChart,
@@ -633,7 +632,6 @@ const TeamPerformance = () => {
 
   return (
     <>
-      <Topbar />
       <div
         className="container pb-24 pt-24 mx-auto p-4 min-h-screen"
         style={{

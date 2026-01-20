@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { collection, query, getDocs, orderBy, deleteDoc, doc, Timestamp, updateDoc, arrayUnion, arrayRemove, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { MdDeleteForever, MdNotificationsNone, MdAddCircle, MdThumbUp, MdComment, MdSend, MdClose, MdOutlineAccessTime, MdVerified, MdMoreVert } from "react-icons/md";
-import Topbar from "./Topbar";
 import Loader from "./Loader";
 import { useNavigate } from "react-router-dom";
 
@@ -286,7 +285,6 @@ const Notify = () => {
 
     return (
         <>
-            <Topbar />
             <div className="p-0 max-w-xl mx-auto py-14 bg-gray-50 min-h-screen shadow-2xl">{renderContent()}</div>
             {interactionState && (
                 <InteractionsModal

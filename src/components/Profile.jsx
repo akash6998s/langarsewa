@@ -1,16 +1,32 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Loader from "./Loader";
 import CustomPopup from "./Popup";
-import { theme } from "../theme";
 import LoadData from "./LoadData";
-import Topbar from "./Topbar";
+import Activity from "./Activity";
+import WorkspaceButtons from "./WorkspaceButtons";
+
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Hash,
+  Shield,
+  TrendingUp,
+  BarChart3,
+  ChevronRight,
+  Power,
+  Zap,
+  MoreHorizontal,
+} from "lucide-react";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [member, setMember] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [popupMessage, setPopupMessage] = useState(null);
-  const [popupType, setPopupType] = useState(null);
 
   const supportedExtensions = ["png", "jpg", "jpeg", "webp", "ico"];
 
@@ -26,15 +42,8 @@ const Profile = () => {
   useEffect(() => {
     const loadProfileData = async () => {
       setIsLoading(true);
-      setPopupMessage(null);
-
-      const minLoadPromise = new Promise((resolve) =>
-        setTimeout(resolve, 1200)
-      );
-
       try {
         const storedMember = localStorage.getItem("loggedInMember");
-
         if (storedMember) {
           const parsedMember = JSON.parse(storedMember);
           setMember(parsedMember);
@@ -43,29 +52,19 @@ const Profile = () => {
           if (parsedMember.roll_no) {
             for (let ext of supportedExtensions) {
               const url = `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${parsedMember.roll_no}.${ext}`;
-              if (await checkImageExists(url)) {
+              const exists = await checkImageExists(url);
+              if (exists) {
                 foundImageUrl = url;
                 break;
               }
             }
           }
-          setImageUrl(foundImageUrl || null);
-
-          if (!foundImageUrl) {
-            setPopupMessage("Profile image not found. Displaying placeholder.");
-            setPopupType("info");
-          }
-        } else {
-          setPopupMessage("No profile data found. Please log in.");
-          setPopupType("error");
+          setImageUrl(foundImageUrl);
         }
       } catch (error) {
-        console.error("Error parsing member data:", error);
-        setPopupMessage("Failed to load profile data. Please log in again.");
-        setPopupType("error");
+        console.error("Error loading profile:", error);
       } finally {
-        await minLoadPromise;
-        setIsLoading(false);
+        setTimeout(() => setIsLoading(false), 800);
       }
     };
 
@@ -74,142 +73,184 @@ const Profile = () => {
 
   if (isLoading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: theme.colors.background }}
-      >
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <Loader />
       </div>
     );
   }
 
-  if (!member) {
-    return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center p-4 font-[Inter,sans-serif]"
-        style={{ background: theme.colors.background }}
-      >
-        {popupMessage && (
-          <CustomPopup
-            message={popupMessage}
-            type={popupType}
-            onClose={() => setPopupMessage(null)}
-          />
-        )}
-        <p
-          className="text-xl font-semibold mt-4"
-          style={{ color: theme.colors.primary }}
-        >
-          No profile data found. Please log in.
-        </p>
-      </div>
-    );
-  }
+  const totalAttendance = member?.attendance
+    ? Object.values(member.attendance).reduce((yearSum, year) => {
+        return (
+          yearSum +
+          Object.values(year).reduce((monthSum, month) => {
+            return monthSum + Object.values(month).filter(Boolean).length;
+          }, 0)
+        );
+      }, 0)
+    : 0;
+
+  const totalDonation = Object.values(
+    member?.donation?.["2025"] || {}
+  ).reduce((a, b) => a + b, 0);
 
   return (
-    <>
-      <Topbar />
-      <div
-        className="min-h-screen font-[Inter,sans-serif] py-20 px-4 md:px-8"
-        style={{ background: theme.colors.background }}
-      >
-        <LoadData />
+    <div className="min-h-screen bg-[#F8F9FA] pb-24 font-sans text-slate-900">
+      <LoadData />
 
-        {popupMessage && (
-          <CustomPopup
-            message={popupMessage}
-            type={popupType}
-            onClose={() => setPopupMessage(null)}
-          />
-        )}
-
-        <div className="flex justify-center">
-          <div
-            className="w-full max-w-lg bg-white rounded-2xl shadow-lg border animate-fadeIn"
-            style={{ borderColor: theme.colors.primaryLight }}
-          >
-            {/* Profile Header */}
-            <div className="flex flex-col items-center py-10 px-6 border-b"
-              style={{ borderColor: theme.colors.primaryLight }}
-            >
+      <div className="max-w-md mx-auto px-6 pt-8">
+        {/* ---------- PROFILE HEADER ---------- */}
+        <div className="flex items-center gap-6 mb-10">
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-200 ring-4 ring-white shadow-sm">
               {imageUrl ? (
                 <img
                   src={imageUrl}
                   alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover border-4 shadow-md transition-transform duration-300 hover:scale-105"
-                  style={{ borderColor: theme.colors.primary }}
+                  className="w-full h-full object-cover"
                 />
               ) : (
-                <div
-                  className="w-32 h-32 rounded-full flex items-center justify-center border-4 shadow-inner text-white text-3xl font-bold"
-                  style={{
-                    backgroundColor: theme.colors.primaryLight,
-                    borderColor: theme.colors.primary,
-                  }}
-                >
-                  {(member.name || "N/A").charAt(0).toUpperCase()}
+                <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-100">
+                  <User className="w-10 h-10" />
                 </div>
               )}
-              <h2
-                className="mt-4 text-2xl font-bold"
-                style={{ color: theme.colors.neutralDark }}
-              >
-                {member.name} {member.last_name}
-              </h2>
-              <p
-                className="text-sm font-medium mt-1"
-                style={{ color: theme.colors.primary }}
-              >
-                Roll No:{" "}
-                <span className="font-semibold">{member.roll_no}</span>
-              </p>
             </div>
+            {member?.isAdmin && (
+              <div className="absolute bottom-1 right-0 bg-indigo-600 text-white p-1.5 rounded-full border-2 border-white shadow-md">
+                <Shield className="w-3.5 h-3.5" />
+              </div>
+            )}
+          </div>
 
-            {/* Profile Details */}
-            <div className="px-8 py-6 space-y-5">
-              {[
-                { label: "Email", value: member.email },
-                { label: "Phone", value: member.phone_no },
-                { label: "Address", value: member.address },
-              ].map((item, idx, arr) => (
-                <div
-                  key={item.label}
-                  className={idx !== arr.length - 1 ? "pb-4 border-b" : ""}
-                  style={{ borderColor: theme.colors.primaryLight }}
-                >
-                  <span
-                    className="block text-sm font-semibold mb-1"
-                    style={{ color: theme.colors.primary }}
-                  >
-                    {item.label}
-                  </span>
-                  <p
-                    className="text-lg font-medium"
-                    style={{ color: theme.colors.neutralDark }}
-                  >
-                    {item.value}
-                  </p>
-                </div>
-              ))}
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold mb-2">
+              {member?.name} {member?.last_name}
+            </h1>
+            <p className="text-slate-500 text-[13px] flex items-center gap-2">
+              <Hash className="w-3.5 h-3.5" />
+              {member?.roll_no || "---"}
+            </p>
+            <div className="mt-3 inline-flex px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-bold">
+              {member?.post}
             </div>
           </div>
         </div>
 
-        {/* Fade In Animation */}
-        <style>
-          {`
-@keyframes fadeIn {
- from { opacity: 0; transform: translateY(20px); }
- to { opacity: 1; transform: translateY(0); }
- }
- .animate-fadeIn {
-animation: fadeIn 0.6s ease-out;
- }
-`}
-        </style>
+        {/* ---------- WORKSPACE BUTTONS ---------- */}
+        <div className="mb-10">
+          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] mb-4">
+            Workspace
+          </h3>
+
+          <WorkspaceButtons
+            show={["createpost", "gallery", "naamjap", "members"]}
+          />
+        </div>
+
+        {/* ---------- STATS ---------- */}
+        <div className="grid grid-cols-2 gap-3 mb-8">
+          <MetricBox
+            label="Naamjap"
+            value={member?.naamjap?.toLocaleString() || 0}
+            icon={<Zap className="text-amber-500" />}
+          />
+          <MetricBox
+            label="Attendance"
+            value={`${totalAttendance} Days`}
+            icon={<BarChart3 className="text-blue-500" />}
+          />
+          <div className="col-span-2">
+            <MetricBox
+              label="Total Donation"
+              value={`₹${totalDonation.toLocaleString()}`}
+              icon={<TrendingUp className="text-emerald-500" />}
+              horizontal
+            />
+          </div>
+        </div>
+
+        {/* ---------- DETAILS ---------- */}
+        <div className="bg-white rounded-3xl border border-slate-100 mb-8">
+          <div className="px-6 py-5 border-b border-slate-50">
+            <h3 className="text-sm font-bold">Account Information</h3>
+          </div>
+          <div className="p-2">
+            <DetailRow icon={<Mail />} label="Email Address" value={member?.email} />
+            <DetailRow icon={<Phone />} label="Contact Number" value={member?.phone_no} />
+            <DetailRow icon={<MapPin />} label="Address" value={member?.address || "India"} />
+          </div>
+        </div>
+
+        {/* ---------- ACTIVITY ---------- */}
+        <div className="mb-8">
+          <h3 className="text-sm font-bold px-1 mb-3">Your Activity</h3>
+          <div className="rounded-3xl border border-slate-100">
+            <Activity />
+          </div>
+        </div>
+
+        {/* ---------- LOGOUT ---------- */}
+        <button
+          onClick={() => {
+            localStorage.removeItem("loggedInMember");
+            navigate("/");
+          }}
+          className="w-full flex items-center justify-between p-4 px-6 rounded-2xl bg-white border border-slate-200 font-bold text-[13px] hover:bg-red-50 hover:text-red-600 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <Power className="w-4 h-4" />
+            Sign Out
+          </div>
+          <ChevronRight className="w-4 h-4 opacity-30" />
+        </button>
       </div>
-    </>
+
+      {popupMessage && (
+        <CustomPopup
+          message={popupMessage}
+          onClose={() => setPopupMessage(null)}
+        />
+      )}
+    </div>
   );
 };
+
+/* ---------- SUB COMPONENTS ---------- */
+
+const MetricBox = ({ label, value, icon, horizontal = false }) => (
+  <div
+    className={`bg-white p-5 rounded-2xl border border-slate-100 flex ${
+      horizontal ? "items-center justify-between" : "flex-col gap-3"
+    }`}
+  >
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
+        {icon}
+      </div>
+      {!horizontal && <MoreHorizontal className="w-4 h-4 text-slate-200" />}
+    </div>
+
+    <div>
+      <p className="text-xl font-bold">{value}</p>
+      <p className="text-[10px] font-bold text-slate-400 uppercase">{label}</p>
+    </div>
+
+    {horizontal && <ChevronRight className="w-5 h-5 text-slate-200" />}
+  </div>
+);
+
+const DetailRow = ({ icon, label, value }) => (
+  <div className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl">
+    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+      {React.cloneElement(icon, { className: "w-4 h-4" })}
+    </div>
+    <div className="flex-1">
+      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">
+        {label}
+      </p>
+      <p className="text-[13px] font-bold truncate">{value || "---"}</p>
+    </div>
+  </div>
+);
 
 export default Profile;

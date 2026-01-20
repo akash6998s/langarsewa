@@ -4,7 +4,6 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { theme } from "../theme";
 import Loader from "./Loader";
-import Topbar from "./Topbar";
 
 const IMGBB_API_KEY = "3d4ec45255aa2a6c2896e919e5ddfb4c";
 const IMGBB_API_URL = "https://api.imgbb.com/1/upload";
@@ -110,7 +109,6 @@ function CreatePost() {
 
   return (
     <>
-      <Topbar />
 
       <div className="p-4 max-w-md mx-auto py-12">
         <div

@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { db } from "../firebase";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import Topbar from "./Topbar";
 import Loader from "./Loader";
 import { theme } from "../theme";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -268,10 +267,9 @@ const Gallery = () => {
   return (
     <>
       {(isLoading || deleting) && <Loader />}
-      <Topbar />
 
       <div
-        className="flex flex-col py-12 font-[Inter,sans-serif]"
+        className="flex flex-col pb-24 font-[Inter,sans-serif]"
         style={{ background: theme.colors.background }}
       >
         {/* Action Bar */}

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import Topbar from "./Topbar";
 import { db } from "../firebase"; // Apna firebase config path check kar lein
 import { doc, updateDoc, increment, onSnapshot } from "firebase/firestore";
 
@@ -116,7 +115,6 @@ const NaamJap = () => {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-[#FFF5E4] to-[#FBD2A8] flex flex-col font-sans select-none overflow-hidden">
-      <Topbar />
       
       {/* Stats Section - Optimized for all screens */}
       <div className="w-full px-4 pt-24 pb-4">

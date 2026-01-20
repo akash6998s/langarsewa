@@ -3,7 +3,7 @@ import Loader from "./Loader";
 import CustomPopup from "./Popup";
 import { theme } from '../theme';
 import LoadData from "./LoadData";
-import Topbar from "./Topbar";
+
 
 const months = [
   "January",
@@ -124,10 +124,8 @@ const Activity = () => {
   return (
 
     <>
-    <Topbar />
     <div
-      className="flex py-4 flex-col pt-16 font-[Inter,sans-serif]"
-      style={{ background: theme.colors.background }}
+      className="flex py-4 flex-col  font-[Inter,sans-serif]"
     >
       <LoadData />
       {isLoading && <Loader />}
@@ -143,7 +141,7 @@ const Activity = () => {
 
       {!isLoading && (
         <div
-          className="rounded-lg mt-4 shadow-md p-6 mx-6 md:mx-10 mb-6 flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-4"
+          className="rounded-lg mt-4 shadow-md p-6 mx-1 md:mx-10 mb-6 flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-4"
           style={{ backgroundColor: theme.colors.neutralLight }}
         >
           <div className="text-center">
@@ -181,7 +179,7 @@ const Activity = () => {
       )}
 
       {/* Year and Month Selectors */}
-      <div className="flex flex-col sm:flex-row justify-center mb-8 px-6 md:px-10 gap-4">
+      <div className="flex flex-col sm:flex-row justify-center mb-8 px-1 md:px-10 gap-4">
         <div className="relative w-full sm:w-1/2">
           <label htmlFor="year-select" className="sr-only">
             Select Year
@@ -259,7 +257,7 @@ const Activity = () => {
       </div>
 
       <div
-        className="flex rounded-xl p-1 mb-8 shadow-sm justify-center mx-6 md:mx-10"
+        className="flex rounded-xl p-1 mb-8 shadow-sm justify-center mx-1 md:mx-10"
         style={{ backgroundColor: theme.colors.tertiaryLight }}
       >
         <button
@@ -327,7 +325,7 @@ const Activity = () => {
       </div>
 
       {activeTab === "attendance" && (
-        <div className="flex-grow overflow-auto px-6 md:px-10 pb-6">
+        <div className="flex-grow overflow-auto px-1 md:px-10 pb-6">
           <div
             className="rounded-lg shadow-xl flex flex-col"
             style={{ backgroundColor: theme.colors.neutralLight }}
@@ -432,7 +430,7 @@ const Activity = () => {
       )}
 
       {activeTab === "donation" && (
-        <div className="flex-grow overflow-auto px-6 md:px-10 pb-6">
+        <div className="flex-grow overflow-auto px-1 md:px-10 pb-6">
           <div
             className="rounded-lg shadow-xl flex flex-col"
             style={{ backgroundColor: theme.colors.neutralLight }}

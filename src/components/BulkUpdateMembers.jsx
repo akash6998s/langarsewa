@@ -10,7 +10,7 @@ import { db } from '../firebase';
 
 const BulkUpdateMembers = () => {
   const [loading, setLoading] = useState(false);
-  const targetKey = "naamjap"; 
+  const targetKey = "najuikamjapuygyujgy"; 
   const defaultValue = ""; 
 
   // --- ADD KEY LOGIC ---

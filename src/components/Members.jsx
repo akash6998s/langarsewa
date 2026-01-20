@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Loader from "./Loader";
-import { theme } from "../theme"; // Theme variables use ho rahe hain
 import LoadData from "./LoadData";
-import Topbar from "./Topbar";
-import { FiSearch, FiClock, FiBarChart2, FiPhone, FiMail, FiMapPin, FiFilter } from "react-icons/fi";
+import { 
+  FiSearch, FiClock, FiPhone, FiMail, FiMapPin, 
+  FiFilter, FiUser, FiBriefcase, FiHash
+} from "react-icons/fi";
 
 const Members = () => {
   const [members, setMembers] = useState([]);
@@ -11,36 +12,9 @@ const Members = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortByOnline, setSortByOnline] = useState(false);
 
-  const getStatusColor = (dateString) => {
-    if (!dateString) return "#ef4444";
-    try {
-      let cleanDate = dateString.replace(/\bat\b/i, "").split("UTC")[0].trim();
-      const lastSeen = new Date(cleanDate);
-      if (isNaN(lastSeen.getTime())) return "#ef4444";
-      const now = new Date();
-      const diffInMs = now - lastSeen;
-      if (diffInMs < 24 * 60 * 60 * 1000) return "#10b981";
-      if (diffInMs < 7 * 24 * 60 * 60 * 1000) return "#f59e0b";
-      return "#ef4444";
-    } catch { return "#ef4444"; }
-  };
-
   const formatLastSeen = (dateString) => {
-    if (!dateString) return "No recent activity";
-    try {
-      let cleanDate = dateString.replace(/\bat\b/i, "").split("UTC")[0].trim();
-      const lastSeen = new Date(cleanDate);
-      if (isNaN(lastSeen.getTime())) return dateString;
-      const now = new Date();
-      const diffInSeconds = Math.floor((now - lastSeen) / 1000);
-      if (diffInSeconds < 60) return "Just now";
-      const minutes = Math.floor(diffInSeconds / 60);
-      if (minutes < 60) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
-      const hours = Math.floor(minutes / 60);
-      if (hours < 24) return `${hours} hr${hours > 1 ? "s" : ""} ago`;
-      const days = Math.floor(hours / 24);
-      return `${days} day${days > 1 ? "s" : ""} ago`;
-    } catch { return dateString; }
+    if (!dateString) return "No activity";
+    return dateString.split("at")[0].trim(); 
   };
 
   const checkImageExists = async (url) => {
@@ -87,123 +61,147 @@ const Members = () => {
     });
 
   return (
-    <>
-      <Topbar />
-      <div className="pb-24 pt-15 px-4 min-h-screen" style={{ backgroundColor: theme.colors.background }}>
-        <LoadData />
-        {isLoading && <Loader />}
+    <div className="min-h-screen bg-white">
+      <LoadData />
+      {isLoading && <Loader />}
 
-        {!isLoading && (
-          <div className="max-w-7xl mx-auto">
-            
-            {/* Top Controls */}
-            <div className="flex flex-col gap-4 mb-8">
-              <div className="flex justify-end">
-                <label className="flex items-center gap-2 px-4 py-2 bg-white rounded border border-slate-200 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={sortByOnline}
-                    onChange={(e) => setSortByOnline(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 transition-colors"
-                    style={{ color: theme.colors.primary }}
+      {!isLoading && (
+        <>
+          {/* PROFESSIONAL HEADER */}
+          <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm px-6 ">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 leading-tight">Sevadar Directory</h1>
+              <p className="text-sm text-gray-500 font-medium">Complete member directory with contact details</p>
+              
+              <div className="flex gap-3 mt-8">
+                <div className="relative flex-1">
+                  <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Search by name or roll number..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 font-medium text-sm"
                   />
-                  <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5 uppercase ">
-                     Sort by Activity
-                  </span>
-                </label>
+                </div>
+                <button 
+                  onClick={() => setSortByOnline(!sortByOnline)}
+                  className={`flex items-center justify-center w-14 h-14 border rounded-xl transition-all duration-200 font-medium ${
+                    sortByOnline 
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-sm hover:shadow-md hover:bg-blue-700' 
+                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm'
+                  }`}
+                >
+                  <FiFilter size={18} />
+                </button>
               </div>
-
-              <div className="relative">
-                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search members..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 rounded-2xl outline-none border border-slate-200 bg-white shadow-sm"
-                  style={{ focusBorderColor: theme.colors.primary }}
-                />
-              </div>
+              
+              {sortByOnline && (
+                <div className="flex items-center gap-2 mt-3 text-xs font-medium text-blue-600">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  Sorted by recent activity
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {/* MEMBERS GRID */}
+          <div className="max-w-4xl mx-auto px-6 py-8">
+            <div className="grid gap-6">
               {displayedMembers.map((member) => (
-                <div key={member.id} className="bg-white rounded-[2rem] p-5 border border-slate-100 shadow-sm flex flex-col animate-fadeIn">
-                  
-                  {/* Card Header */}
-                  <div className="flex justify-between items-center mb-5">
-                    <div className="px-3 py-1 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-400">
-                      {member.roll_no}
+                <div 
+                  key={member.id}
+                  className="group bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 hover:-translate-y-1"
+                >
+                  {/* HEADER SECTION */}
+                  <div className="p-8 pb-6 border-b border-gray-100">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex-shrink-0">
+                        <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gray-100 border-4 border-white shadow-md group-hover:shadow-lg transition-shadow">
+                          {member.img ? (
+                            <img 
+                              src={member.img} 
+                              alt={`${member.name} ${member.last_name}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                              <FiUser className="text-gray-500" size={32} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="text-right ml-4">
+                        <div className="inline-flex items-center px-4 py-2 rounded-full bg-gray-100 text-xs font-bold text-gray-800 uppercase tracking-wide">
+                          {member.roll_no}
+                        </div>
+                      </div>
                     </div>
-                    <FiBarChart2 size={18} style={{ color: getStatusColor(member.last_online) }} />
-                  </div>
 
-                  {/* Profile Image */}
-                  <div className="mx-auto mb-4">
-                    <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-2 border-slate-50 shadow-md">
-                      {member.img ? (
-                        <img src={member.img} alt="profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white" style={{ backgroundColor: theme.colors.primary }}>
-                          {member.name?.[0]}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Info Section */}
-                  <div className="text-center flex-grow">
-                    <h3 className="text-lg font-bold text-slate-800 mb-4">{member.name} {member.last_name}</h3>
-
-                    <div className="space-y-2 text-left mb-6">
-                      {member.phone_no && (
-                        <div className="flex items-center gap-3 text-slate-600 text-[13px] p-2.5 rounded-xl bg-slate-50/50 border border-slate-50">
-                          <FiPhone size={14} className="text-slate-400 shrink-0" />
-                          <span className="font-medium">{member.phone_no}</span>
-                        </div>
-                      )}
-                      {member.email && (
-                        <div className="flex items-center gap-3 text-slate-600 text-[13px] p-2.5 rounded-xl bg-slate-50/50 border border-slate-50">
-                          <FiMail size={14} className="text-slate-400 shrink-0" />
-                          <span className="truncate">{member.email}</span>
-                        </div>
-                      )}
-                      {member.address && (
-                        <div className="flex items-center gap-3 text-slate-600 text-[13px] p-2.5 rounded-xl bg-slate-50/50 border border-slate-50">
-                          <FiMapPin size={14} className="text-slate-400 shrink-0" />
-                          <span className="line-clamp-1">{member.address}</span>
-                        </div>
-                      )}
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
+                        {member.name} {member.last_name}
+                      </h2>
+                      <div className="flex items-center text-sm font-semibold text-gray-700">
+                        <FiBriefcase className="mr-2 text-gray-500" size={16} />
+                        {member.post || "Registered Sevadar"}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Footer Action */}
-                  <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      <FiClock size={12} />
-                      {formatLastSeen(member.last_online)}
+                  {/* CONTACT INFO */}
+                  <div className="px-8 py-6 space-y-4">
+                    <DetailLine icon={<FiMail className="text-blue-600" size={16} />} label="Email" value={member.email} />
+                    <DetailLine icon={<FiPhone className="text-green-600" size={16} />} label="Phone" value={member.phone_no} />
+                    <DetailLine icon={<FiMapPin className="text-purple-600" size={16} />} label="Address" value={member.address} />
+                    <DetailLine icon={<FiClock className="text-gray-600" size={16} />} label="Last Active" value={formatLastSeen(member.last_online)} />
+                  </div>
+
+                  {/* ACTION BUTTONS */}
+                  <div className="px-8 pb-8 pt-6 bg-gray-50 border-t border-gray-100">
+                    <div className="flex gap-3">
+                      <a 
+                        href={`tel:${member.phone_no}`}
+                        className="flex-1 bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-900 px-6 py-3.5 rounded-xl font-semibold text-sm shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2"
+                      >
+                        <FiPhone size={18} />
+                        Call
+                      </a>
+
                     </div>
-                    <a 
-                      href={`tel:${member.phone_no}`} 
-                      className="p-2 rounded-xl transition-colors text-white"
-                      style={{ backgroundColor: theme.colors.primary }}
-                    >
-                      <FiPhone size={16} />
-                    </a>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* EMPTY STATE */}
+            {displayedMembers.length === 0 && (
+              <div className="text-center py-24">
+                <div className="w-24 h-24 mx-auto mb-8 bg-gray-100 rounded-2xl flex items-center justify-center">
+                  <FiSearch className="text-gray-400" size={48} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No members found</h3>
+                <p className="text-gray-500 font-medium text-sm">Try adjusting your search terms</p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      <style>{`
-        .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
-    </>
+        </>
+      )}
+    </div>
   );
 };
+
+const DetailLine = ({ icon, label, value }) => (
+  <div className="flex items-start">
+    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center mt-0.5 text-gray-500 rounded-lg bg-gray-100 mr-4">
+      {React.cloneElement(icon)}
+    </div>
+    <div className="flex-1 min-w-0">
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{label}</div>
+      <div className="text-sm font-semibold text-gray-900 truncate">{value || "Not provided"}</div>
+    </div>
+  </div>
+);
 
 export default Members;

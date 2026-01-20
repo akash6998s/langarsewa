@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { theme } from "../theme";
 import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "../firebase"; // Ensure this path is correct
+import { db } from "../firebase";
 
 // Import MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
@@ -10,10 +10,11 @@ import InsightsIcon from "@mui/icons-material/Insights";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import MilitaryTechIcon from "@mui/icons-material/MilitaryTech";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 const navItems = [
   { name: "Home", path: "/home", icon: <HomeIcon /> },
-  { name: "Activity", path: "/activity", icon: <InsightsIcon /> },
+  // { name: "Activity", path: "/activity", icon: <InsightsIcon /> },
   { name: "Rank", path: "/rank", icon: <MilitaryTechIcon /> },
   { name: "Notification", path: "/notify", icon: <NotificationsIcon /> },
 ];
@@ -21,28 +22,41 @@ const navItems = [
 const Header = () => {
   const [postCount, setPostCount] = useState(0);
 
-  useEffect(() => {
-    // Reference to the 'post' collection in Firestore
-    const postCollectionRef = collection(db, "post");
+  const loggedInMember = JSON.parse(localStorage.getItem("loggedInMember"));
+  const isSuperAdmin = loggedInMember?.isAdmin === true;
+  const memberRollNo = loggedInMember?.roll_no;
 
-    // Set up a real-time listener
+  // Pehle .png se start karega
+  const [imgSrc, setImgSrc] = useState(
+    memberRollNo ? `https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${memberRollNo}.png` : ""
+  );
+  const [showIcon, setShowIcon] = useState(false);
+
+  useEffect(() => {
+    const postCollectionRef = collection(db, "post");
     const unsubscribe = onSnapshot(
       postCollectionRef,
       (querySnapshot) => {
-        // Update the state with the number of documents
         setPostCount(querySnapshot.size);
       },
       (error) => {
         console.error("Error fetching post count: ", error);
       }
     );
-
-    // Cleanup function to detach the listener when the component unmounts
     return () => unsubscribe();
   }, []);
 
-  const loggedInMember = JSON.parse(localStorage.getItem("loggedInMember"));
-  const isSuperAdmin = loggedInMember?.isAdmin === true;
+  const handleImageError = () => {
+    // Sequence: .png -> .jpg -> .jpeg -> others (Icon)
+    if (imgSrc.endsWith(".png")) {
+      setImgSrc(`https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${memberRollNo}.jpg`);
+    } else if (imgSrc.endsWith(".jpg")) {
+      setImgSrc(`https://raw.githubusercontent.com/akash6998s/langarsewa/main/src/assets/uploads/${memberRollNo}.jpeg`);
+    } else {
+      // Agar koi bhi extension kaam nahi aayi
+      setShowIcon(true);
+    }
+  };
 
   const fullNavItems = isSuperAdmin
     ? [
@@ -70,37 +84,17 @@ const Header = () => {
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex flex-col items-center px-1 py-2 rounded-xl transition-all duration-300 ease-in-out
-                focus:outline-none focus:ring-2 focus:ring-offset-2 group
-                ${isActive ? "active" : ""}`
+              `flex flex-col items-center px-1 py-2 rounded-xl transition-all duration-300 ease-in-out group ${isActive ? "active" : ""}`
             }
             style={({ isActive }) => ({
               color: isActive ? theme.colors.tertiary : theme.colors.primary,
-              backgroundColor: "transparent",
-              boxShadow: "none",
               transform: isActive ? "scale(1.05)" : "none",
-              "--tw-ring-color": theme.colors.primaryLight,
             })}
-            onMouseEnter={(e) => {
-              if (!e.currentTarget.classList.contains("active")) {
-                e.currentTarget.style.color = theme.colors.neutralDark;
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!e.currentTarget.classList.contains("active")) {
-                e.currentTarget.style.color = theme.colors.primary;
-              }
-            }}
           >
             <div className="text-xl sm:text-2xl mb-1 group-hover:scale-110 transition-transform duration-200 relative">
               {item.icon}
-              {/* Conditionally render the badge only on the Notification icon */}
               {item.name === "Notification" && postCount > 0 && (
-                <span
-                  className="absolute top-0 right-0 inline-flex items-center justify-center
-    w-4 h-4 text-[10px] font-semibold text-white bg-red-600 rounded-full transform
-    translate-x-1/2 -translate-y-1/2"
-                >
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-[10px] font-semibold text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
                   {postCount}
                 </span>
               )}
@@ -110,6 +104,34 @@ const Header = () => {
             </span>
           </NavLink>
         ))}
+
+        {/* Profile Section Added at the end */}
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            `flex flex-col items-center px-1 py-2 rounded-xl transition-all duration-300 ease-in-out group ${isActive ? "active" : ""}`
+          }
+          style={({ isActive }) => ({
+            color: isActive ? theme.colors.tertiary : theme.colors.primary,
+            transform: isActive ? "scale(1.05)" : "none",
+          })}
+        >
+          <div className="text-xl sm:text-2xl mb-1 group-hover:scale-110 transition-transform duration-200 border-2 border-gray-200 rounded-full w-7 h-7 sm:w-8 sm:h-8 overflow-hidden flex items-center justify-center bg-gray-50">
+            {memberRollNo && !showIcon ? (
+              <img
+                src={imgSrc}
+                alt="Profile"
+                className="w-full h-full object-cover"
+                onError={handleImageError}
+              />
+            ) : (
+              <AccountCircleIcon />
+            )}
+          </div>
+          <span className="text-[10px] sm:text-xs font-medium tracking-wide">
+            Profile
+          </span>
+        </NavLink>
       </div>
     </div>
   );
