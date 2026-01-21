@@ -1,10 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
+import Particles from "react-tsparticles";
+import { loadSlim } from "tsparticles-slim";
 import LoadData from "../components/LoadData";
 import { theme } from "../theme";
+
+// Icons
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
@@ -16,26 +20,13 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  // Scroll lock implementation
+  const particlesInit = useCallback(async engine => {
+    await loadSlim(engine);
+  }, []);
+
   useEffect(() => {
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
-    
-    // Auto-fill from localStorage if exists
-    try {
-      const storedMember = localStorage.getItem("loggedInMember");
-      if (storedMember) {
-        const memberData = JSON.parse(storedMember);
-        if (memberData.email && memberData.password) {
-          setEmail(memberData.email);
-          setPassword(memberData.password);
-        }
-      }
-    } catch (error) {
-      console.log(error)
-      localStorage.removeItem("loggedInMember");
-    }
-
     return () => {
       document.body.style.overflow = "auto";
       document.documentElement.style.overflow = "auto";
@@ -71,7 +62,7 @@ function Login() {
       localStorage.setItem("loggedInMember", JSON.stringify(approvedMember));
       navigate("/home", { replace: true });
     } catch (err) {
-      console.log(err);
+      console.log(err)
       setErrorMessage("Authentication failed. Please check your credentials.");
     } finally {
       setLoading(false);
@@ -79,26 +70,39 @@ function Login() {
   };
 
   return (
-    <div
-      className="fixed inset-0 w-screen h-screen flex items-center justify-center p-6 overflow-hidden"
-      style={{
-        backgroundColor: theme.colors.background,
-        fontFamily: theme.fonts.body,
-      }}
-    >
+    <div className="relative min-h-screen w-full flex items-center justify-center p-6 bg-white overflow-hidden">
+      
+      {/* Subtle Particles for depth */}
+      <Particles
+        id="tsparticles"
+        init={particlesInit}
+        options={{
+          particles: {
+            color: { value: theme.colors.primary },
+            links: { color: theme.colors.primary, distance: 150, enable: true, opacity: 0.1, width: 1 },
+            move: { enable: true, speed: 0.8 },
+            number: { value: 40 },
+            opacity: { value: 0.2 },
+            size: { value: 2 },
+          },
+        }}
+        className="absolute inset-0 z-0"
+      />
+
       <LoadData />
       
-      <div className="w-full max-w-sm animate-fadeIn">
+      {/* The Premium Login Box */}
+      <div className="relative z-10 w-full max-w-sm animate-fadeIn">
         <div 
-          className="bg-white rounded-[2.5rem] shadow-2xl p-8 sm:p-10 border border-slate-50"
+          className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-[0_30px_100px_rgba(0,0,0,0.08)] hover:shadow-[0_30px_100px_rgba(0,0,0,0.12)] transition-shadow duration-500"
         >
           {/* Brand Header */}
           <div className="text-center mb-10">
-            <div className="mb-2  inline-block">
+            <div className="mb-4 inline-block p-1 bg-white rounded-3xl shadow-sm border border-slate-50">
               <img 
                 src="/logo.png" 
                 alt="Logo" 
-                className="w-24 h-24 object-contain mx-auto"
+                className="w-20 h-20 object-contain mx-auto"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.parentNode.innerHTML = `<div class="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-black mx-auto" style="background:${theme.colors.primary}">L</div>`;
@@ -111,14 +115,14 @@ function Login() {
             >
               Member Login
             </h2>
-            <p className="text-slate-400 text-[14px] font-bold uppercase tracking-[0.2em] mt-1">
+            <p className="text-slate-400 text-[12px] font-bold uppercase tracking-[0.2em] mt-2">
               सुदर्शन सेना भोजन वितरण
             </p>
           </div>
 
           {errorMessage && (
             <div 
-              className="mb-6 p-3 rounded-xl text-[10px] font-bold text-center border animate-shake"
+              className="mb-6 p-3 rounded-xl text-[11px] font-bold text-center border animate-shake"
               style={{ 
                 backgroundColor: theme.colors.dangerLight, 
                 color: theme.colors.danger,
@@ -129,8 +133,8 @@ function Login() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <div className="space-y-3">
+          <form onSubmit={handleLogin} className="flex flex-col gap-5">
+            <div className="space-y-4">
               <input
                 type="email"
                 required
@@ -138,7 +142,7 @@ function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email Address"
                 disabled={loading}
-                className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none transition-all text-sm font-semibold bg-slate-50/50 focus:bg-white focus:ring-4"
+                className="w-full px-6 py-4 rounded-2xl border border-slate-100 outline-none transition-all text-sm font-semibold bg-slate-50/50 focus:bg-white focus:ring-4 focus:border-orange-500/20 shadow-sm"
                 style={{ 
                   color: theme.colors.neutralDark,
                   "--tw-ring-color": `${theme.colors.primary}10`
@@ -153,7 +157,7 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                   disabled={loading}
-                  className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none transition-all text-sm font-semibold bg-slate-50/50 focus:bg-white focus:ring-4 pr-12"
+                  className="w-full px-6 py-4 rounded-2xl border border-slate-100 outline-none transition-all text-sm font-semibold bg-slate-50/50 focus:bg-white focus:ring-4 focus:border-orange-500/20 shadow-sm pr-12"
                   style={{ 
                     color: theme.colors.neutralDark,
                     "--tw-ring-color": `${theme.colors.primary}10`
@@ -162,10 +166,10 @@ function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors hover:scale-110 active:scale-95"
                   style={{ color: theme.colors.primaryLight }}
                 >
-                  {showPassword ? <VisibilityOff size={18} /> : <Visibility size={18} />}
+                  {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                 </button>
               </div>
             </div>
@@ -173,7 +177,7 @@ function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest text-white shadow-lg active:scale-95 transition-all flex justify-center items-center mt-2"
+              className="w-full py-4 rounded-2xl text-[13px] font-bold uppercase tracking-widest text-white shadow-[0_10px_20px_rgba(249,115,22,0.3)] active:scale-95 hover:brightness-110 transition-all flex justify-center items-center mt-2"
               style={{ backgroundColor: theme.colors.primary }}
             >
               {loading ? (
@@ -185,12 +189,12 @@ function Login() {
           </form>
 
           {/* Clean Footer */}
-          <div className="mt-5 pt-6 border-t border-slate-50 text-center">
-            <p className="text-[11px] font-medium text-slate-400">
+          <div className="mt-8 pt-6 border-t border-slate-50 text-center">
+            <p className="text-[12px] font-medium text-slate-400">
               Don't have an account? 
               <Link 
                 to="/signup" 
-                className="ml-1.5 font-bold hover:underline underline-offset-4"
+                className="ml-1.5 font-black hover:underline underline-offset-4"
                 style={{ color: theme.colors.primary }}
               >
                 Register Here
@@ -211,9 +215,6 @@ function Login() {
           0%, 100% { transform: translateX(0); }
           25% { transform: translateX(-5px); }
           75% { transform: translateX(5px); }
-        }
-        input:focus {
-          border-color: ${theme.colors.primary}40 !important;
         }
       `}</style>
     </div>

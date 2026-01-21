@@ -1,20 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
-import { useNavigate } from "react-router-dom";
-import Loader from "../components/Loader"; // Import your Loader component
-import CustomPopup from "../components/Popup"; // Import your CustomPopup component
-import { theme } from "../theme"; // Import the theme
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import Loader from "../components/Loader"; 
+import CustomPopup from "../components/Popup"; 
+import { theme } from "../theme"; 
 import LoadData from "../components/LoadData";
-// Import Material-UI Icons
+import Particles from "react-tsparticles";
+import { loadSlim } from "tsparticles-slim";
+
+// Icons
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-
 
 function Signup() {
   const [email, setEmail] = useState("");
@@ -24,35 +25,32 @@ function Signup() {
   const [fullName, setFullName] = useState("");
   const navigate = useNavigate();
 
-  // States for custom Loader and Popup
   const [isLoading, setIsLoading] = useState(false);
   const [popupMessage, setPopupMessage] = useState(null);
-  const [popupType, setPopupType] = useState(null); // 'success' or 'error'
-
-  // New state for password visibility
+  const [popupType, setPopupType] = useState(null); 
   const [showPassword, setShowPassword] = useState(false);
+
+  // Particles Setup
+  const particlesInit = useCallback(async engine => {
+    await loadSlim(engine);
+  }, []);
 
   useEffect(() => {
     const fetchRollNumbers = async () => {
-      setIsLoading(true); // Start loading for roll numbers
-      setPopupMessage(null); // Clear any previous messages
-      setPopupType(null); // Clear popup type as well
+      setIsLoading(true);
+      setPopupMessage(null);
+      setPopupType(null);
       try {
         const snap = await getDocs(collection(db, "members"));
         let rolls = snap.docs.map((doc) => doc.id);
-        // Sort the roll numbers in ascending order
-        rolls.sort((a, b) => {
-          // Assuming roll numbers are strings that can be compared numerically
-          // If they contain non-numeric characters, a more complex sort might be needed
-          return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
-        });
+        rolls.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
         setRollOptions(rolls);
       } catch (err) {
-        console.error("Error fetching roll numbers:", err);
+        console.log(err)
         setPopupMessage("Failed to load roll numbers. Please try again.");
         setPopupType("error");
       } finally {
-        setIsLoading(false); // End loading
+        setIsLoading(false);
       }
     };
     fetchRollNumbers();
@@ -64,9 +62,7 @@ function Signup() {
         setFullName("");
         return;
       }
-      setIsLoading(true); // Start loading for name fetch
-      setPopupMessage(null);
-      setPopupType(null); // Clear popup type as well
+      setIsLoading(true);
       try {
         const docSnap = await getDoc(doc(db, "members", rollNo));
         if (docSnap.exists()) {
@@ -78,12 +74,12 @@ function Signup() {
           setPopupType("error");
         }
       } catch (err) {
-        console.error("Error fetching member name:", err);
         setFullName("");
+        console.log(err)
         setPopupMessage("Error fetching member name. Please try again.");
         setPopupType("error");
       } finally {
-        setIsLoading(false); // End loading
+        setIsLoading(false);
       }
     };
     fetchName();
@@ -91,40 +87,31 @@ function Signup() {
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    // Clear any existing messages and set loading state
     setPopupMessage(null);
-    setPopupType(null); // Clear popup type as well
+    setPopupType(null);
     setIsLoading(true);
 
     if (!rollNo) {
       setPopupMessage("❗Please select a roll number.");
       setPopupType("error");
-      setIsLoading(false); // Stop loading if validation fails
+      setIsLoading(false);
       return;
     }
 
     try {
       const usersSnapshot = await getDocs(collection(db, "users"));
-      const emailExists = usersSnapshot.docs.some(
-        (doc) => doc.data().email === email
-      );
-      const rollUsed = usersSnapshot.docs.some(
-        (doc) => doc.data().roll_no === rollNo
-      );
+      const emailExists = usersSnapshot.docs.some(d => d.data().email === email);
+      const rollUsed = usersSnapshot.docs.some(d => d.data().roll_no === rollNo);
 
       if (emailExists) {
-        setPopupMessage(
-          "❌ This email is already registered and awaiting approval."
-        );
+        setPopupMessage("❌ This email is already registered and awaiting approval.");
         setPopupType("error");
         setIsLoading(false);
         return;
       }
 
       if (rollUsed) {
-        setPopupMessage(
-          "❌ This roll number is already registered and awaiting approval."
-        );
+        setPopupMessage("❌ This roll number is already registered and awaiting approval.");
         setPopupType("error");
         setIsLoading(false);
         return;
@@ -132,286 +119,191 @@ function Signup() {
 
       let userCredential;
       try {
-        userCredential = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
       } catch (err) {
         if (err.code === "auth/email-already-in-use") {
-          // If email is already in use, try to sign in with it.
-          userCredential = await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-          );
+          userCredential = await signInWithEmailAndPassword(auth, email, password);
         } else {
-          // For any other Firebase auth error, re-throw to be caught by the outer catch block
           throw err;
         }
       }
 
       await setDoc(doc(db, "users", userCredential.user.uid), {
         email,
-        password, // Storing password directly in Firestore is NOT recommended for production.
-        // For a real app, you'd only store user metadata, not credentials.
+        password,
         roll_no: rollNo,
         approved: false,
         createdAt: new Date(),
       });
 
       setPopupMessage("✅ Signup successful. Please wait for admin approval.");
-      setPopupType("success"); // Set success type for the popup
-      // Delay navigation slightly to allow popup to be seen
-      setTimeout(() => {
-        navigate("/");
-      }, 2000);
+      setPopupType("success");
+      setTimeout(() => navigate("/"), 2000);
     } catch (err) {
-      console.error("Signup error:", err);
-      // Provide a more user-friendly message for common Firebase auth errors
-      let errorMessage = "An unknown error occurred during signup.";
-      if (err.code) {
-        switch (err.code) {
-          case 'auth/weak-password':
-            errorMessage = 'The password is too weak. Please use a stronger password (at least 6 characters).';
-            break;
-          case 'auth/invalid-email':
-            errorMessage = 'The email address is not valid.';
-            break;
-          case 'auth/email-already-in-use':
-            errorMessage = 'This email address is already in use by another account.';
-            break;
-          case 'auth/operation-not-allowed':
-            errorMessage = 'Email/password accounts are not enabled. Please contact support.';
-            break;
-          case 'auth/user-disabled':
-            errorMessage = 'Your account has been disabled.';
-            break;
-          default:
-            errorMessage = err.message; // Fallback to Firebase's message
-        }
-      } else {
-        errorMessage = err.message; // Use generic error message if no code
-      }
+      let errorMessage = err.code ? err.code : err.message;
       setPopupMessage("Signup error: " + errorMessage);
-      setPopupType("error"); // Set error type for the popup
+      setPopupType("error");
     } finally {
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
   };
 
   return (
-    <div
-      className="min-h-screen flex p-4 items-center justify-center"
-      style={{
-        backgroundColor: theme.colors.background,
-        fontFamily: theme.fonts.body,
-      }}
-    >
-      <LoadData/>
-      {/* Conditionally render Loader */}
-      {isLoading && <Loader />}
+    <div className="relative min-h-screen w-full flex items-center justify-center p-6 bg-white overflow-hidden">
+      
+      {/* Subtle Particles */}
+      <Particles
+        id="tsparticles"
+        init={particlesInit}
+        options={{
+          particles: {
+            color: { value: theme.colors.primary },
+            links: { color: theme.colors.primary, distance: 150, enable: true, opacity: 0.1, width: 1 },
+            move: { enable: true, speed: 0.8 },
+            number: { value: 40 },
+            opacity: { value: 0.2 },
+            size: { value: 2 },
+          },
+        }}
+        className="absolute inset-0 z-0"
+      />
 
-      {/* Conditionally render Custom Popup */}
+      <LoadData />
+      {isLoading && <Loader />}
       {popupMessage && (
         <CustomPopup
           message={popupMessage}
           type={popupType}
-          onClose={() => setPopupMessage(null)} // Close popup by clearing message
+          onClose={() => setPopupMessage(null)}
         />
       )}
 
-      <div
-        className="shadow-xl rounded-2xl p-8 w-full max-w-md border"
-        style={{
-          backgroundColor: theme.colors.neutralLight,
-          borderColor: theme.colors.primaryLight,
-          borderWidth: "1px",
-          borderStyle: "solid",
-        }}
-      >
-        <h2
-          className="text-2xl font-semibold text-center mb-6"
-          style={{
-            color: theme.colors.primary,
-            fontFamily: theme.fonts.heading,
-          }}
-        >
-          Member Signup
-        </h2>
-        <form onSubmit={handleSignup} className="space-y-4">
-          {/* Roll No */}
-          <div>
-            <label
-              className="block text-sm font-medium mb-1"
-              style={{ color: theme.colors.primary }}
+      {/* The Premium Signup Box */}
+      <div className="relative z-10 w-full max-w-md animate-fadeIn">
+        <div className="bg-white rounded-[3rem] p-8 sm:p-10 border border-slate-100 shadow-[0_30px_100px_rgba(0,0,0,0.08)]">
+          
+          <div className="text-center mb-8">
+            <h2 
+              className="text-2xl font-black tracking-tight"
+              style={{ color: theme.colors.primary, fontFamily: theme.fonts.heading }}
             >
-              Roll Number
-            </label>
-            <select
-              className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2"
-              style={{
-                backgroundColor: theme.colors.neutralLight,
-                borderColor: theme.colors.primaryLight,
-                color: theme.colors.neutralDark,
-                borderWidth: "1px",
-                borderStyle: "solid",
-                outlineColor: theme.colors.primary,
-                "--tw-ring-color": theme.colors.primary,
-              }}
-              value={rollNo}
-              onChange={(e) => setRollNo(e.target.value)}
-              required
-              disabled={isLoading} // Disable when loading
-            >
-              <option value="">Select Roll No</option>
-              {rollOptions.map((roll) => (
-                <option key={roll} value={roll}>
-                  {roll}
-                </option>
-              ))}
-            </select>
+              Member Signup
+            </h2>
+            <div className="h-1 w-10 bg-orange-500 mx-auto rounded-full mt-2"></div>
           </div>
 
-          {/* Name (read-only) */}
-          <div>
-            <label
-              className="block text-sm font-medium mb-1"
-              style={{ color: theme.colors.primary }}
-            >
-              Name
-            </label>
-            <input
-              type="text"
-              className="w-full p-2.5 border rounded-lg focus:outline-none"
-              style={{
-                backgroundColor: theme.colors.tertiaryLight,
-                borderColor: theme.colors.primaryLight,
-                color: theme.colors.primary,
-                borderWidth: "1px",
-                borderStyle: "solid",
-              }}
-              value={fullName}
-              readOnly
-              disabled={isLoading} // Disable when loading
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label
-              className="block text-sm font-medium mb-1"
-              style={{ color: theme.colors.primary }}
-            >
-              Email
-            </label>
-            <input
-              className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-              disabled={isLoading} // Disable when loading
-              style={{
-                backgroundColor: theme.colors.neutralLight,
-                borderColor: theme.colors.primaryLight,
-                color: theme.colors.neutralDark,
-                borderWidth: "1px",
-                borderStyle: "solid",
-                outlineColor: theme.colors.primary,
-                "--tw-ring-color": theme.colors.primary,
-                "--tw-placeholder-color": theme.colors.primary, // Custom property for placeholder
-              }}
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label
-              className="block text-sm font-medium mb-1"
-              style={{ color: theme.colors.primary }}
-            >
-              Password
-            </label>
-            <div className="relative"> {/* Added relative positioning for the icon */}
-              <input
-                type={showPassword ? "text" : "password"} // Toggle type based on state
-                className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 pr-10" // Added pr-10 for icon space
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
+          <form onSubmit={handleSignup} className="space-y-4">
+            {/* Roll Number Select */}
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-widest mb-1.5 ml-2 text-slate-400">
+                Roll Number
+              </label>
+              <select
+                className="w-full px-5 py-3.5 rounded-2xl border border-slate-100 outline-none transition-all text-sm font-semibold bg-slate-50/50 focus:bg-white focus:ring-4 focus:border-orange-500/20"
+                style={{ color: theme.colors.neutralDark, "--tw-ring-color": `${theme.colors.primary}10` }}
+                value={rollNo}
+                onChange={(e) => setRollNo(e.target.value)}
                 required
-                disabled={isLoading} // Disable when loading
-                style={{
-                  backgroundColor: theme.colors.neutralLight,
-                  borderColor: theme.colors.primaryLight,
-                  color: theme.colors.neutralDark,
-                  borderWidth: "1px",
-                  borderStyle: "solid",
-                  outlineColor: theme.colors.primary,
-                  "--tw-ring-color": theme.colors.primary,
-                  "--tw-placeholder-color": theme.colors.primary, // Custom property for placeholder
-                }}
-              />
-              <button
-                type="button" // Important: type="button" to prevent form submission
-                onClick={() => setShowPassword(!showPassword)} // Toggle password visibility
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
-                style={{ color: theme.colors.primary }}
-                disabled={isLoading} // Disable button when loading
+                disabled={isLoading}
               >
-                {/* MUI Icons for show/hide password */}
-                {showPassword ? (
-                  <VisibilityOff className="h-5 w-5" />
-                ) : (
-                  <Visibility className="h-5 w-5" />
-                )}
-              </button>
+                <option value="">Select Roll No</option>
+                {rollOptions.map((roll) => (
+                  <option key={roll} value={roll}>{roll}</option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            className="w-full font-semibold py-2.5 rounded-lg transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2"
-            style={{
-              backgroundColor: theme.colors.primary,
-              color: theme.colors.neutralLight,
-              "--tw-ring-color": theme.colors.primaryLight,
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor =
-                theme.colors.primaryLight)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = theme.colors.primary)
-            }
-            disabled={isLoading} // Disable button when loading
-          >
-            {isLoading ? "Signing Up..." : "Signup"}
-          </button>
-          <p
-            className="text-sm text-center"
-            style={{ color: theme.colors.primary }}
-          >
-            Already have an account?{" "}
-            <Link
-              to="/"
-              className="font-medium underline hover:underline transition-colors duration-200"
-              style={{ color: theme.colors.primary }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = theme.colors.primaryLight)
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = theme.colors.primary)
-              }
+            {/* Name Input */}
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-widest mb-1.5 ml-2 text-slate-400">
+                Full Name
+              </label>
+              <input
+                type="text"
+                className="w-full px-5 py-3.5 rounded-2xl border border-slate-100 outline-none text-sm font-bold bg-orange-50/30"
+                style={{ color: theme.colors.primary }}
+                value={fullName}
+                readOnly
+                placeholder="Auto-filled name"
+              />
+            </div>
+
+            {/* Email Input */}
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-widest mb-1.5 ml-2 text-slate-400">
+                Email Address
+              </label>
+              <input
+                type="email"
+                className="w-full px-5 py-3.5 rounded-2xl border border-slate-100 outline-none transition-all text-sm font-semibold bg-slate-50/50 focus:bg-white focus:ring-4 focus:border-orange-500/20"
+                style={{ color: theme.colors.neutralDark, "--tw-ring-color": `${theme.colors.primary}10` }}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Password Input */}
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-widest mb-1.5 ml-2 text-slate-400">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="w-full px-5 py-3.5 rounded-2xl border border-slate-100 outline-none transition-all text-sm font-semibold bg-slate-50/50 focus:bg-white focus:ring-4 focus:border-orange-500/20 pr-12"
+                  style={{ color: theme.colors.neutralDark, "--tw-ring-color": `${theme.colors.primary}10` }}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  required
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2"
+                  style={{ color: theme.colors.primaryLight }}
+                >
+                  {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-4 rounded-2xl text-[13px] font-bold uppercase tracking-widest text-white shadow-lg active:scale-95 transition-all flex justify-center items-center mt-4"
+              style={{ backgroundColor: theme.colors.primary }}
             >
-              Log in here
-            </Link>
-          </p>
-        </form>
+              {isLoading ? "Signing Up..." : "Signup"}
+            </button>
+
+            {/* Footer Link */}
+            <p className="text-[12px] text-center font-medium text-slate-400 mt-6">
+              Already have an account?{" "}
+              <Link
+                to="/"
+                className="font-black hover:underline underline-offset-4 transition-colors"
+                style={{ color: theme.colors.primary }}
+              >
+                Log in here
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
+
+      <style>{`
+        .animate-fadeIn { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
