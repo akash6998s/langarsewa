@@ -121,7 +121,7 @@ const Members = () => {
             </div>
           </div>
 
-          <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto px-4 py-32">
             <div className="grid gap-8">
               {displayedMembers.map((member) => (
                 <div 
