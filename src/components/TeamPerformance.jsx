@@ -632,6 +632,17 @@ const TeamPerformance = () => {
 
   return (
     <>
+    <div 
+        className="w-full bg-white  shadow-sm py-4 mb-2 fixed top-0 left-0 z-[60] border-b"
+        style={{ borderColor: colors.tertiaryLight }}
+      >
+        <h1 
+          className="text-center text-2xl md:text-3xl font-bold uppercase tracking-tight"
+          style={{ color: colors.primary, fontFamily: fonts.heading }}
+        >
+          Team Performance Dashboard
+        </h1>
+      </div>
       <div
         className="container pb-24 pt-24 mx-auto p-4 min-h-screen"
         style={{
@@ -643,7 +654,7 @@ const TeamPerformance = () => {
         }}
       >
         {isLoading && <Loader />}
-        <div className="flex justify-center mb-6 border-b-2" style={{ borderColor: colors.tertiaryLight }}>
+        <div className="flex pt-4 justify-center mb-6 border-b-2" style={{ borderColor: colors.tertiaryLight }}>
           <button onClick={() => handleTabChange("Performance")} className={`py-2 px-4 font-semibold text-lg transition-colors ${activeTab === "Performance" ? "border-b-4" : "text-gray-500"}`} style={{ color: activeTab === "Performance" ? colors.primary : colors.neutralDark, borderColor: activeTab === "Performance" ? colors.primary : "transparent" }} disabled={isLoading}>Performance</button>
           <button onClick={() => handleTabChange("Points")} className={`py-2 px-4 font-semibold text-lg transition-colors ${activeTab === "Points" ? "border-b-4" : "text-gray-500"}`} style={{ color: activeTab === "Points" ? colors.primary : colors.neutralDark, borderColor: activeTab === "Points" ? colors.primary : "transparent" }} disabled={isLoading}>Points</button>
         </div>

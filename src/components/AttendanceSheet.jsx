@@ -112,7 +112,7 @@ const Attendance = () => {
     };
 
     return (
-        <div className="p-3 md:p-10 font-[Inter,sans-serif]" style={{ background: theme.colors.background }}>
+        <div className="px-3 pt-3 pb-8 md:p-10 font-[Inter,sans-serif]" style={{ background: theme.colors.background }}>
             <LoadData/>
             
             <div className="flex flex-row gap-4 mb-3 justify-center">

@@ -20,13 +20,31 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
+  // Particles Initialization
   const particlesInit = useCallback(async engine => {
     await loadSlim(engine);
   }, []);
 
   useEffect(() => {
+    // 1. Scroll lock implementation from New Code
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
+    
+    // 2. Auto-fill from localStorage logic from New Code
+    try {
+      const storedMember = localStorage.getItem("loggedInMember");
+      if (storedMember) {
+        const memberData = JSON.parse(storedMember);
+        if (memberData.email && memberData.password) {
+          setEmail(memberData.email);
+          setPassword(memberData.password);
+        }
+      }
+    } catch (error) {
+      console.log("Storage error:", error);
+      localStorage.removeItem("loggedInMember");
+    }
+
     return () => {
       document.body.style.overflow = "auto";
       document.documentElement.style.overflow = "auto";
@@ -39,15 +57,18 @@ function Login() {
     setErrorMessage("");
 
     try {
+      // Step 1: Firebase Auth
       const res = await signInWithEmailAndPassword(auth, email, password);
-      const pendingSnap = await getDoc(doc(db, "users", res.user.uid));
       
+      // Step 2: Check Pending Status (Firestore)
+      const pendingSnap = await getDoc(doc(db, "users", res.user.uid));
       if (pendingSnap.exists()) {
         setErrorMessage("Access denied. Your account is pending admin approval.");
         await signOut(auth);
         return;
       }
 
+      // Step 3: Verify with Local Database (allMembers)
       const allMembers = JSON.parse(localStorage.getItem("allMembers")) || [];
       const approvedMember = allMembers.find(
         (member) => member.email === email && member.password === password
@@ -59,10 +80,11 @@ function Login() {
         return;
       }
 
+      // Step 4: Success Logic
       localStorage.setItem("loggedInMember", JSON.stringify(approvedMember));
       navigate("/home", { replace: true });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       setErrorMessage("Authentication failed. Please check your credentials.");
     } finally {
       setLoading(false);
@@ -72,7 +94,7 @@ function Login() {
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center p-6 bg-white overflow-hidden">
       
-      {/* Subtle Particles for depth */}
+      {/* Premium Particles Background */}
       <Particles
         id="tsparticles"
         init={particlesInit}
@@ -91,18 +113,18 @@ function Login() {
 
       <LoadData />
       
-      {/* The Premium Login Box */}
+      {/* Premium Design Box */}
       <div className="relative z-10 w-full max-w-sm animate-fadeIn">
         <div 
           className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-[0_30px_100px_rgba(0,0,0,0.08)] hover:shadow-[0_30px_100px_rgba(0,0,0,0.12)] transition-shadow duration-500"
         >
-          {/* Brand Header */}
+          {/* Header */}
           <div className="text-center mb-10">
-            <div className="mb-4 inline-block p-1 bg-white rounded-3xl shadow-sm border border-slate-50">
+            <div className="mb-4 inline-block p-1">
               <img 
                 src="/logo.png" 
                 alt="Logo" 
-                className="w-20 h-20 object-contain mx-auto"
+                className="w-25 h-25 object-contain mx-auto"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.parentNode.innerHTML = `<div class="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-black mx-auto" style="background:${theme.colors.primary}">L</div>`;
@@ -188,7 +210,7 @@ function Login() {
             </button>
           </form>
 
-          {/* Clean Footer */}
+          {/* Footer */}
           <div className="mt-8 pt-6 border-t border-slate-50 text-center">
             <p className="text-[12px] font-medium text-slate-400">
               Don't have an account? 
