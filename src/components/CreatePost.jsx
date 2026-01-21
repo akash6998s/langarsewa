@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import axios from "axios";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { theme } from "../theme";
 import Loader from "./Loader";
+
+// Error Fix: Specific imports for particles
+import Particles from "react-tsparticles";
+import { loadSlim } from "tsparticles-slim"; 
 
 const IMGBB_API_KEY = "3d4ec45255aa2a6c2896e919e5ddfb4c";
 const IMGBB_API_URL = "https://api.imgbb.com/1/upload";
@@ -14,6 +18,11 @@ function CreatePost() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [previewImage, setPreviewImage] = useState(null);
+
+  // Particles initialization function (Error fix)
+  const particlesInit = useCallback(async (engine) => {
+    await loadSlim(engine);
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -33,7 +42,7 @@ function CreatePost() {
       console.log("Post saved to Firestore!");
     } catch (e) {
       console.error("Error adding document: ", e);
-      setMessage("Error saving post to database. Please check console.");
+      setMessage("Error saving post to database.");
     }
   };
 
@@ -65,14 +74,8 @@ function CreatePost() {
 
     try {
       let image_link = null;
-      let text_content = null;
-
       if (imageFile) {
         image_link = await uploadImage(imageFile);
-      }
-
-      if (text) {
-        text_content = text;
       }
 
       const memberData = JSON.parse(localStorage.getItem("loggedInMember"));
@@ -86,8 +89,7 @@ function CreatePost() {
         name,
         last_name,
         image_link,
-        text_content,
-        // 👇 ADDED: Initialize likes and comments as empty arrays
+        text_content: text || null,
         likes: [],
         comments: [],
       };
@@ -108,44 +110,56 @@ function CreatePost() {
   if (loading) return <Loader />;
 
   return (
-    <>
+    <div className="relative min-h-screen w-full">
+      {/* Background Particles */}
+      <Particles
+        id="tsparticles"
+        init={particlesInit}
+        options={{
+          fullScreen: { enable: true, zIndex: -1 },
+          fpsLimit: 120,
+          particles: {
+            color: { value: theme.colors.primary },
+            links: {
+              color: theme.colors.primary,
+              distance: 150,
+              enable: true,
+              opacity: 0.2,
+              width: 1,
+            },
+            move: { enable: true, speed: 1 },
+            number: { density: { enable: true, area: 800 }, value: 50 },
+            opacity: { value: 0.3 },
+            size: { value: { min: 1, max: 3 } },
+          },
+          detectRetina: true,
+        }}
+      />
 
-      <div className="p-4 max-w-md mx-auto py-12">
+      {/* Aapka Original UI Code */}
+      <div className="relative z-10 p-4 max-w-md mx-auto py-12">
         <div
-          className="bg-white rounded-2xl shadow-lg p-6 space-y-4"
+          className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 space-y-4"
           style={{ border: `1px solid ${theme.colors.primaryLight}` }}
         >
-          {/* Header */}
-          <h2
-            className="text-xl font-bold text-center"
-            style={{ color: theme.colors.primary }}
-          >
+          <h2 className="text-xl font-bold text-center" style={{ color: theme.colors.primary }}>
             Create a Post
           </h2>
 
-          {/* Textarea */}
           <textarea
             rows="4"
             value={text}
             onChange={handleTextChange}
             placeholder="What's on your mind?"
-            className="w-full p-3 rounded-xl border text-sm focus:ring-2 focus:outline-none resize-none"
-            style={{
-              borderColor: theme.colors.primaryLight,
-              backgroundColor: theme.colors.neutralLight,
-              color: theme.colors.neutralDark,
-            }}
+            className="w-full p-3 rounded-xl border text-sm focus:ring-2 focus:outline-none resize-none bg-white"
+            style={{ borderColor: theme.colors.primaryLight, color: theme.colors.neutralDark }}
           />
 
-          {/* Image Upload */}
           <div className="flex flex-col space-y-2">
             <label
               htmlFor="image-upload"
-              className="cursor-pointer py-2 px-4 rounded-xl text-center text-sm font-medium border transition hover:bg-gray-100"
-              style={{
-                borderColor: theme.colors.primaryLight,
-                color: theme.colors.primary,
-              }}
+              className="cursor-pointer py-2 px-4 rounded-xl text-center text-sm font-medium border transition hover:bg-gray-100 bg-white"
+              style={{ borderColor: theme.colors.primaryLight, color: theme.colors.primary }}
             >
               📷 Choose an image
             </label>
@@ -157,37 +171,24 @@ function CreatePost() {
               className="hidden"
             />
 
-            {/* Preview Image */}
             {previewImage && (
               <div className="relative">
-                <img
-                  src={previewImage}
-                  alt="Preview"
-                  className="rounded-xl w-full max-h-60 object-cover"
-                />
+                <img src={previewImage} alt="Preview" className="rounded-xl w-full max-h-60 object-cover" />
                 <button
                   type="button"
-                  onClick={() => {
-                    setPreviewImage(null);
-                    setImageFile(null);
-                  }}
+                  onClick={() => { setPreviewImage(null); setImageFile(null); }}
                   className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-lg"
-                >
-                  ✕
-                </button>
+                > ✕ </button>
               </div>
             )}
           </div>
 
-          {/* Submit Button */}
           <button
             onClick={handleSubmit}
             disabled={loading || (!imageFile && !text)}
             className="w-full py-2 rounded-xl font-semibold transition"
             style={{
-              backgroundColor: loading
-                ? theme.colors.secondary
-                : theme.colors.primary,
+              backgroundColor: loading ? theme.colors.secondary : theme.colors.primary,
               color: theme.colors.neutralLight,
               opacity: loading || (!imageFile && !text) ? 0.6 : 1,
             }}
@@ -195,22 +196,15 @@ function CreatePost() {
             {loading ? "Uploading..." : "Post"}
           </button>
 
-          {/* Message */}
           {message && (
-            <p
-              className="text-center text-sm font-medium mt-2"
-              style={{
-                color: message.includes("successfully")
-                  ? theme.colors.success
-                  : theme.colors.danger,
-              }}
-            >
+            <p className="text-center text-sm font-medium mt-2"
+              style={{ color: message.includes("successfully") ? theme.colors.success : theme.colors.danger }}>
               {message}
             </p>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

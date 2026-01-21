@@ -433,15 +433,9 @@ const TeamPerformance = () => {
           style={{ backgroundColor: colors.neutralLight }}
         >
           <table
-            className="min-w-full table-fixed border-collapse border border-gray-300 shadow-md rounded-lg"
+            className="w-full border-collapse border border-gray-300 shadow-md rounded-lg"
             style={{ borderColor: colors.primaryLight }}
           >
-            <colgroup>
-              <col style={{ width: "15%" }} />
-              <col style={{ width: "40%" }} />
-              <col style={{ width: "22.5%" }} />
-              <col style={{ width: "22.5%" }} />
-            </colgroup>
             <thead
               className="sticky top-0 z-50"
               style={{ backgroundColor: colors.tertiaryLight }}
@@ -450,14 +444,14 @@ const TeamPerformance = () => {
                 <th
                   scope="col"
                   className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
-                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary }}
+                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary, width: '15%' }}
                 >
                   Rank
                 </th>
                 <th
                   scope="col"
                   className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 cursor-pointer"
-                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary }}
+                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary, width: '45%' }}
                   onDoubleClick={() => {
                     const namesText = displayedMembers
                       .map((m) => `${m.name} ${m.last_name || ""}`.trim())
@@ -475,18 +469,18 @@ const TeamPerformance = () => {
                 </th>
                 <th
                   scope="col"
-                  className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300"
-                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary }}
+                  className="p-2 text-center text-xs font-bold uppercase tracking-wider border border-gray-300"
+                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary, width: '20%' }}
                 >
-                  Days Present
+                  Days
                 </th>
                 <th
                   scope="col"
-                  className="p-2 text-left text-xs font-bold uppercase tracking-wider border border-gray-300 cursor-pointer"
+                  className="p-2 text-center text-xs font-bold uppercase tracking-wider border border-gray-300 cursor-pointer"
                   onClick={() => setFilterZero((prev) => !prev)}
-                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary }}
+                  style={{ backgroundColor: colors.tertiaryLight, color: colors.primary, width: '20%' }}
                 >
-                  Percentage
+                  %
                 </th>
               </tr>
             </thead>
@@ -511,14 +505,14 @@ const TeamPerformance = () => {
                       <FaTrophy className="inline-block text-yellow-700 ml-1" title="Top Performer" />
                     )}
                   </td>
-                  <td className="p-2 text-sm border border-gray-300 whitespace-normal break-words">
+                  <td className="p-2 text-sm border border-gray-300 break-words">
                     {member.name} {member.last_name}
                   </td>
-                  <td className="p-2 text-sm border border-gray-300 whitespace-nowrap text-center">
+                  <td className="p-2 text-sm border border-gray-300 text-center">
                     {member.presentDays}
                   </td>
-                  <td className="p-2 text-sm border border-gray-300 whitespace-nowrap text-center">
-                    {member.percentage.toFixed(2)}%
+                  <td className="p-2 text-sm border border-gray-300 text-center">
+                    {member.percentage.toFixed(1)}%
                   </td>
                 </tr>
               ))}
@@ -577,24 +571,18 @@ const TeamPerformance = () => {
             style={{ backgroundColor: colors.neutralLight }}
           >
             <table
-              className="min-w-full table-fixed border-collapse border border-gray-300 shadow-md rounded-lg"
+              className="w-full border-collapse border border-gray-300 shadow-md rounded-lg"
               style={{ borderColor: colors.primaryLight }}
             >
-              <colgroup>
-                <col style={{ width: "15%" }} />
-                <col style={{ width: "35%" }} />
-                <col style={{ width: "30%" }} />
-                <col style={{ width: "20%" }} />
-              </colgroup>
               <thead
                 className="sticky top-0 z-50"
                 style={{ backgroundColor: colors.tertiaryLight }}
               >
                 <tr>
-                  <th scope="col" className="p-2 text-left text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary }}>Rank</th>
-                  <th scope="col" className="p-2 text-left text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary }}>Name</th>
-                  <th scope="col" className="p-2 text-left text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary }}>Days Present</th>
-                  <th scope="col" className="p-2 text-left text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary }}>Points</th>
+                  <th scope="col" className="p-2 text-left text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary, width: '15%' }}>Rank</th>
+                  <th scope="col" className="p-2 text-left text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary, width: '45%' }}>Name</th>
+                  <th scope="col" className="p-2 text-center text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary, width: '20%' }}>Days</th>
+                  <th scope="col" className="p-2 text-center text-xs font-bold uppercase border border-gray-300" style={{ color: colors.primary, width: '20%' }}>Points</th>
                 </tr>
               </thead>
               <tbody className="bg-white">
@@ -613,7 +601,7 @@ const TeamPerformance = () => {
                         <FaTrophy className="inline-block text-yellow-700 ml-1" />
                       )}
                     </td>
-                    <td className="p-2 text-sm border border-gray-300 whitespace-normal break-words">{member.name} {member.last_name}</td>
+                    <td className="p-2 text-sm border border-gray-300 break-words">{member.name} {member.last_name}</td>
                     <td className="p-2 text-sm border border-gray-300 text-center">{member.daysPresent}</td>
                     <td className="p-2 text-sm border border-gray-300 font-bold text-center">{member.points}</td>
                   </tr>
@@ -632,29 +620,28 @@ const TeamPerformance = () => {
 
   return (
     <>
-    <div 
-        className="w-full bg-white  shadow-sm py-4 mb-2 fixed top-0 left-0 z-[60] border-b"
+      <div 
+        className="w-full bg-white shadow-md py-4 fixed top-0 left-0 z-[60] border-b"
         style={{ borderColor: colors.tertiaryLight }}
       >
         <h1 
-          className="text-center text-2xl md:text-3xl font-bold uppercase tracking-tight"
+          className="text-center text-xl md:text-3xl font-bold uppercase tracking-tight"
           style={{ color: colors.primary, fontFamily: fonts.heading }}
         >
-          Team Performance Dashboard
+          Performance Dashboard
         </h1>
       </div>
       <div
-        className="container pb-24 pt-24 mx-auto p-4 min-h-screen"
+        className="container pb-24 mx-auto p-4 min-h-screen"
         style={{
           background: colors.background,
           fontFamily: fonts.body,
           color: colors.neutralDark,
-          paddingTop: '64px',
-          boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 10px ${colors.neutralLight}`
+          paddingTop: '85px', // Top spacing for fixed header
         }}
       >
         {isLoading && <Loader />}
-        <div className="flex pt-4 justify-center mb-6 border-b-2" style={{ borderColor: colors.tertiaryLight }}>
+        <div className="flex justify-center mb-6 border-b-2" style={{ borderColor: colors.tertiaryLight }}>
           <button onClick={() => handleTabChange("Performance")} className={`py-2 px-4 font-semibold text-lg transition-colors ${activeTab === "Performance" ? "border-b-4" : "text-gray-500"}`} style={{ color: activeTab === "Performance" ? colors.primary : colors.neutralDark, borderColor: activeTab === "Performance" ? colors.primary : "transparent" }} disabled={isLoading}>Performance</button>
           <button onClick={() => handleTabChange("Points")} className={`py-2 px-4 font-semibold text-lg transition-colors ${activeTab === "Points" ? "border-b-4" : "text-gray-500"}`} style={{ color: activeTab === "Points" ? colors.primary : colors.neutralDark, borderColor: activeTab === "Points" ? colors.primary : "transparent" }} disabled={isLoading}>Points</button>
         </div>

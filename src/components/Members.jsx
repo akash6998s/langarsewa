@@ -3,7 +3,7 @@ import Loader from "./Loader";
 import LoadData from "./LoadData";
 import { 
   FiSearch, FiClock, FiPhone, FiMail, FiMapPin, 
-  FiFilter, FiUser, FiBriefcase, FiHash
+  FiFilter, FiUser, FiBriefcase
 } from "react-icons/fi";
 
 const Members = () => {
@@ -90,8 +90,7 @@ const Members = () => {
 
       {!isLoading && (
         <>
-          {/* STICKY HEADER */}
-          <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4">
+          <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 pb-4">
             <div className="max-w-4xl mx-auto">
               <div className="flex justify-between items-end mb-4">
                 <div>
@@ -122,90 +121,83 @@ const Members = () => {
             </div>
           </div>
 
-          {/* LIST SECTION */}
           <div className="max-w-4xl mx-auto px-4 py-8">
             <div className="grid gap-8">
               {displayedMembers.map((member) => (
                 <div 
                   key={member.id}
-                  className="group bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:border-blue-50 transition-all duration-500 overflow-hidden"
+                  className="group bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden"
                 >
-                  {/* CARD HEADER */}
-                  <div className="p-6 md:p-8 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-6">
-                      {/* PROFILE IMAGE */}
-                      <div className="relative flex-shrink-0">
-                        <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2.2rem] overflow-hidden bg-gray-100 ring-4 ring-gray-50 shadow-inner">
+                  <div className="p-6 md:p-10">
+                    {/* FIRST LINE: ROLL NO AND BOLDER IMAGE */}
+                    <div className="flex justify-between flex-row-reverse items-start mb-8">
+                      <div className="flex-shrink-0">
+                        <div className="bg-gradient-to-br from-gray-800 to-black text-white min-w-[55px] h-[55px] md:min-w-[85px] md:h-[85px] rounded-3xl flex flex-col items-center justify-center shadow-2xl border-4 border-white group-hover:rotate-3 transition-all duration-300">
+                          <span className="text-2xl md:text-4xl font-black italic tracking-tighter leading-none">
+                            {member.roll_no}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex-shrink-0">
+                        {/* Enlarged Image Container with stronger visual effects */}
+                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-[2.5rem] overflow-hidden bg-white ring-8 ring-gray-50 shadow-2xl group-hover:scale-105 transition-transform duration-500">
                           {member.img ? (
                             <img src={member.img} alt={member.name} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
-                              <FiUser size={40} />
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300">
+                              <FiUser size={50} className="opacity-50" />
                             </div>
                           )}
                         </div>
                       </div>
-
-                      {/* NAME & CONDITIONAL POST */}
-                      <div className="flex flex-col justify-center">
-                        <h2 className="text-xl md:text-3xl font-black text-gray-900 leading-tight">
-                          {member.name} {member.last_name}
-                        </h2>
-                        
-                        {/* Only show if member.post is NOT empty */}
-                        {member.post && member.post.trim() !== "" && (
-                          <div className="flex items-center mt-2 text-blue-600 bg-blue-50 px-3 py-1 rounded-lg w-fit">
-                            <FiBriefcase className="mr-2" size={12} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">
-                              {member.post}
-                            </span>
-                          </div>
-                        )}
-                      </div>
                     </div>
 
-                    {/* LARGE ROLL NUMBER BADGE */}
-                    <div className="flex-shrink-0 text-center">
-                      <div className="bg-gradient-to-br from-gray-800 to-black text-white min-w-[70px] h-[70px] md:min-w-[80px] md:h-[80px] rounded-3xl flex flex-col items-center justify-center shadow-xl border-4 border-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                        <span className="text-2xl md:text-3xl font-black italic tracking-tighter leading-none">
-                          {member.roll_no}
-                        </span>
-                      </div>
+                    {/* SECOND LINE: NAME AND POST */}
+                    <div className="flex flex-col">
+                      <h2 className="text-3xl md:text-5xl font-black text-gray-900 leading-tight tracking-tight">
+                        {member.name} {member.last_name}
+                      </h2>
+                      {member.post && member.post.trim() !== "" && (
+                        <div className="flex items-center mt-3 text-blue-600 bg-blue-50/50 border border-blue-100 px-4 py-1.5 rounded-xl w-fit">
+                          <FiBriefcase className="mr-2" size={14} />
+                          <span className="text-[11px] font-black uppercase tracking-[0.15em]">
+                            {member.post}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* DETAILS GRID */}
-                  <div className="px-8 py-6 bg-gray-50/30 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-50">
-                    <DetailLine icon={<FiMail size={16} />} label="Email Address" value={member.email} />
-                    <DetailLine icon={<FiPhone size={16} />} label="Contact Number" value={member.phone_no} />
-                    <DetailLine icon={<FiMapPin size={16} />} label="Primary Location" value={member.address} />
+                  <div className="px-8 py-6 bg-gray-50/40 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-50">
+                    <DetailLine icon={<FiMail size={18} />} label="Email Address" value={member.email} />
+                    <DetailLine icon={<FiPhone size={18} />} label="Contact Number" value={member.phone_no} />
+                    <DetailLine icon={<FiMapPin size={18} />} label="Primary Location" value={member.address} />
                     <DetailLine 
-                      icon={<FiClock size={16} />} 
+                      icon={<FiClock size={18} />} 
                       label="Recent Activity" 
                       value={getRelativeTime(member.last_online)} 
-                      highlight 
                     />
                   </div>
 
-                  {/* ACTION BUTTON */}
-                  <div className="px-8 pb-8 pt-2">
+                  <div className="px-8 pb-10 pt-2">
                     <a 
                       href={`tel:${member.phone_no}`}
-                      className="flex items-center justify-center gap-3 w-full py-4 bg-gray-900 text-white rounded-[1.5rem] font-bold text-sm hover:bg-blue-600 transition-all shadow-lg shadow-gray-200 hover:shadow-blue-100"
+                      className="flex items-center justify-center gap-3 w-full py-5 bg-gray-900 text-white rounded-[2rem] font-black text-base hover:bg-blue-600 transition-all shadow-xl shadow-gray-200 hover:shadow-blue-200"
                     >
-                      <FiPhone size={18} />
-                      Call Now
+                      <FiPhone size={20} />
+                      Call Member
                     </a>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* EMPTY STATE */}
             {displayedMembers.length === 0 && (
               <div className="text-center py-24 bg-white rounded-[3rem] border-2 border-dashed border-gray-100">
                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                   <FiSearch className="text-gray-300" size={32} />
+                    <FiSearch className="text-gray-300" size={32} />
                 </div>
                 <p className="text-gray-500 font-black text-lg">No Results Found</p>
                 <p className="text-gray-400 text-sm">Try searching for a different name or roll number.</p>
@@ -218,14 +210,14 @@ const Members = () => {
   );
 };
 
-const DetailLine = ({ icon, label, value, highlight }) => (
+const DetailLine = ({ icon, label, value }) => (
   <div className="flex items-start gap-4 group/line">
-    <div className={`mt-1 p-2.5 rounded-xl transition-colors ${highlight ? 'bg-blue-100 text-blue-600' : 'bg-white text-gray-400 shadow-sm border border-gray-100'}`}>
+    <div className="mt-1 p-3 rounded-2xl bg-white text-gray-400 shadow-sm border border-gray-100 group-hover/line:text-blue-500 transition-colors">
       {icon}
     </div>
     <div className="min-w-0 flex-1">
-      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{label}</p>
-      <p className={`text-sm font-bold truncate ${highlight ? 'text-blue-700' : 'text-gray-700'}`}>
+      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-base font-bold truncate text-gray-800">
         {value && value !== "" ? value : "Not Provided"}
       </p>
     </div>

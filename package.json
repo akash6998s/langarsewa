@@ -33,6 +33,8 @@
     "react-tsparticles": "^2.12.2",
     "reactjs-popup": "^2.0.6",
     "recharts": "^3.0.2",
+    "tsparticles": "^3.9.1",
+    "tsparticles-engine": "^2.12.0",
     "tsparticles-slim": "^2.12.0",
     "uuid": "^11.1.0"
   },

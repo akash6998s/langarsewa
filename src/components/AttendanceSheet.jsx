@@ -143,7 +143,7 @@ const Attendance = () => {
             ) : (
                 <div className="bg-white rounded-lg shadow-xl overflow-hidden">
                     {/* Fixed height container for scrolling ONLY when content exceeds screen space */}
-                    <div className="overflow-auto max-h-[calc(100vh-280px)]">
+                    <div className="p-[2px] overflow-auto max-h-[calc(100vh-280px)]">
                         <table className="w-full border-collapse table-auto">
                             <thead style={{ backgroundColor: theme.colors.tertiaryLight }} className="sticky top-0 z-50">
                                 <tr>

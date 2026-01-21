@@ -31,7 +31,7 @@ const Gallery = () => {
   const [initialTouchX, setInitialTouchX] = useState(0);
   const [slideOffset, setSlideOffset] = useState(0);
 
-  // 🚀 Zoom and Pan states 🚀
+  // Zoom and Pan states
   const [scale, setScale] = useState(1);
   const [translateX, setTranslateX] = useState(0);
   const [translateY, setTranslateY] = useState(0);
@@ -125,11 +125,7 @@ const Gallery = () => {
       link.href = url;
 
       const now = new Date();
-      const day = String(now.getDate()).padStart(2, "0");
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const year = String(now.getFullYear()).slice(-2);
-      const seconds = String(now.getSeconds()).padStart(2, "0");
-      const timestamp = `${day}-${month}-${year}-${seconds}`;
+      const timestamp = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}-${now.getSeconds()}`;
 
       link.setAttribute("download", `image-${timestamp}.jpg`);
       document.body.appendChild(link);
@@ -180,8 +176,6 @@ const Gallery = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [zoomImage, showPrevImage, showNextImage]);
 
-  /* --- Swiping/Navigation Logic (Single Finger on Image) --- */
-  // Only allow swiping if the image is not zoomed (scale is 1)
   const handleTouchStart = (e) => {
     if (scale > 1) return;
     setInitialTouchX(e.targetTouches[0].clientX);
@@ -195,18 +189,12 @@ const Gallery = () => {
 
   const handleTouchEnd = () => {
     if (scale > 1) return;
-    if (slideOffset > 50) {
-      showPrevImage();
-    } else if (slideOffset < -50) {
-      showNextImage();
-    }
+    if (slideOffset > 50) showPrevImage();
+    else if (slideOffset < -50) showNextImage();
     setSlideOffset(0);
   };
 
-  /* --- 🚀 Pinch-to-Zoom/Pan Logic (Applied to Modal Container) 🚀 --- */
-
   const handleZoomTouchStart = (e) => {
-    // 2 fingers = Pinch (Zoom/Dezoom)
     if (e.touches.length === 2) {
       setInitialTouchState({
         distance: getDistance(e.touches),
@@ -215,7 +203,6 @@ const Gallery = () => {
         translateY: translateY,
       });
     } else if (e.touches.length === 1 && scale > 1) {
-      // 1 finger = Pan (Move zoomed image)
       setInitialTouchState({
         scale: scale,
         startX: e.touches[0].clientX,
@@ -228,24 +215,18 @@ const Gallery = () => {
 
   const handleZoomTouchMove = (e) => {
     if (!initialTouchState) return;
-    // IMPORTANT: Only prevent default if we are actively zooming or panning
     if (e.touches.length === 2 || (e.touches.length === 1 && scale > 1)) {
-        e.preventDefault(); 
+      e.preventDefault();
     }
 
     if (e.touches.length === 2) {
-      // Pinch move
       const currentDistance = getDistance(e.touches);
       const newScale = initialTouchState.scale * (currentDistance / initialTouchState.distance);
-      setScale(Math.max(1, Math.min(3, newScale))); 
+      setScale(Math.max(1, Math.min(3, newScale)));
     } else if (e.touches.length === 1 && scale > 1) {
-      // Pan move
       const deltaX = e.touches[0].clientX - initialTouchState.startX;
       const deltaY = e.touches[0].clientY - initialTouchState.startY;
-
-      // Simple boundary check
-      const maxPan = (scale - 1) * 150; 
-
+      const maxPan = (scale - 1) * 150;
       setTranslateX(Math.min(maxPan, Math.max(-maxPan, initialTouchState.translateX + deltaX)));
       setTranslateY(Math.min(maxPan, Math.max(-maxPan, initialTouchState.translateY + deltaY)));
     }
@@ -253,8 +234,6 @@ const Gallery = () => {
 
   const handleZoomTouchEnd = () => {
     setInitialTouchState(null);
-
-    // Snap back to original position if nearly un-zoomed
     if (scale < 1.1) {
       setScale(1);
       setTranslateX(0);
@@ -262,47 +241,50 @@ const Gallery = () => {
     }
   };
 
-  // --- End Pinch-to-Zoom/Pan Logic ---
-
   return (
     <>
       {(isLoading || deleting) && <Loader />}
 
       <div
-        className="flex flex-col pb-24 font-[Inter,sans-serif]"
+        className="flex flex-col pb-24 font-[Inter,sans-serif] min-h-screen"
         style={{ background: theme.colors.background }}
       >
-        {/* Action Bar */}
-        <div className="bg-white border-b border-gray-200 px-4 py-3">
-          <div className="flex justify-between items-center">
+        {/* Sticky Header Section */}
+        <div className="sticky top-0 z-[100] w-full bg-white shadow-sm border-b border-gray-200">
+          <div className="pb-4 text-center">
+            <h1 className="text-xl font-bold text-gray-800 tracking-tight">
+              Photo Gallery
+            </h1>
+          </div>
+
+          {/* Action Bar inside sticky container */}
+          <div className="px-4 py-3 flex justify-between items-center bg-gray-50/50">
             <button
               onClick={toggleSortOrder}
-              className="p-2 rounded-full hover:bg-gray-100 transition"
+              className="p-2 rounded-full hover:bg-gray-200 transition"
               title={`Sort ${sortOrder === "asc" ? "Oldest First" : "Newest First"}`}
             >
               <FilterListIcon />
             </button>
 
             {isAdmin && (
-              <>
+              <div className="flex gap-2">
                 {!selectionMode ? (
                   <button
                     onClick={() => setSelectionMode(true)}
-                    className="px-4 py-2 rounded-full font-medium text-white shadow-sm"
+                    className="px-6 py-2 rounded-full font-medium text-white shadow-sm transition active:scale-95"
                     style={{ background: theme.colors.primary }}
                     disabled={deleting}
                   >
                     Select
                   </button>
                 ) : (
-                  <div className="flex gap-2">
+                  <>
                     <button
                       onClick={handleDeleteSelected}
                       disabled={selectedImages.length === 0 || deleting}
                       className={`px-4 py-2 rounded-full font-medium text-white shadow-sm transition ${
-                        selectedImages.length === 0
-                          ? "cursor-not-allowed opacity-50"
-                          : "hover:scale-105"
+                        selectedImages.length === 0 ? "opacity-50" : "hover:bg-red-700"
                       }`}
                       style={{ background: theme.colors.danger }}
                     >
@@ -313,15 +295,13 @@ const Gallery = () => {
                         setSelectionMode(false);
                         setSelectedImages([]);
                       }}
-                      className="px-4 py-2 rounded-full font-medium text-white shadow-sm hover:scale-105 transition"
-                      style={{ background: theme.colors.neutralDark }}
-                      disabled={deleting}
+                      className="px-4 py-2 rounded-full font-medium text-white bg-gray-500 shadow-sm"
                     >
                       Cancel
                     </button>
-                  </div>
+                  </>
                 )}
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -329,13 +309,13 @@ const Gallery = () => {
         {/* Gallery Grid */}
         <div className="flex-1">
           {uploadedData.length > 0 ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1 p-1">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1 p-1 mt-2">
               {uploadedData.map((img, index) => (
                 <div
                   key={img.id}
-                  className={`relative overflow-hidden rounded-lg transition-all ${
+                  className={`relative overflow-hidden rounded-md transition-all ${
                     selectedImages.includes(img.id)
-                      ? "ring-4 ring-blue-500"
+                      ? "ring-4 ring-blue-500 z-10 scale-[0.98]"
                       : "hover:opacity-90"
                   }`}
                 >
@@ -349,94 +329,60 @@ const Gallery = () => {
                     }}
                   />
                   {selectionMode && isAdmin && (
-                    <input
-                      type="checkbox"
-                      checked={selectedImages.includes(img.id)}
-                      onChange={() => handleSelect(img.id)}
-                      className="absolute top-2 left-2 w-5 h-5 accent-blue-500"
-                    />
+                    <div className="absolute top-2 left-2 pointer-events-none">
+                       <input
+                        type="checkbox"
+                        checked={selectedImages.includes(img.id)}
+                        readOnly
+                        className="w-5 h-5 accent-blue-600 rounded shadow"
+                      />
+                    </div>
                   )}
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500 mt-20">
-              No images uploaded yet.
-            </p>
+            !isLoading && (
+              <p className="text-center text-gray-500 mt-20">
+                No images uploaded yet.
+              </p>
+            )
           )}
         </div>
 
-        {/* 🚀 Zoom Modal with Pinch/Pan Handlers 🚀 */}
+        {/* Zoom Modal */}
         {zoomImage && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[10000] p-2"
-            // Apply the new zoom/pan handlers to the entire modal container
+            className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[10000] p-2 touch-none"
             onTouchStart={handleZoomTouchStart}
             onTouchMove={handleZoomTouchMove}
             onTouchEnd={handleZoomTouchEnd}
           >
-            <div className="relative w-full h-full flex items-center justify-center">
-              {/* Top Buttons (z-index 10 to stay above image) */}
-              <div className="absolute top-4 left-4 flex items-center gap-3 z-10">
-                <button
-                  onClick={handleDownload}
-                  className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition"
-                  title="Download"
-                >
-                  <FileDownloadOutlinedIcon />
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition"
-                  title="Share"
-                >
-                  <ShareOutlinedIcon />
-                </button>
+            <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+              <div className="absolute top-4 left-4 flex items-center gap-3 z-[10001]">
+                <button onClick={handleDownload} className="p-2 bg-white rounded-full text-gray-800 shadow-lg"><FileDownloadOutlinedIcon /></button>
+                <button onClick={handleShare} className="p-2 bg-white rounded-full text-gray-800 shadow-lg"><ShareOutlinedIcon /></button>
               </div>
-              <div className="absolute top-4 right-4 z-10">
-                <button
-                  onClick={() => setZoomIndex(null)}
-                  className="p-2 bg-white rounded-full text-gray-800 shadow-lg hover:scale-110 transition"
-                  title="Close"
-                >
-                  <CloseIcon />
-                </button>
+              <div className="absolute top-4 right-4 z-[10001]">
+                <button onClick={() => setZoomIndex(null)} className="p-2 bg-white rounded-full text-gray-800 shadow-lg"><CloseIcon /></button>
               </div>
 
-              {/* Navigation Arrows (Desktop only, only visible when not zoomed) */}
               {scale === 1 && (
                 <>
-                  <button
-                    onClick={showPrevImage}
-                    className="absolute left-4 text-white bg-black/50 p-2 rounded-full hover:bg-black/70 hidden md:block z-10"
-                  >
-                    <ArrowBackIosNewIcon />
-                  </button>
-                  <button
-                    onClick={showNextImage}
-                    className="absolute right-4 text-white bg-black/50 p-2 rounded-full hover:bg-black/70 hidden md:block z-10"
-                  >
-                    <ArrowForwardIosIcon />
-                  </button>
+                  <button onClick={showPrevImage} className="absolute left-4 text-white bg-black/50 p-2 rounded-full hidden md:block z-[10001]"><ArrowBackIosNewIcon /></button>
+                  <button onClick={showNextImage} className="absolute right-4 text-white bg-black/50 p-2 rounded-full hidden md:block z-[10001]"><ArrowForwardIosIcon /></button>
                 </>
               )}
 
-              {/* Zoomed Image */}
               <img
                 key={zoomIndex}
                 src={zoomImage}
                 alt="Zoomed"
-                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-transform duration-300"
                 style={{
-                  // Apply the CSS transformation based on state
                   transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale})`,
-                  // Disable transition during active touch to make panning/zooming feel immediate
                   transition: initialTouchState ? 'none' : 'transform 0.3s ease-out',
-                  cursor: scale > 1 ? "grab" : "default",
-                  maxWidth: '100%',
-                  maxHeight: '100%',
                 }}
-                // Apply single-finger swipe on the image itself when not zoomed (scale === 1)
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
