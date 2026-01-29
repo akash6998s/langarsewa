@@ -121,7 +121,7 @@ const Members = () => {
             </div>
           </div>
 
-          <div className="max-w-4xl mx-auto px-4 py-32">
+          <div className="max-w-4xl mx-auto px-4 pb-32 pt-8">
             <div className="grid gap-8">
               {displayedMembers.map((member) => (
                 <div 
@@ -217,7 +217,7 @@ const DetailLine = ({ icon, label, value }) => (
     </div>
     <div className="min-w-0 flex-1">
       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{label}</p>
-      <p className="text-base font-bold truncate text-gray-800">
+      <p className="text-base font-bold text-gray-800 break-words whitespace-normal leading-relaxed">
         {value && value !== "" ? value : "Not Provided"}
       </p>
     </div>

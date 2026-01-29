@@ -174,7 +174,7 @@ const Attendance = () => {
                                             <td className="px-2 py-3 sticky left-0 z-10 shadow-sm w-16 border border-gray-300"
                                                 style={{ backgroundColor: theme.colors.neutralLight }}>
                                                 <div className="font-bold text-sm" style={{ color: theme.colors.neutralDark }}>{member.roll_no}</div>
-                                                <div className="text-xs" style={{ color: theme.colors.primary }}>{member.name}</div>
+                                                <div className="text-xs" style={{ color: theme.colors.primary }}>{member.name} {member.last_name}</div>
                                             </td>
                                             <td className="p-1 text-center text-xs font-bold border border-gray-300"
                                                 style={{ color: theme.colors.secondary }}>{member.points}</td>

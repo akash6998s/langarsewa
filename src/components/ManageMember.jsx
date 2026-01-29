@@ -78,6 +78,10 @@ const Managemember = () => {
           img: "",
           attendance: {},
           donation: {},
+          duty: "",
+          incharge: "",
+          last_online: "",
+          naamjap: "",
         });
       } else {
         const member = members.find((m) => Number(m.roll_no) === numRollNo);
@@ -210,6 +214,10 @@ const Managemember = () => {
         address: deleteField(),
         attendance: deleteField(),
         donation: deleteField(),
+        duty: deleteField(),
+        incharge: deleteField(),
+        last_online: deleteField(),
+        naamjap: deleteField(),
         approved: false,
         isAdmin: false,
         isSuperAdmin: false,
